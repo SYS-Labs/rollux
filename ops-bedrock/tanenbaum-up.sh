@@ -112,3 +112,18 @@ SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_a
 )
 
 echo "L2 ready."
+
+# Bring up Prometheus exporter
+(
+  cd op-exporter
+  echo "Building Prometheus exporter"
+  # Check if the build succeeded
+  if [ $? -eq 0 ]; then
+    # Run the binary with the specified flags
+    # TODO: add rpc provider and network
+    ./op-exporter --rpc.provider="" --label.network=""
+  else
+    # Log an error message if the build failed
+    echo "Error: build failed"
+  fi
+)
