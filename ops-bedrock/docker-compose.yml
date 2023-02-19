@@ -59,7 +59,7 @@ services:
       --l1=ws://l1:8546
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
-      --sequencer.enabled
+      --sequencer.stopped
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
       --p2p.sequencer.key=8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba
@@ -186,8 +186,9 @@ services:
     build:
       context: ../
       dockerfile: ./op-exporter/Dockerfile
+    ports:
+      - "9100:9100"
     command: >
-      op-exporter
       --rpc.provider=http://l2:8545
       --label.network=tanenbaum
 
@@ -213,6 +214,8 @@ services:
     image: prom/prometheus
     env_file:
       - ./envs/metrics.env
+    ports:
+      - "9090:9090"
     volumes:
       - ./docker/prometheus:/etc/prometheus
       - prometheus_data:/prometheus
