@@ -8,6 +8,10 @@ volumes:
   l1_data:
   l2_data:
   op_log:
+  influxdb_data:
+  grafana_data:
+  grafana_dashboards:
+  prometheus_data:
 
 
 services:
@@ -177,6 +181,15 @@ services:
       OP_HEARTBEAT_HTTP_PORT: 8080
     ports:
       - "8080:8080"
+
+  op-exporter:
+    build:
+      context: ../
+      dockerfile: ./op-exporter/Dockerfile
+    command: >
+      op-exporter
+      --rpc.provider=http://l2:8545
+      --label.network=tanenbaum
 
   grafana:
     image: grafana/grafana:7.5.5
