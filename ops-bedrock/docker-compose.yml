@@ -190,7 +190,9 @@ services:
       - "9100:9100"
     command: >
       --rpc.provider=http://l2:8545
-      --label.network=tanenbaum
+      --label.network=goerli
+      --rollUpGasPrices.enable
+      --gaseBaseFee.enable
 
   grafana:
     image: grafana/grafana:7.5.5
