@@ -189,7 +189,7 @@ services:
     ports:
       - "9100:9100"
     command: >
-      --rpc.provider=http://l2:8545
+      --rpc.provider=https://rpc-bedrock.rollux.com
       --label.network=goerli
       --rollUpGasPrices.enable
       --gaseBaseFee.enable
