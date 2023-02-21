@@ -68,7 +68,7 @@ if [ ! -f "$DEVNET/done" ]; then
   (
     cd "$OP_NODE"
     go run cmd/main.go genesis l2 \
-        --l1-rpc https://rpc.tanenbaum.io \
+        --l1-rpc https://rpc-bedrock.rollux.com \
         --deployment-dir $CONTRACTS_BEDROCK/deployments/goerli \
         --deploy-config $CONTRACTS_BEDROCK/deploy-config/goerli.json \
         --outfile.l2 $DEVNET/genesis-l2.json \
@@ -113,17 +113,9 @@ SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_a
 
 echo "L2 ready."
 
-# Bring up Prometheus exporter
+# Bring up Monitoring infrastructure; exporter, heartbeat, influxdb, prometheus and grafana
 (
-  cd op-exporter
-  echo "Building Prometheus exporter"
-  # Check if the build succeeded
-  if [ $? -eq 0 ]; then
-    # Run the binary with the specified flags
-    # TODO: add rpc provider and network
-    ./op-exporter --rpc.provider="" --label.network=""
-  else
-    # Log an error message if the build failed
-    echo "Error: build failed"
-  fi
+  cd ops-bedrock
+  echo "Bringing up monitoring infrastructure"
+  docker-compose up -d op-exporter prometheus grafana influxdb dashboard-sync
 )
