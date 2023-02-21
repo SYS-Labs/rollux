@@ -190,7 +190,7 @@ services:
       - "9100:9100"
     command: >
       --rpc.provider=https://rpc-bedrock.rollux.com
-      --label.network=goerli
+      --label.network=tanenbaum
       --rollUpGasPrices.enable
       --gaseBaseFee.enable
 
