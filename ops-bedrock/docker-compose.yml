@@ -19,7 +19,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l1
-    stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
       - "8545:8545"
@@ -46,9 +45,9 @@ services:
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
 
   op-node:
-    depends_on:
-      - l1
-      - l2
+#    depends_on:
+#      - l1
+#      - l2
     build:
       context: ../
       dockerfile: ./op-node/Dockerfile
@@ -59,7 +58,7 @@ services:
       --l1=ws://l1:8546
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
-      --sequencer.enabled
+      --sequencer.stopped
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
       --p2p.sequencer.key=8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba
@@ -69,6 +68,7 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
+      --p2p.static=/ip4/54.149.129.118/tcp/9003
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
@@ -90,10 +90,7 @@ services:
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
       - "${PWD}/../.devnet/rollup.json:/rollup.json"
       - op_log:/op_log
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-      - 192.168.9.45
+
 
   op-proposer:
     depends_on:
@@ -158,19 +155,19 @@ services:
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
 
-  stateviz:
-    build:
-      context: ../
-      dockerfile: ./ops-bedrock/Dockerfile.stateviz
-    command:
-      - stateviz
-      - -addr=0.0.0.0:8080
-      - -snapshot=/op_log/snapshot.log
-      - -refresh=10s
-    ports:
-      - "9090:8080"
-    volumes:
-      - op_log:/op_log:ro
+#  stateviz:
+#    build:
+#      context: ../
+#      dockerfile: ./ops-bedrock/Dockerfile.stateviz
+#    command:
+#      - stateviz
+#      - -addr=0.0.0.0:8080
+#      - -snapshot=/op_log/snapshot.log
+#      - -refresh=10s
+#    ports:
+#      - "9090:8080"
+#    volumes:
+#      - op_log:/op_log:ro
 
   op-heartbeat:
     build:
@@ -232,13 +229,3 @@ services:
     volumes:
       - ./docker/scripts/:/scripts
       - grafana_dashboards:/grafana-dashboards
-
-
-networks:
-  default:
-      driver: bridge
-      ipam:
-          driver: default
-          config:
-            - subnet: 192.168.0.0/16
-              gateway: 192.168.0.1

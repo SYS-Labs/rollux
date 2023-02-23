@@ -61,6 +61,8 @@ function wait_up {
 }
 mkdir -p ./.devnet
 
+
+
 # Regenerate the L1 genesis file if necessary. The existence of the genesis
 # file is used to determine if we need to recreate the devnet's state folder.
 if [ ! -f "$DEVNET/done" ]; then
@@ -105,10 +107,7 @@ SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_a
   SYS_DESC="$SYS_DESC" \
   L2OO_ADDRESS="$L2OO_ADDRESS" \
       SEQUENCER_BATCH_INBOX_ADDRESS="$SEQUENCER_BATCH_INBOX_ADDRESS" \
-      docker-compose up -d op-proposer op-batcher
-
-  echo "Bringing up stateviz webserver..."
-  docker-compose up -d stateviz
+      docker-compose up -d op-node
 )
 
 echo "L2 ready."
