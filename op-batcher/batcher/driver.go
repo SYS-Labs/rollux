@@ -13,8 +13,8 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/eth"
 	opcrypto "github.com/ethereum-optimism/optimism/op-service/crypto"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -89,15 +89,15 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger) (*BatchSubmitte
 	}
 
 	batcherCfg := Config{
-		L1Client:          l1Client,
-		L2Client:          l2Client,
-		RollupNode:        rollupClient,
+		L1Client:   l1Client,
+		L2Client:   l2Client,
+		RollupNode: rollupClient,
 		// SYSCOIN
-		SyscoinNode:       syscoinClient,
-		PollInterval:      cfg.PollInterval,
-		TxManagerConfig:   txManagerConfig,
-		From:              fromAddress,
-		SignerFnFactory:   signer,
+		SyscoinNode:     syscoinClient,
+		PollInterval:    cfg.PollInterval,
+		TxManagerConfig: txManagerConfig,
+		From:            fromAddress,
+		SignerFnFactory: signer,
 		// SYSCOIN
 		BatchInboxAddress: batchInboxAddress,
 		Rollup:            rcfg,

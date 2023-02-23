@@ -50,7 +50,7 @@ contract CommonTest is Test {
 
     FFIInterface ffi;
 
-    function _setUp() public {
+    function setUp() public virtual {
         // Give alice and bob some ETH
         vm.deal(alice, 1 << 16);
         vm.deal(bob, 1 << 16);
@@ -99,17 +99,28 @@ contract L2OutputOracle_Initializer is CommonTest {
     uint256 internal l2BlockTime = 2;
     uint256 internal startingBlockNumber = 200;
     uint256 internal startingTimestamp = 1000;
+    address guardian;
 
     // Test data
     uint256 initL1Time;
+
+    event OutputProposed(
+        bytes32 indexed outputRoot,
+        uint256 indexed l2OutputIndex,
+        uint256 indexed l2BlockNumber,
+        uint256 l1Timestamp
+    );
+
+    event OutputsDeleted(uint256 indexed prevNextOutputIndex, uint256 indexed newNextOutputIndex);
 
     // Advance the evm's time to meet the L2OutputOracle's requirements for proposeL2Output
     function warpToProposeTime(uint256 _nextBlockNumber) public {
         vm.warp(oracle.computeL2Timestamp(_nextBlockNumber) + 1);
     }
 
-    function setUp() public virtual {
-        _setUp();
+    function setUp() public virtual override {
+        super.setUp();
+        guardian = makeAddr("guardian");
 
         // By default the first block has timestamp and number zero, which will cause underflows in the
         // tests, so we'll move forward to these block values.
@@ -146,15 +157,27 @@ contract Portal_Initializer is L2OutputOracle_Initializer {
     OptimismPortal opImpl;
     OptimismPortal op;
 
-    function setUp() public virtual override {
-        L2OutputOracle_Initializer.setUp();
+    event WithdrawalFinalized(bytes32 indexed withdrawalHash, bool success);
+    event WithdrawalProven(
+        bytes32 indexed withdrawalHash,
+        address indexed from,
+        address indexed to
+    );
 
-        opImpl = new OptimismPortal(oracle, 7 days);
+    function setUp() public virtual override {
+        super.setUp();
+
+        opImpl = new OptimismPortal({
+            _l2Oracle: oracle,
+            _guardian: guardian,
+            _finalizationPeriodSeconds: 7 days,
+            _paused: true
+        });
         Proxy proxy = new Proxy(multisig);
         vm.prank(multisig);
         proxy.upgradeToAndCall(
             address(opImpl),
-            abi.encodeWithSelector(OptimismPortal.initialize.selector)
+            abi.encodeWithSelector(OptimismPortal.initialize.selector, false)
         );
         op = OptimismPortal(payable(address(proxy)));
     }
@@ -208,7 +231,12 @@ contract Messenger_Initializer is L2OutputOracle_Initializer {
         super.setUp();
 
         // Deploy the OptimismPortal
-        op = new OptimismPortal(oracle, 7 days);
+        op = new OptimismPortal({
+            _l2Oracle: oracle,
+            _guardian: guardian,
+            _finalizationPeriodSeconds: 7 days,
+            _paused: false
+        });
         vm.label(address(op), "OptimismPortal");
 
         // Deploy the address manager

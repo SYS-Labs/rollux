@@ -33,17 +33,18 @@ type TransactionManager struct {
 	signerFn opcrypto.SignerFn
 	log      log.Logger
 }
+
 // SYSCOIN
-func NewTransactionManager(log log.Logger, txMgrConfg txmgr.Config, batchInboxAddress common.Address, chainID *big.Int, senderAddress common.Address, l1Client *ethclient.Client, signerFn opcrypto.SignerFn, syscoinClient* sources.SyscoinClient) *TransactionManager {
+func NewTransactionManager(log log.Logger, txMgrConfg txmgr.Config, batchInboxAddress common.Address, chainID *big.Int, senderAddress common.Address, l1Client *ethclient.Client, signerFn opcrypto.SignerFn, syscoinClient *sources.SyscoinClient) *TransactionManager {
 	t := &TransactionManager{
 		batchInboxAddress: batchInboxAddress,
 		senderAddress:     senderAddress,
 		chainID:           chainID,
 		// SYSCOIN
-		txMgr:             txmgr.NewSimpleTxManager("batcher", log, txMgrConfg, l1Client, syscoinClient),
-		l1Client:          l1Client,
-		signerFn:          signerFn,
-		log:               log,
+		txMgr:    txmgr.NewSimpleTxManager("batcher", log, txMgrConfg, l1Client, syscoinClient),
+		l1Client: l1Client,
+		signerFn: txMgrConfg.Signer,
+		log:      log,
 	}
 	return t
 }
@@ -69,6 +70,7 @@ func (t *TransactionManager) SendTransaction(ctx context.Context, data []byte, a
 		return receipt, nil
 	}
 }
+
 // SYSCOIN
 // SendTransaction creates & submits a transaction to the batch inbox address with the given `data`.
 // It currently uses the underlying `txmgr` to handle transaction sending & price management.
@@ -142,7 +144,7 @@ func (t *TransactionManager) CraftTx(ctx context.Context, data []byte, additiona
 	}
 	t.log.Info("creating tx", "to", rawTx.To, "from", t.senderAddress)
 
-	gas, err := core.IntrinsicGas(rawTx.Data, nil, false, true, true)
+	gas, err := core.IntrinsicGas(rawTx.Data, nil, false, true, true, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate intrinsic gas: %w", err)
 	}

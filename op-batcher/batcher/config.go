@@ -1,6 +1,7 @@
 package batcher
 
 import (
+	opcrypto "github.com/ethereum-optimism/optimism/op-service/crypto"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -11,7 +12,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/sources"
-	opcrypto "github.com/ethereum-optimism/optimism/op-service/crypto"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 	opmetrics "github.com/ethereum-optimism/optimism/op-service/metrics"
 	oppprof "github.com/ethereum-optimism/optimism/op-service/pprof"
@@ -21,10 +21,10 @@ import (
 )
 
 type Config struct {
-	log             log.Logger
-	L1Client        *ethclient.Client
-	L2Client        *ethclient.Client
-	RollupNode      *sources.RollupClient
+	log        log.Logger
+	L1Client   *ethclient.Client
+	L2Client   *ethclient.Client
+	RollupNode *sources.RollupClient
 	// SYSCOIN
 	SyscoinNode     *sources.SyscoinClient
 	PollInterval    time.Duration
@@ -33,6 +33,7 @@ type Config struct {
 	SignerFnFactory opcrypto.SignerFactory
 	// SYSCOIN Where to send the batch txs to.
 	BatchInboxAddress common.Address
+
 	// RollupConfig is queried at startup
 	Rollup *rollup.Config
 
@@ -90,9 +91,9 @@ type CLIConfig struct {
 	// SequencerBatchInboxAddress is the address in which to send batch
 	// transactions.
 	SequencerBatchInboxAddress string
-	SysDesc string
-	SysDescInternal string
-	RPCConfig oprpc.CLIConfig
+	SysDesc                    string
+	SysDescInternal            string
+	RPCConfig                  oprpc.CLIConfig
 
 	/* Optional Params */
 
@@ -152,17 +153,17 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		ResubmissionTimeout:       ctx.GlobalDuration(flags.ResubmissionTimeoutFlag.Name),
 
 		/* Optional Flags */
-		MaxL1TxSize:                ctx.GlobalUint64(flags.MaxL1TxSizeBytesFlag.Name),
-		TargetL1TxSize:             ctx.GlobalUint64(flags.TargetL1TxSizeBytesFlag.Name),
-		TargetNumFrames:            ctx.GlobalInt(flags.TargetNumFramesFlag.Name),
-		ApproxComprRatio:           ctx.GlobalFloat64(flags.ApproxComprRatioFlag.Name),
-		Mnemonic:                   ctx.GlobalString(flags.MnemonicFlag.Name),
-		SequencerHDPath:            ctx.GlobalString(flags.SequencerHDPathFlag.Name),
-		PrivateKey:                 ctx.GlobalString(flags.PrivateKeyFlag.Name),
+		MaxL1TxSize:      ctx.GlobalUint64(flags.MaxL1TxSizeBytesFlag.Name),
+		TargetL1TxSize:   ctx.GlobalUint64(flags.TargetL1TxSizeBytesFlag.Name),
+		TargetNumFrames:  ctx.GlobalInt(flags.TargetNumFramesFlag.Name),
+		ApproxComprRatio: ctx.GlobalFloat64(flags.ApproxComprRatioFlag.Name),
+		Mnemonic:         ctx.GlobalString(flags.MnemonicFlag.Name),
+		SequencerHDPath:  ctx.GlobalString(flags.SequencerHDPathFlag.Name),
+		PrivateKey:       ctx.GlobalString(flags.PrivateKeyFlag.Name),
 		// SYSCOIN
 		SequencerBatchInboxAddress: ctx.GlobalString(flags.SequencerBatchInboxAddressFlag.Name),
-		SysDesc: 					ctx.GlobalString(flags.SysDescFlag.Name),
-		SysDescInternal: 			ctx.GlobalString(flags.SysDescInternalFlag.Name),
+		SysDesc:                    ctx.GlobalString(flags.SysDescFlag.Name),
+		SysDescInternal:            ctx.GlobalString(flags.SysDescInternalFlag.Name),
 		RPCConfig:                  oprpc.ReadCLIConfig(ctx),
 		LogConfig:                  oplog.ReadCLIConfig(ctx),
 		MetricsConfig:              opmetrics.ReadCLIConfig(ctx),
