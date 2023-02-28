@@ -19,6 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l1
+    stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
       - "8545:8545"
@@ -45,9 +46,9 @@ services:
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
 
   op-node:
-#    depends_on:
-#      - l1
-#      - l2
+    depends_on:
+      - l1
+      - l2
     build:
       context: ../
       dockerfile: ./op-node/Dockerfile
