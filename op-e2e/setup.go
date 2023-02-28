@@ -311,6 +311,7 @@ func (cfg SystemConfig) Start() (*System, error) {
 			// SYSCOIN
 			L2OutputOracleAddress:  cfg.DeployConfig.L2OutputOracleProxy,
 			L1SystemConfigAddress:  predeploys.DevSystemConfigAddr,
+			RegolithTime:           cfg.DeployConfig.RegolithTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
 		}
 	}
 	defaultConfig := makeRollupConfig()
