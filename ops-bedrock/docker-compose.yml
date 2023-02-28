@@ -59,7 +59,7 @@ services:
       --l1=ws://l1:8546
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
-      --sequencer.stopped
+      --sequencer.enabled
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
       --p2p.sequencer.key=8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba
@@ -91,7 +91,10 @@ services:
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
       - "${PWD}/../.devnet/rollup.json:/rollup.json"
       - op_log:/op_log
-
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
 
   op-proposer:
     depends_on:
