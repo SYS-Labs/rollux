@@ -107,7 +107,10 @@ SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_a
   SYS_DESC="$SYS_DESC" \
   L2OO_ADDRESS="$L2OO_ADDRESS" \
       SEQUENCER_BATCH_INBOX_ADDRESS="$SEQUENCER_BATCH_INBOX_ADDRESS" \
-      docker-compose up -d op-node
+      docker-compose up -d op-proposer op-batcher
+
+    echo "Bringing up stateviz webserver..."
+    docker-compose up -d stateviz
 )
 
 echo "L2 ready."
