@@ -155,19 +155,19 @@ services:
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
 
-#  stateviz:
-#    build:
-#      context: ../
-#      dockerfile: ./ops-bedrock/Dockerfile.stateviz
-#    command:
-#      - stateviz
-#      - -addr=0.0.0.0:8080
-#      - -snapshot=/op_log/snapshot.log
-#      - -refresh=10s
-#    ports:
-#      - "9090:8080"
-#    volumes:
-#      - op_log:/op_log:ro
+  stateviz:
+    build:
+      context: ../
+      dockerfile: ./ops-bedrock/Dockerfile.stateviz
+    command:
+      - stateviz
+      - -addr=0.0.0.0:8080
+      - -snapshot=/op_log/snapshot.log
+      - -refresh=10s
+    ports:
+      - "9090:8080"
+    volumes:
+      - op_log:/op_log:ro
 
   op-heartbeat:
     build:
@@ -186,7 +186,7 @@ services:
     ports:
       - "9100:9100"
     command: >
-      --rpc.provider=https://rpc-bedrock.rollux.com
+      --rpc.provider=https://rpc-tanenbaum.rollux.com/
       --label.network=tanenbaum
       --rollUpGasPrices.enable
       --gaseBaseFee.enable
