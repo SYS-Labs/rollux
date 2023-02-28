@@ -233,3 +233,13 @@ services:
     volumes:
       - ./docker/scripts/:/scripts
       - grafana_dashboards:/grafana-dashboards
+
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/16
+          gateway: 192.168.0.1
