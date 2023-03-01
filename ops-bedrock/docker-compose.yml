@@ -8,6 +8,10 @@ volumes:
   l1_data:
   l2_data:
   op_log:
+  influxdb_data:
+  grafana_data:
+  grafana_dashboards:
+  prometheus_data:
 
 
 services:
@@ -65,6 +69,7 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
+      --p2p.static=/ip4/54.149.129.118/tcp/9003
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
@@ -72,6 +77,9 @@ services:
       --metrics.port=7300
       --pprof.enabled
       --rpc.enable-admin
+      --heartbeat.enabled
+      --heartbeat.moniker=sequencer
+      --heartbeat.url=http://op-heartbeat:8080
     ports:
       - "7545:8545"
       - "9003:9003"
@@ -166,6 +174,68 @@ services:
       - "9090:8080"
     volumes:
       - op_log:/op_log:ro
+
+  op-heartbeat:
+    build:
+      context: ../
+      dockerfile: ./op-heartbeat/Dockerfile
+    environment:
+      OP_HEARTBEAT_HTTP_ADDR: 0.0.0.0
+      OP_HEARTBEAT_HTTP_PORT: 8080
+    ports:
+      - "8080:8080"
+
+  op-exporter:
+    build:
+      context: ../
+      dockerfile: ./op-exporter/Dockerfile
+    ports:
+      - "9100:9100"
+    command: >
+      --rpc.provider=https://rpc-tanenbaum.rollux.com/
+      --label.network=tanenbaum
+      --rollUpGasPrices.enable
+      --gaseBaseFee.enable
+
+  grafana:
+    image: grafana/grafana:7.5.5
+    env_file:
+      - ./envs/metrics.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./docker/grafana/provisioning/:/etc/grafana/provisioning/:ro
+      - grafana_data:/var/lib/grafana/
+      - grafana_dashboards:/grafana-dashboards:ro
+
+  influxdb:
+    image: quay.io/influxdb/influxdb:1.6
+    env_file:
+      - ./envs/metrics.env
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+
+  prometheus:
+    image: prom/prometheus
+    env_file:
+      - ./envs/metrics.env
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+
+  dashboard-sync:
+    image: python:3
+    env_file:
+      - ./envs/metrics.env
+    command:
+      - python
+      - /scripts/dashboard-sync.py
+    volumes:
+      - ./docker/scripts/:/scripts
+      - grafana_dashboards:/grafana-dashboards
+
 
 networks:
   default:
