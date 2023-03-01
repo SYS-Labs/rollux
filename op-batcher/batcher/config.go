@@ -10,12 +10,12 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
+	oprpc "github.com/ethereum-optimism/optimism/op-batcher/rpc"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/sources"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 	opmetrics "github.com/ethereum-optimism/optimism/op-service/metrics"
 	oppprof "github.com/ethereum-optimism/optimism/op-service/pprof"
-	oprpc "github.com/ethereum-optimism/optimism/op-service/rpc"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 	opsigner "github.com/ethereum-optimism/optimism/op-signer/client"
 )
@@ -110,6 +110,8 @@ type CLIConfig struct {
 	// compression algorithm.
 	ApproxComprRatio float64
 
+	Stopped bool
+
 	LogConfig oplog.CLIConfig
 
 	MetricsConfig opmetrics.CLIConfig
@@ -157,6 +159,7 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		TargetL1TxSize:   ctx.GlobalUint64(flags.TargetL1TxSizeBytesFlag.Name),
 		TargetNumFrames:  ctx.GlobalInt(flags.TargetNumFramesFlag.Name),
 		ApproxComprRatio: ctx.GlobalFloat64(flags.ApproxComprRatioFlag.Name),
+		Stopped:          ctx.GlobalBool(flags.StoppedFlag.Name),
 		Mnemonic:         ctx.GlobalString(flags.MnemonicFlag.Name),
 		SequencerHDPath:  ctx.GlobalString(flags.SequencerHDPathFlag.Name),
 		PrivateKey:       ctx.GlobalString(flags.PrivateKeyFlag.Name),

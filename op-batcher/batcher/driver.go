@@ -30,6 +30,9 @@ type BatchSubmitter struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
+	mutex   sync.Mutex
+	running bool
+
 	// lastStoredBlock is the last block loaded into `state`. If it is empty it should be set to the l2 safe head.
 	lastStoredBlock eth.BlockID
 
@@ -112,14 +115,13 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger) (*BatchSubmitte
 		},
 	}
 
-	return NewBatchSubmitter(batcherCfg, l)
+	return NewBatchSubmitter(ctx, batcherCfg, l)
 }
 
 // NewBatchSubmitter initializes the BatchSubmitter, gathering any resources
 // that will be needed during operation.
-func NewBatchSubmitter(cfg Config, l log.Logger) (*BatchSubmitter, error) {
+func NewBatchSubmitter(ctx context.Context, cfg Config, l log.Logger) (*BatchSubmitter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-
 	balance, err := cfg.L1Client.BalanceAt(ctx, cfg.From, nil)
 	if err != nil {
 		cancel()
@@ -146,15 +148,53 @@ func NewBatchSubmitter(cfg Config, l log.Logger) (*BatchSubmitter, error) {
 }
 
 func (l *BatchSubmitter) Start() error {
+	l.log.Info("Starting Batch Submitter")
+
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	if l.running {
+		return errors.New("batcher is already running")
+	}
+	l.running = true
+
+	l.done = make(chan struct{})
+	// TODO: this context only exists because the event loop doesn't reach done
+	// if the tx manager is blocking forever due to e.g. insufficient balance.
+	l.ctx, l.cancel = context.WithCancel(context.Background())
+	l.state.Clear()
+	l.lastStoredBlock = eth.BlockID{}
+
 	l.wg.Add(1)
 	go l.loop()
+
+	l.log.Info("Batch Submitter started")
+
 	return nil
 }
 
-func (l *BatchSubmitter) Stop() {
+func (l *BatchSubmitter) StopIfRunning() {
+	_ = l.Stop()
+}
+
+func (l *BatchSubmitter) Stop() error {
+	l.log.Info("Stopping Batch Submitter")
+
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	if !l.running {
+		return errors.New("batcher is not running")
+	}
+	l.running = false
+
 	l.cancel()
 	close(l.done)
 	l.wg.Wait()
+
+	l.log.Info("Batch Submitter stopped")
+
+	return nil
 }
 
 // loadBlocksIntoState loads all blocks since the previous stored block
@@ -217,7 +257,7 @@ func (l *BatchSubmitter) calculateL2BlockRangeToStore(ctx context.Context) (eth.
 	}
 
 	// Check last stored to see if it needs to be set on startup OR set if is lagged behind.
-	// It lagging implies that the op-node processed some batches that where submitted prior to the current instance of the batcher being alive.
+	// It lagging implies that the op-node processed some batches that were submitted prior to the current instance of the batcher being alive.
 	if l.lastStoredBlock == (eth.BlockID{}) {
 		l.log.Info("Starting batch-submitter work at safe-head", "safe", syncStatus.SafeL2)
 		l.lastStoredBlock = syncStatus.SafeL2.ID()
@@ -293,7 +333,7 @@ func (l *BatchSubmitter) loop() {
 				}
 				// hack to exit this loop. Proper fix is to do request another send tx or parallel tx sending
 				// from the channel manager rather than sending the channel in a loop. This stalls b/c if the
-				// context is cancelled while sending, it will never fuilly clearing the pending txns.
+				// context is cancelled while sending, it will never fully clear the pending txns.
 				select {
 				case <-l.ctx.Done():
 					break blockLoop
