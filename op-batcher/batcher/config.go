@@ -53,6 +53,16 @@ type CLIConfig struct {
 	// RollupRpc is the HTTP provider URL for the L2 rollup node.
 	RollupRpc string
 
+	// MaxChannelDuration is the maximum duration (in #L1-blocks) to keep a
+	// channel open. This allows to more eagerly send batcher transactions
+	// during times of low L2 transaction volume. Note that the effective
+	// L1-block distance between batcher transactions is then MaxChannelDuration
+	// + NumConfirmations because the batcher waits for NumConfirmations blocks
+	// after sending a batcher tx and only then starts a new channel.
+	//
+	// If 0, duration checks are disabled.
+	MaxChannelDuration uint64
+
 	// The batcher tx submission safety margin (in #L1-blocks) to subtract from
 	// a channel's timeout and sequencing window, to guarantee safe inclusion of
 	// a channel on L1.
