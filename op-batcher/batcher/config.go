@@ -165,14 +165,15 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		ResubmissionTimeout:       ctx.GlobalDuration(flags.ResubmissionTimeoutFlag.Name),
 
 		/* Optional Flags */
-		MaxL1TxSize:      ctx.GlobalUint64(flags.MaxL1TxSizeBytesFlag.Name),
-		TargetL1TxSize:   ctx.GlobalUint64(flags.TargetL1TxSizeBytesFlag.Name),
-		TargetNumFrames:  ctx.GlobalInt(flags.TargetNumFramesFlag.Name),
-		ApproxComprRatio: ctx.GlobalFloat64(flags.ApproxComprRatioFlag.Name),
-		Stopped:          ctx.GlobalBool(flags.StoppedFlag.Name),
-		Mnemonic:         ctx.GlobalString(flags.MnemonicFlag.Name),
-		SequencerHDPath:  ctx.GlobalString(flags.SequencerHDPathFlag.Name),
-		PrivateKey:       ctx.GlobalString(flags.PrivateKeyFlag.Name),
+		MaxChannelDuration: ctx.GlobalUint64(flags.MaxChannelDurationFlag.Name),
+		MaxL1TxSize:        ctx.GlobalUint64(flags.MaxL1TxSizeBytesFlag.Name),
+		TargetL1TxSize:     ctx.GlobalUint64(flags.TargetL1TxSizeBytesFlag.Name),
+		TargetNumFrames:    ctx.GlobalInt(flags.TargetNumFramesFlag.Name),
+		ApproxComprRatio:   ctx.GlobalFloat64(flags.ApproxComprRatioFlag.Name),
+		Stopped:            ctx.GlobalBool(flags.StoppedFlag.Name),
+		Mnemonic:           ctx.GlobalString(flags.MnemonicFlag.Name),
+		SequencerHDPath:    ctx.GlobalString(flags.SequencerHDPathFlag.Name),
+		PrivateKey:         ctx.GlobalString(flags.PrivateKeyFlag.Name),
 		// SYSCOIN
 		SequencerBatchInboxAddress: ctx.GlobalString(flags.SequencerBatchInboxAddressFlag.Name),
 		SysDesc:                    ctx.GlobalString(flags.SysDescFlag.Name),
