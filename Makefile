@@ -73,6 +73,10 @@ tanenbaum-up:
 	@bash ./ops-bedrock/tanenbaum-up.sh
 .PHONY: tanenbaum-up
 
+p2p-tanenbaum-up:
+	@bash ./ops-bedrock/p2p-tanenbaum-up.sh
+.PHONY: p2p-tanenbaum-up
+
 tanenbaum-down:
 	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker-compose stop)
 .PHONY: tanenbaum-down
