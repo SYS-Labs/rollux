@@ -89,7 +89,7 @@ fi
   cd ops-bedrock
   echo "Bringing up L1..."
   DOCKER_BUILDKIT=1 docker-compose build --progress plain
-  docker-compose up -d l1
+  docker-compose -f p2p-docker-compose.yml up -d l1
   wait_up $L1_URL
 )
 
@@ -97,7 +97,7 @@ fi
 (
   cd ops-bedrock
   echo "Bringing up L2..."
-  docker-compose up -d l2
+  docker-compose -f p2p-docker-compose.yml up -d l2
   wait_up $L2_URL
 )
 
