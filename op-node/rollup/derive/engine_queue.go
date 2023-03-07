@@ -310,6 +310,8 @@ func (eq *EngineQueue) postProcessSafeL2() {
 				L1Block: origin,
 			})
 		}
+		last := &eq.finalityData[len(eq.finalityData)-1]
+		eq.log.Debug("extended finality-data", "last_l1", last.L1Block, "last_l2", last.L2Block)
 	} else {
 		// if it's a new L2 block that was derived from the same latest L1 block, then just update the entry
 		last := &eq.finalityData[len(eq.finalityData)-1]
