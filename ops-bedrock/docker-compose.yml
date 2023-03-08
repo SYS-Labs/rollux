@@ -56,15 +56,15 @@ services:
       dockerfile: ./op-node/Dockerfile
     stop_signal: SIGINT
     stop_grace_period: 30s
+    env_file:
+      - ./envs/op-node.env
     command: >
       op-node
       --l1=ws://l1:8546
       --l2=http://l2:9551
-      --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.enabled
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
-      --p2p.sequencer.key=8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba
       --rollup.config=/rollup.json
       --rpc.addr=0.0.0.0
       --rpc.port=8545
@@ -73,7 +73,6 @@ services:
       --p2p.listen.udp=9003
       --p2p.static=/ip4/54.149.129.118/tcp/9003
       --snapshotlog.file=/op_log/snapshot.log
-      --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
       --metrics.addr=0.0.0.0
       --metrics.port=7300
@@ -118,7 +117,7 @@ services:
       OP_PROPOSER_NUM_CONFIRMATIONS: 1
       OP_PROPOSER_SAFE_ABORT_NONCE_TOO_LOW_COUNT: 3
       OP_PROPOSER_RESUBMISSION_TIMEOUT: 300s
-      OP_PROPOSER_MNEMONIC: test test test test test test test test test test test junk
+      OP_PROPOSER_MNEMONIC: "${OP_PROPOSER_MNEMONIC}"
       OP_PROPOSER_L2_OUTPUT_HD_PATH: "m/44'/60'/0'/0/1"
       OP_PROPOSER_LOG_TERMINAL: "true"
       OP_PROPOSER_L2OO_ADDRESS: "${L2OO_ADDRESS}"
