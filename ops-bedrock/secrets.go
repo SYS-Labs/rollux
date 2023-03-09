@@ -1,4 +1,4 @@
-package ops_bedrock
+package main
 
 import (
 	_ "bufio"
