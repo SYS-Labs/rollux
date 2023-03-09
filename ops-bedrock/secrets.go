@@ -23,7 +23,7 @@ func main() {
 	svc := secretsmanager.New(sess, aws.NewConfig().WithRegion(region))
 
 	// Open the output file for writing
-	f, err := os.Create("op-node.env")
+	f, err := os.Create("envs/op-node.env")
 	if err != nil {
 		panic(err)
 	}
