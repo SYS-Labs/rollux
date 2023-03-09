@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// Set the file permissions to 0600 (owner read/write only)
-	err = os.Chmod("op-node.env", 0600)
+	err = os.Chmod("envs/op-node.env", 0600)
 	if err != nil {
 		panic(err)
 	}
