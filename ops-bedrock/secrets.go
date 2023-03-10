@@ -12,7 +12,8 @@ import (
 
 func main() {
 
-	secretNames := []string{"OP_NODE_L2_ENGINE_AUTH", "OP_NODE_ROLLUP_CONFIG", "P2P_PRIV_PATH", "P2P_SEQUENCER_KEY"}
+	secretNames := []string{"OP_NODE_L2_ENGINE_AUTH", "OP_NODE_ROLLUP_CONFIG",
+		"P2P_PRIV_PATH", "P2P_SEQUENCER_KEY", "OP_BATCHER_MNEMONIC", "OP_PROPOSER_MNEMONIC"}
 
 	//TODO: replace with region of secrets
 	region := "us-east-1"
@@ -44,10 +45,18 @@ func main() {
 			panic(err)
 		}
 		for key, value := range secretDict {
-			envVar := fmt.Sprintf("%s=%s\n", key, value)
-			_, err := f.WriteString(envVar)
-			if err != nil {
-				panic(err)
+			// Write the value for non op-node to the environment variable instead of the output file
+			if key == "OP_BATCHER_MNEMONIC" || key == "OP_PROPOSER_MNEMONIC" {
+				err := os.Setenv(key, value)
+				if err != nil {
+					panic(err)
+				}
+			} else {
+				envVar := fmt.Sprintf("%s=%s\n", key, value)
+				err := os.WriteFile("envs/op-node.env", []byte(envVar), 0600)
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
 	}
