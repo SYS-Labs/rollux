@@ -58,7 +58,6 @@ services:
     stop_grace_period: 30s
     environment:
       OP_NODE_L2_ENGINE_AUTH: "${OP_NODE_L2_ENGINE_AUTH}"
-      OP_NODE_ROLLUP_CONFIG: "${OP_NODE_ROLLUP_CONFIG}"
       P2P_PRIV_PATH: "${P2P_PRIV_PATH}"
       P2P_SEQUENCER_KEY: "${P2P_SEQUENCER_KEY}"
     command: >

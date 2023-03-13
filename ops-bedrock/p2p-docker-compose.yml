@@ -56,6 +56,9 @@ services:
       dockerfile: ./op-node/Dockerfile
     stop_signal: SIGINT
     stop_grace_period: 30s
+    environment:
+      OP_NODE_L2_ENGINE_AUTH: "${OP_NODE_L2_ENGINE_AUTH}"
+      P2P_PRIV_PATH: "${P2P_PRIV_PATH}"
     command: >
       op-node
       --l1=ws://l1:8546
