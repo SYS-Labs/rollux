@@ -62,11 +62,6 @@ function wait_up {
 }
 mkdir -p ./.devnet
 
-(
-  key=$(openssl rand -hex 32)
-  echo $key > $OPS_BEDROCK/p2p-node-key.txt
-)
-
 # Export all secrets from file to environment variables
 (
   export $(grep -v '^#' $HOME/op-node.env | xargs)
