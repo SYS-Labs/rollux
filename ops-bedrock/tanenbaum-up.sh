@@ -62,7 +62,7 @@ function wait_up {
 mkdir -p ./.devnet
 # Export all secrets from file to environment variables
 (
-  export $(grep -v '^#' $HOME/op-node.env | xargs)
+  export $(grep -v '^#' ./envs/op-node.env | xargs)
 )
 # Regenerate the L1 genesis file if necessary. The existence of the genesis
 # file is used to determine if we need to recreate the devnet's state folder.

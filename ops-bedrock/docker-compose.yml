@@ -56,14 +56,11 @@ services:
       dockerfile: ./op-node/Dockerfile
     stop_signal: SIGINT
     stop_grace_period: 30s
-    environment:
-      OP_NODE_L2_ENGINE_AUTH: "${OP_NODE_L2_ENGINE_AUTH}"
-      P2P_PRIV_PATH: "${P2P_PRIV_PATH}"
-      P2P_SEQUENCER_KEY: "${P2P_SEQUENCER_KEY}"
     command: >
       op-node
       --l1=ws://l1:8546
       --l2=http://l2:9551
+      --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.enabled
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
@@ -75,6 +72,7 @@ services:
       --p2p.listen.udp=9003
       --p2p.static=/ip4/54.149.129.118/tcp/9003
       --snapshotlog.file=/op_log/snapshot.log
+      --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
       --metrics.addr=0.0.0.0
       --metrics.port=7300
@@ -89,7 +87,6 @@ services:
       - "7300:7300"
       - "6060:6060"
     volumes:
-      - "${PWD}/p2p-sequencer-key.txt:/config/p2p-sequencer-key.txt"
       - "${PWD}/p2p-node-key.txt:/config/p2p-node-key.txt"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
       - "${PWD}/../.devnet/rollup.json:/rollup.json"
