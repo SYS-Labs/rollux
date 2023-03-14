@@ -305,7 +305,7 @@ func (l *BatchSubmitter) loop() {
 				}
 
 				// Collect next transaction data
-				data, id, err := l.state.TxData(l1tip.ID())
+				txdata, err := l.state.TxData(l1tip.ID())
 				if err == io.EOF {
 					l.log.Trace("no transaction data available")
 					break // local for loop
@@ -313,10 +313,10 @@ func (l *BatchSubmitter) loop() {
 					l.log.Error("unable to get tx data", "err", err)
 					break
 				}
-				receipt, err := l.txMgr.SendBlobTransaction(l.ctx, data)
+				receipt, err := l.txMgr.SendBlobTransaction(l.ctx, txdata.Bytes())
 				if err != nil {
 					l.log.Error("Failed to send blob", "err", err)
-					l.state.TxFailed(id)
+					l.state.TxFailed(txdata.ID())
 				} else {
 					l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
 					// Create the transaction
@@ -327,9 +327,9 @@ func (l *BatchSubmitter) loop() {
 					// SYSCOIN additional gas for precompile
 					nreceipt, err := l.txMgr.SendTransaction(l.ctx, calldata, 7500)
 					if err != nil {
-						l.recordFailedTx(id, err)
+						l.recordFailedTx(txdata.ID(), err)
 					} else {
-						l.recordConfirmedTx(id, nreceipt)
+						l.recordConfirmedTx(txdata.ID(), nreceipt)
 					}
 				}
 				// hack to exit this loop. Proper fix is to do request another send tx or parallel tx sending
