@@ -62,7 +62,6 @@ services:
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.enabled
-      --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
       --rollup.config=/rollup.json
