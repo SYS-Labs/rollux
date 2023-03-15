@@ -107,9 +107,3 @@ SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_a
 
 echo "L2 ready."
 
-# Bring up Monitoring infrastructure; exporter, heartbeat, influxdb, prometheus and grafana
-(
-  cd ops-bedrock
-  echo "Bringing up monitoring infrastructure"
-  docker-compose up -d op-exporter prometheus grafana influxdb dashboard-sync
-)
