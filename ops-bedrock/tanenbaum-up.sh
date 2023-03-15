@@ -56,10 +56,6 @@ function wait_up {
   echo "Done!"
 }
 mkdir -p ./.devnet
-# Export all secrets from file to environment variables
-(
-  cd ops-bedrock && source envs/op-node.env
-)
 
 # Regenerate the L1 genesis file if necessary. The existence of the genesis
 # file is used to determine if we need to recreate the devnet's state folder.
@@ -101,8 +97,6 @@ SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_a
 (
   cd ops-bedrock
   echo "Bringing up L2 services..."
-  SYS_DESC_INTERNAL="$SYS_DESC_INTERNAL" \
-  SYS_DESC="$SYS_DESC" \
   L2OO_ADDRESS="$L2OO_ADDRESS" \
       SEQUENCER_BATCH_INBOX_ADDRESS="$SEQUENCER_BATCH_INBOX_ADDRESS" \
       docker-compose up -d op-proposer op-batcher

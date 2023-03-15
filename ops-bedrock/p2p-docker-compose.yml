@@ -26,8 +26,7 @@ services:
       - "7060:6060"
     volumes:
       - "l1_data:/db/.syscoin"
-      - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
-      - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
+
   l2:
     build:
       context: .

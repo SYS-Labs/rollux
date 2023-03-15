@@ -26,8 +26,6 @@ services:
       - "7060:6060"
     volumes:
       - "l1_data:/db/.syscoin"
-      - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
-      - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
   l2:
     build:
       context: .
@@ -46,6 +44,8 @@ services:
       - "/bin/sh"
       - "/entrypoint.sh"
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
+    env_file:
+      - ./envs/op-node.env
 
   op-node:
     depends_on:
@@ -95,6 +95,8 @@ services:
       - 8.8.8.8
       - 8.8.4.4
       - 192.168.9.45
+    env_file:
+      - ./envs/op-node.env
 
   op-proposer:
     depends_on:
@@ -122,6 +124,8 @@ services:
       OP_PROPOSER_PPROF_ENABLED: "true"
       OP_PROPOSER_METRICS_ENABLED: "true"
       OP_PROPOSER_ALLOW_NON_FINALIZED: "true"
+    env_file:
+      - ./envs/op-node.env
 
   op-batcher:
     depends_on:
@@ -161,6 +165,8 @@ services:
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
       OP_BATCHER_RPC_ENABLE_ADMIN: "true"
+    env_file:
+      - ./envs/op-node.env
 
   stateviz:
     build:
