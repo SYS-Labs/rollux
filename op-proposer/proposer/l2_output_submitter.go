@@ -402,7 +402,8 @@ func (l *L2OutputSubmitter) loop() {
 				l.log.Error("Failed to create proposal transaction", "err", err)
 				break
 			}
-			cCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
+			// SYSCOIN
+			cCtx, cancel = context.WithTimeout(ctx, 20*time.Minute)
 			if err := l.SendTransaction(cCtx, tx); err != nil {
 				l.log.Error("Failed to send proposal transaction", "err", err)
 				cancel()
