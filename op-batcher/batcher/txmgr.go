@@ -59,8 +59,8 @@ func (t *TransactionManager) SendTransaction(ctx context.Context, data []byte, a
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tx: %w", err)
 	}
-	// SYSCOIN account for 150sec average block times
-	ctx, cancel := context.WithTimeout(ctx, 1200*time.Second) // TODO: Select a timeout that makes sense here.
+	// SYSCOIN
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Minute) // TODO: Select a timeout that makes sense here.
 	defer cancel()
 	if receipt, err := t.txMgr.Send(ctx, tx); err != nil {
 		t.log.Warn("unable to publish tx", "err", err, "data_size", len(data))
