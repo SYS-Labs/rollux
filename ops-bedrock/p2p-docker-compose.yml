@@ -112,7 +112,7 @@ services:
     ports:
       - "9100:9100"
     command: >
-      --rpc.provider="https://rpc-tanenbaum.rollux.com/"
+      --rpc.provider=https://rpc-tanenbaum.rollux.com/
       --label.network=tanenbaum
       --rollUpGasPrices.enable
       --gaseBaseFee.enable
