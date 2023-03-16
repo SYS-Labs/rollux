@@ -106,11 +106,6 @@ func main() {
 				Value:    "rollup.json",
 				Required: true,
 			},
-			cli.BoolFlag{
-				Name:     "post-check-only",
-				Usage:    "Only perform sanity checks",
-				Required: false,
-			},
 		},
 		Action: func(ctx *cli.Context) error {
 			deployConfig := ctx.String("deploy-config")

@@ -13,9 +13,8 @@ import (
 )
 
 type Config struct {
-	L1     L1EndpointSetup
-	L2     L2EndpointSetup
-	L2Sync L2SyncEndpointSetup
+	L1 L1EndpointSetup
+	L2 L2EndpointSetup
 
 	Driver driver.Config
 

@@ -70,6 +70,7 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
+      --p2p.static=/ip4/54.149.129.118/tcp/9003
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
@@ -77,7 +78,6 @@ services:
       --metrics.port=7300
       --pprof.enabled
       --rpc.enable-admin
-      --l2.backup-unsafe-sync-rpc=https://rpc-tanenbaum.rollux.com/
     ports:
       - "7545:8545"
       - "9003:9003"
@@ -115,6 +115,7 @@ services:
       OP_PROPOSER_NUM_CONFIRMATIONS: 1
       OP_PROPOSER_SAFE_ABORT_NONCE_TOO_LOW_COUNT: 3
       OP_PROPOSER_RESUBMISSION_TIMEOUT: 300s
+      OP_PROPOSER_MNEMONIC: "${OP_PROPOSER_MNEMONIC}"
       OP_PROPOSER_L2_OUTPUT_HD_PATH: "m/44'/60'/0'/0/1"
       OP_PROPOSER_L2OO_ADDRESS: "${L2OO_ADDRESS}"
       OP_PROPOSER_PPROF_ENABLED: "true"
@@ -148,11 +149,15 @@ services:
       OP_BATCHER_SUB_SAFETY_MARGIN: 6 # SWS is 15, ChannelTimeout is 40
       OP_BATCHER_POLL_INTERVAL: 10s
       OP_BATCHER_MAX_CHANNEL_DURATION: 24
+
       OP_BATCHER_NUM_CONFIRMATIONS: 1
       OP_BATCHER_SAFE_ABORT_NONCE_TOO_LOW_COUNT: 3
       OP_BATCHER_RESUBMISSION_TIMEOUT: 300s
+      OP_BATCHER_MNEMONIC: "${OP_BATCHER_MNEMONIC}"
       OP_BATCHER_SEQUENCER_HD_PATH: "m/44'/60'/0'/0/2"
       OP_BATCHER_SEQUENCER_BATCH_INBOX_ADDRESS: "${SEQUENCER_BATCH_INBOX_ADDRESS}"
+      OP_BATCHER_SYS_DESC: "${SYS_DESC}"
+      OP_BATCHER_SYS_DESC_INTERNAL: "${SYS_DESC_INTERNAL}"
       OP_BATCHER_LOG_TERMINAL: "true"
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
