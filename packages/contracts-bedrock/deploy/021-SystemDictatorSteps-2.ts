@@ -210,7 +210,7 @@ const deployFn: DeployFunction = async (hre) => {
       async () => {
         return SystemDictator.dynamicConfigSet()
       },
-      30000,
+      5000,
       1000
     )
   }
@@ -328,7 +328,7 @@ const deployFn: DeployFunction = async (hre) => {
         const paused = await OptimismPortal.paused()
         return !paused
       },
-      30000,
+      5000,
       1000
     )
 
@@ -357,7 +357,7 @@ const deployFn: DeployFunction = async (hre) => {
       async () => {
         return SystemDictator.finalized()
       },
-      30000,
+      5000,
       1000
     )
 
