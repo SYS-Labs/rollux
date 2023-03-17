@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-node/chaincfg"
 	"github.com/ethereum-optimism/optimism/op-node/sources"
+	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 
 	"github.com/urfave/cli"
 )
@@ -114,23 +115,6 @@ var (
 		// SYSCOIN
 		Value: time.Second * 60,
 	}
-	LogLevelFlag = cli.StringFlag{
-		Name:   "log.level",
-		Usage:  "The lowest log level that will be output",
-		Value:  "info",
-		EnvVar: prefixEnvVar("LOG_LEVEL"),
-	}
-	LogFormatFlag = cli.StringFlag{
-		Name:   "log.format",
-		Usage:  "Format the log output. Supported formats: 'text', 'json'",
-		Value:  "text",
-		EnvVar: prefixEnvVar("LOG_FORMAT"),
-	}
-	LogColorFlag = cli.BoolFlag{
-		Name:   "log.color",
-		Usage:  "Color the log output",
-		EnvVar: prefixEnvVar("LOG_COLOR"),
-	}
 	MetricsEnabledFlag = cli.BoolFlag{
 		Name:   "metrics.enabled",
 		Usage:  "Enable the metrics server",
@@ -203,7 +187,7 @@ var requiredFlags = []cli.Flag{
 	RPCListenPort,
 }
 
-var optionalFlags = append([]cli.Flag{
+var optionalFlags = []cli.Flag{
 	RollupConfig,
 	Network,
 	L1TrustRPC,
@@ -214,9 +198,6 @@ var optionalFlags = append([]cli.Flag{
 	SequencerStoppedFlag,
 	SequencerL1Confs,
 	L1EpochPollIntervalFlag,
-	LogLevelFlag,
-	LogFormatFlag,
-	LogColorFlag,
 	RPCEnableAdmin,
 	MetricsEnabledFlag,
 	MetricsAddrFlag,
@@ -229,10 +210,16 @@ var optionalFlags = append([]cli.Flag{
 	HeartbeatMonikerFlag,
 	HeartbeatURLFlag,
 	BackupL2UnsafeSyncRPC,
-}, p2pFlags...)
+}
 
 // Flags contains the list of configuration options available to the binary.
-var Flags = append(requiredFlags, optionalFlags...)
+var Flags []cli.Flag
+
+func init() {
+	optionalFlags = append(optionalFlags, p2pFlags...)
+	optionalFlags = append(optionalFlags, oplog.CLIFlags(envVarPrefix)...)
+	Flags = append(requiredFlags, optionalFlags...)
+}
 
 func CheckRequired(ctx *cli.Context) error {
 	l1NodeAddr := ctx.GlobalString(L1NodeAddr.Name)
