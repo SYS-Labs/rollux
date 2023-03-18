@@ -80,10 +80,21 @@ func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetc
 			batcherAddr: batcherAddr,
 		}
 	} else {
+		// SYSCOIN
+		dataSrc := DataFromEVMTransactions(ctx, fetcher, cfg, batcherAddr, receipts, txs, log.New("origin", block))
+		if dataSrc == nil {
+			return &DataSource{
+				open:        false,
+				id:          block,
+				cfg:         cfg,
+				fetcher:     fetcher,
+				log:         log,
+				batcherAddr: batcherAddr,
+			}
+		}
 		return &DataSource{
 			open: true,
-			// SYSCOIN
-			data: DataFromEVMTransactions(ctx, fetcher, cfg, batcherAddr, receipts, txs, log.New("origin", block)),
+			data: dataSrc,
 		}
 	}
 }
@@ -95,8 +106,12 @@ func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
 	if !ds.open {
 		// SYSCOIN
 		if _, receipts, txs, err := ds.fetcher.FetchReceipts(ctx, ds.id.Hash); err == nil {
-			ds.open = true
 			ds.data = DataFromEVMTransactions(ctx, ds.fetcher, ds.cfg, ds.batcherAddr, receipts, txs, log.New("origin", ds.id))
+			// SYSCOIN
+			if ds.data == nil {
+				return nil, NewTemporaryError(fmt.Errorf("failed to open calldata cloud source"))
+			}
+			ds.open = true
 		} else if errors.Is(err, ethereum.NotFound) {
 			return nil, NewResetError(fmt.Errorf("failed to open calldata source: %w", err))
 		} else {
@@ -162,7 +177,8 @@ func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, 
 				data, err = fetcher.GetBlobFromCloud(vh)
 				if err != nil {
 					log.Warn("DataFromEVMTransactions", "failed to fetch L1 block info and receipts", err)
-					continue
+					// instead of continuing this is a hard reset which means the entire set of blobs for this block/tx should be refetched
+					return nil
 				}
 				// check data is valid locally
 				vhData := crypto.Keccak256Hash(data)
