@@ -131,7 +131,7 @@ func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
 // that are sent to the batch inbox address from the batch sender address.
 // This will return an empty array if no valid transactions are found.
 func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, config *rollup.Config, batcherAddr common.Address, receipts types.Receipts, txs types.Transactions, log log.Logger) []eth.Data {
-	var out []eth.Data
+	out := make([]eth.Data, 0)
 	l1Signer := config.L1Signer()
 	for i, receipt := range receipts {
 		if to := txs[i].To(); to == nil || *to != config.BatchInboxAddress {
