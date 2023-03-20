@@ -10,6 +10,7 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
+	oprpc "github.com/ethereum-optimism/optimism/op-batcher/rpc"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/sources"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
