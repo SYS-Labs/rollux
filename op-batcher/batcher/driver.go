@@ -103,7 +103,6 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 		PollInterval:    cfg.PollInterval,
 		TxManagerConfig: txManagerConfig,
 		From:            fromAddress,
-		SignerFnFactory: signer,
 		// SYSCOIN
 		BatchInboxAddress: batchInboxAddress,
 		Rollup:            rcfg,
@@ -145,7 +144,7 @@ func NewBatchSubmitter(ctx context.Context, cfg Config, l log.Logger, m metrics.
 		txMgr: NewTransactionManager(l,
 			// SYSCOIN
 			cfg.TxManagerConfig, cfg.BatchInboxAddress, cfg.Rollup.L1ChainID,
-			cfg.From, cfg.L1Client, cfg.SignerFnFactory(cfg.Rollup.L1ChainID), cfg.SyscoinNode),
+			cfg.From, cfg.L1Client, cfg.SyscoinNode),
 		state:  NewChannelManager(l, m, cfg.Channel),
 	}, nil
 

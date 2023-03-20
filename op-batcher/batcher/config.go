@@ -1,7 +1,6 @@
 package batcher
 
 import (
-	opcrypto "github.com/ethereum-optimism/optimism/op-service/crypto"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
-	"github.com/ethereum-optimism/optimism/op-batcher/rpc"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/sources"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
@@ -32,7 +30,6 @@ type Config struct {
 	PollInterval    time.Duration
 	TxManagerConfig txmgr.Config
 	From            common.Address
-	SignerFnFactory opcrypto.SignerFactory
 	// SYSCOIN Where to send the batch txs to.
 	BatchInboxAddress common.Address
 
