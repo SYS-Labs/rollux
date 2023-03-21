@@ -143,7 +143,7 @@ This contract is deprecated and its usage should be avoided.
 
 Address: `0x4200000000000000000000000000000000000006`
 
-`WETH9` is the standard implementation of Wrapped Ether on Optimism. It is a
+`WETH9` is the standard implementation of Wrapped Syscoin on Optimism. It is a
 commonly used contract and is placed as a predeploy so that it is at a
 deterministic address across Optimism based networks.
 

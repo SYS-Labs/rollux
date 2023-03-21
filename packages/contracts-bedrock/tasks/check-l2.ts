@@ -472,11 +472,11 @@ const check = {
     )
 
     const name = await WETH9.name()
-    assert(name === 'Wrapped Ether')
+    assert(name === 'Wrapped Syscoin')
     console.log(`  - name: ${name}`)
 
     const symbol = await WETH9.symbol()
-    assert(symbol === 'WETH')
+    assert(symbol === 'WSYS')
     console.log(`  - symbol: ${symbol}`)
 
     const decimals = await WETH9.decimals()

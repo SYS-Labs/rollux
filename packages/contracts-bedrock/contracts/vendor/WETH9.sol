@@ -16,8 +16,8 @@
 pragma solidity >=0.4.22 <0.6;
 
 contract WETH9 {
-    string public name     = "Wrapped Ether";
-    string public symbol   = "WETH";
+    string public name     = "Wrapped Syscoin";
+    string public symbol   = "WSYS";
     uint8  public decimals = 18;
 
     event  Approval(address indexed src, address indexed guy, uint wad);

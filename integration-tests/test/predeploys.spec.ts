@@ -23,11 +23,11 @@ describe('predeploys', () => {
     })
 
     it('should have the correct name', async () => {
-      expect(await weth9.name()).to.equal('Wrapped Ether')
+      expect(await weth9.name()).to.equal('Wrapped Syscoin')
     })
 
     it('should have the correct symbol', async () => {
-      expect(await weth9.symbol()).to.equal('WETH')
+      expect(await weth9.symbol()).to.equal('WSYS')
     })
 
     it('should have the correct decimals', async () => {
