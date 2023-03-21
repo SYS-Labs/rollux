@@ -95,10 +95,10 @@ func TestBuildL1DeveloperGenesis(t *testing.T) {
 	require.Equal(t, uint8(18), decimals)
 	symbol, err := weth9.Symbol(callOpts)
 	require.NoError(t, err)
-	require.Equal(t, "WETH", symbol)
+	require.Equal(t, "WSYS", symbol)
 	name, err := weth9.Name(callOpts)
 	require.NoError(t, err)
-	require.Equal(t, "Wrapped Ether", name)
+	require.Equal(t, "Wrapped Syscoin", name)
 
 	// test that we can do deposits, etc.
 	priv, err := crypto.HexToECDSA("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")

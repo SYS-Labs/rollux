@@ -199,8 +199,8 @@ func BuildL1DeveloperGenesis(config *DeployConfig) (*core.Genesis, error) {
 
 		// Special case for WETH since it was not designed to be behind a proxy
 		if name == "WETH9" {
-			name, _ := state.EncodeStringValue("Wrapped Ether", 0)
-			symbol, _ := state.EncodeStringValue("WETH", 0)
+			name, _ := state.EncodeStringValue("Wrapped Syscoin", 0)
+			symbol, _ := state.EncodeStringValue("WSYS", 0)
 			decimals, _ := state.EncodeUintValue(18, 0)
 			memDB.SetState(*proxyAddr, common.Hash{}, name)
 			memDB.SetState(*proxyAddr, common.Hash{31: 0x01}, symbol)
