@@ -77,8 +77,9 @@ fi
 # Bring up L1.
 (
   cd ops-bedrock
+  export DOCKER_BUILDKIT=1
   echo "Bringing up L1..."
-  DOCKER_BUILDKIT=1 docker-compose build --progress plain
+  docker-compose -f p2p-docker-compose.yml build --progress plain
   docker-compose -f p2p-docker-compose.yml up -d l1
   wait_up $L1_URL
 )
