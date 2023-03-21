@@ -44,6 +44,8 @@ services:
       - "/bin/sh"
       - "/entrypoint.sh"
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
+    env_file:
+      - ./envs/p2p-node.env
 
   op-node:
     depends_on:
