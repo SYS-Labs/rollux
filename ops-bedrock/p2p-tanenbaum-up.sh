@@ -56,7 +56,7 @@ function wait_up {
   done
   echo "Done!"
 }
-mkdir -p ./.devnet
+#mkdir -p ./.devnet
 
 # Export all secrets from file to environment variables
 (
