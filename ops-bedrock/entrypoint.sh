@@ -2,6 +2,7 @@
 set -exu
 
 VERBOSITY=${GETH_VERBOSITY:-3}
+ALLOW_UNPROTECTED_TXS=${ALLOW_UNPROTECTED_TXS:false}
 GETH_DATA_DIR=/db
 GETH_CHAINDATA_DIR="$GETH_DATA_DIR/geth/chaindata"
 GETH_KEYSTORE_DIR="$GETH_DATA_DIR/keystore"
@@ -83,4 +84,5 @@ exec geth \
 	--metrics \
 	--metrics.addr=0.0.0.0 \
 	--metrics.port=6060 \
+	--rpc.allow-unprotected-txs=$ALLOW_UNPROTECTED_TXS \
 	"$@"
