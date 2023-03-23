@@ -295,7 +295,7 @@ func (s *EthClient) InfoByNumber(ctx context.Context, number uint64) (eth.BlockI
 func (s *EthClient) InfoByLabel(ctx context.Context, label eth.BlockLabel) (eth.BlockInfo, error) {
 	// can't hit the cache when querying the head due to reorgs / changes.
 	// SYSCOIN lookback for finality
-	blockInfo, err := s.headerCall(ctx, "eth_getBlockByNumber", "latest")
+	blockInfo, err := s.headerCall(ctx, "eth_getBlockByNumber", eth.BlockLabel(eth.Unsafe))
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +312,7 @@ func (s *EthClient) InfoByLabel(ctx context.Context, label eth.BlockLabel) (eth.
 	if label == eth.Finalized {
 		lookback -= 5
 	}
-	return s.headerCall(ctx, "eth_getBlockByNumber", hexutil.EncodeUint64(lookback))
+	return s.headerCall(ctx, "eth_getBlockByNumber", numberID(lookback))
 }
 
 func (s *EthClient) InfoAndTxsByHash(ctx context.Context, hash common.Hash) (eth.BlockInfo, types.Transactions, error) {
@@ -333,9 +333,9 @@ func (s *EthClient) InfoAndTxsByLabel(ctx context.Context, label eth.BlockLabel)
 	// can't hit the cache when querying the head due to reorgs / changes.
 	// SYSCOIN lookback for finality
 	if label == eth.Unsafe {
-		return s.blockCall(ctx, "eth_getBlockByNumber", "latest")
+		return s.blockCall(ctx, "eth_getBlockByNumber", eth.BlockLabel(eth.Unsafe))
 	}
-	blockInfo, err := s.headerCall(ctx, "eth_getBlockByNumber", "latest")
+	blockInfo, err := s.headerCall(ctx, "eth_getBlockByNumber", eth.BlockLabel(eth.Unsafe))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -349,7 +349,7 @@ func (s *EthClient) InfoAndTxsByLabel(ctx context.Context, label eth.BlockLabel)
 	if label == eth.Finalized {
 		lookback -= 5
 	}
-	return s.blockCall(ctx, "eth_getBlockByNumber", hexutil.EncodeUint64(lookback))
+	return s.blockCall(ctx, "eth_getBlockByNumber", numberID(lookback))
 }
 
 func (s *EthClient) PayloadByHash(ctx context.Context, hash common.Hash) (*eth.ExecutionPayload, error) {
