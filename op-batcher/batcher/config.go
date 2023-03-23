@@ -118,6 +118,14 @@ type CLIConfig struct {
 
 	/* Optional Params */
 
+	// TxManagerTimeout is the max amount of time to wait for the [txmgr].
+	// This will default to: 10 * time.Minute.
+	TxManagerTimeout time.Duration
+
+	// OfflineGasEstimation specifies whether the batcher should calculate
+	// gas estimations offline using the [core.IntrinsicGas] function.
+	OfflineGasEstimation bool
+
 	// MaxL1TxSize is the maximum size of a batch tx submitted to L1.
 	MaxL1TxSize uint64
 
@@ -176,6 +184,8 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		ResubmissionTimeout:       ctx.GlobalDuration(flags.ResubmissionTimeoutFlag.Name),
 
 		/* Optional Flags */
+		OfflineGasEstimation: ctx.GlobalBool(flags.OfflineGasEstimationFlag.Name),
+		TxManagerTimeout:     ctx.GlobalDuration(flags.TxManagerTimeoutFlag.Name),
 		MaxChannelDuration: ctx.GlobalUint64(flags.MaxChannelDurationFlag.Name),
 		MaxL1TxSize:        ctx.GlobalUint64(flags.MaxL1TxSizeBytesFlag.Name),
 		TargetL1TxSize:     ctx.GlobalUint64(flags.TargetL1TxSizeBytesFlag.Name),

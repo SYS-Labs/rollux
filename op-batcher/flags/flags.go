@@ -1,6 +1,8 @@
 package flags
 
 import (
+	"time"
+
 	"github.com/urfave/cli"
 
 	"github.com/ethereum-optimism/optimism/op-batcher/rpc"
@@ -80,7 +82,17 @@ var (
 		EnvVar:   opservice.PrefixEnvVar(envVarPrefix, "SEQUENCER_BATCH_INBOX_ADDRESS"),
 	}
 	/* Optional flags */
-
+	OfflineGasEstimationFlag = cli.BoolFlag{
+		Name:   "offline-gas-estimation",
+		Usage:  "Whether to use offline gas estimation",
+		EnvVar: opservice.PrefixEnvVar(envVarPrefix, "OFFLINE_GAS_ESTIMATION"),
+	}
+	TxManagerTimeoutFlag = cli.DurationFlag{
+		Name:   "tx-manager-timeout",
+		Usage:  "Maximum duration to wait for L1 transactions, including resubmissions",
+		Value:  10 * time.Minute,
+		EnvVar: opservice.PrefixEnvVar(envVarPrefix, "TX_MANAGER_TIMEOUT"),
+	}
 	MaxChannelDurationFlag = cli.Uint64Flag{
 		Name:   "max-channel-duration",
 		Usage:  "The maximum duration of L1-blocks to keep a channel open. 0 to disable.",
@@ -159,6 +171,8 @@ var requiredFlags = []cli.Flag{
 }
 
 var optionalFlags = []cli.Flag{
+	OfflineGasEstimationFlag,
+	TxManagerTimeoutFlag,
 	MaxChannelDurationFlag,
 	MaxL1TxSizeBytesFlag,
 	TargetL1TxSizeBytesFlag,
