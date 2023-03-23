@@ -340,8 +340,7 @@ func (l *BatchSubmitter) loop() {
 					sig := crypto.Keccak256([]byte(appendSequencerBatchMethodName))[:4]
 					// we avoid changing Receipt object and just reuse TxHash for VH
 					calldata := append(sig, receipt.TxHash.Bytes()...)
-					// SYSCOIN additional gas for precompile
-					nreceipt, err := l.SendTransaction(l.ctx, calldata, 7500)
+					nreceipt, err := l.SendTransaction(l.ctx, calldata)
 					if err != nil {
 						l.recordFailedTx(txdata.ID(), err)
 					} else {
@@ -367,9 +366,9 @@ func (l *BatchSubmitter) loop() {
 const networkTimeout = 2 * time.Second // How long a single network request can take. TODO: put in a config somewhere
 
 // fix(refcell):
-// combined with above, these config variables should also be replicated in the op-proposer
+// SYSCOIN combined with above, these config variables should also be replicated in the op-proposer
 // along with op-proposer changes to include the updated tx manager
-const txManagerTimeout = 2 * time.Minute // How long the tx manager can take to send a transaction.
+const txManagerTimeout = 20 * time.Minute // How long the tx manager can take to send a transaction.
 
 // SendTransaction creates & submits a transaction to the batch inbox address with the given `data`.
 // It currently uses the underlying `txmgr` to handle transaction sending & price management.
@@ -400,6 +399,24 @@ func (l *BatchSubmitter) SendTransaction(ctx context.Context, data []byte) (*typ
 		return nil, err
 	} else {
 		l.log.Info("tx successfully published", "tx_hash", receipt.TxHash, "data_size", len(data))
+		return receipt, nil
+	}
+}
+
+// SYSCOIN
+// SendTransaction creates & submits a transaction to the batch inbox address with the given `data`.
+// It currently uses the underlying `txmgr` to handle transaction sending & price management.
+// This is a blocking method. It should not be called concurrently.
+// TODO: where to put concurrent transaction handling logic.
+func (l *BatchSubmitter) SendBlobTransaction(ctx context.Context, data []byte) (*types.Receipt, error) {
+	// SYSCOIN account for 150sec average block times
+	ctx, cancel := context.WithTimeout(ctx, txManagerTimeout)
+	defer cancel()
+	if receipt, err := l.txMgr.SendBlob(ctx, data); err != nil {
+		l.log.Warn("unable to publish blob", "err", err)
+		return nil, err
+	} else {
+		l.log.Info("blob successfully published", "version_hash", receipt.TxHash)
 		return receipt, nil
 	}
 }
