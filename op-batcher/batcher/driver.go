@@ -340,7 +340,7 @@ func (l *BatchSubmitter) loop() {
 					sig := crypto.Keccak256([]byte(appendSequencerBatchMethodName))[:4]
 					// we avoid changing Receipt object and just reuse TxHash for VH
 					calldata := append(sig, receipt.TxHash.Bytes()...)
-					nreceipt, err := l.SendTransaction(l.ctx, calldata)
+					nreceipt, err := l.sendTransaction(l.ctx, calldata)
 					if err != nil {
 						l.recordFailedTx(txdata.ID(), err)
 					} else {
