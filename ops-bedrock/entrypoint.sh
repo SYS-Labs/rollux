@@ -69,7 +69,7 @@ exec geth \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
 	--nodiscover \
-	--maxpeers=1 \
+	--maxpeers=0 \
 	--networkid=$CHAIN_ID \
 	--unlock=$BLOCK_SIGNER_ADDRESS \
 	--mine \
