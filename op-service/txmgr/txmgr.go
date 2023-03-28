@@ -292,7 +292,7 @@ func (m *SimpleTxManager) send(ctx context.Context, tx *types.Transaction) (*typ
 				continue
 			}
 
-			// SYSCOIN Increase the gas price & submit the new transaction
+			// Increase the gas price & submit the new transaction
 			newTx, err := m.IncreaseGasPrice(ctx, tx)
 			if err != nil {
 				m.l.Error("Failed to increase the gas price for the tx", "err", err)
