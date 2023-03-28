@@ -36,6 +36,9 @@ CONTRACTS_BEDROCK="$PWD/packages/contracts-bedrock"
 CONTRACTS_GOVERNANCE="$PWD/packages/contracts-governance"
 NETWORK=tanenbaum
 DEVNET="$PWD/.devnet"
+
+mkdir -p ./.devnet
+
 # Helper method that waits for a given URL to be up. Can't use
 # cURL's built-in retry logic because connection reset errors
 # are ignored unless you're using a very recent version of cURL
@@ -55,7 +58,6 @@ function wait_up {
   done
   echo "Done!"
 }
-mkdir -p ./.devnet
 
 # Regenerate the L1 genesis file if necessary. The existence of the genesis
 # file is used to determine if we need to recreate the devnet's state folder.
@@ -73,6 +75,11 @@ if [ ! -f "$DEVNET/done" ]; then
   )
 fi
 
+# After the genesis files exists get the oracle output and batch inbox addresses,
+# so that the following 'docker-compose build' can use them (see 'Bring up L1')
+L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
+SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_address')"
+
 # Bring up L1.
 (
   cd ops-bedrock
@@ -89,9 +96,6 @@ fi
   docker-compose up -d l2
   wait_up $L2_URL
 )
-
-L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
-SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_address')"
 
 # Bring up everything else.
 (

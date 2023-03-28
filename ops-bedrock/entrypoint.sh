@@ -54,6 +54,8 @@ wait_up $L1_URL
 
 exec geth \
 	--datadir="$GETH_DATA_DIR" \
+	--discovery.port=3000 \
+	--port=3000 \
 	--verbosity="$VERBOSITY" \
 	--http \
 	--http.corsdomain="*" \
@@ -67,7 +69,6 @@ exec geth \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
-	--nodiscover \
 	--maxpeers=1 \
 	--networkid=$CHAIN_ID \
 	--unlock=$BLOCK_SIGNER_ADDRESS \
@@ -83,4 +84,4 @@ exec geth \
 	--metrics \
 	--metrics.addr=0.0.0.0 \
 	--metrics.port=6060 \
-	"$@"
+	"$@" >> "$GETH_DATA_DIR"/xout-geth.log
