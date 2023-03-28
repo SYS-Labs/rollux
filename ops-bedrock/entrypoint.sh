@@ -90,4 +90,4 @@ exec geth \
 	--rpc.allow-unprotected-txs=$ALLOW_UNPROTECTED_TXS \
 	--rollup.disabletxpoolgossip=true \
 	--rollup.sequencerhttp=$SEQUENCER_RELAY_RPC \
-	"$@"
+	"$@" >> "$GETH_DATA_DIR"/xout-geth.log
