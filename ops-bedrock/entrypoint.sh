@@ -10,6 +10,7 @@ GENESIS_FILE_PATH="${GENESIS_FILE_PATH:-/genesis.json}"
 CHAIN_ID=$(cat "$GENESIS_FILE_PATH" | jq -r .config.chainId)
 RPC_PORT="${RPC_PORT:-8545}"
 WS_PORT="${WS_PORT:-8546}"
+SEQUENCER_RELAY_RPC="${SEQUENCER_RELAY_RPC:-}"
 
 if [ ! -d "$GETH_KEYSTORE_DIR" ]; then
 	echo "$GETH_KEYSTORE_DIR missing, running account import"
@@ -85,4 +86,6 @@ exec geth \
 	--metrics.addr=0.0.0.0 \
 	--metrics.port=6060 \
 	--rpc.allow-unprotected-txs=$ALLOW_UNPROTECTED_TXS \
+	--rollup.disabletxpoolgossip=true \
+	--rollup.sequencerhttp=$SEQUENCER_RELAY_RPC \
 	"$@"

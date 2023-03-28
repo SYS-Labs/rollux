@@ -80,7 +80,6 @@ services:
       --metrics.port=7300
       --pprof.enabled
       --rpc.enable-admin
-      --l2.backup-unsafe-sync-rpc=https://rpc-tanenbaum.rollux.com/
     ports:
       - "7545:8545"
       - "9003:9003"
