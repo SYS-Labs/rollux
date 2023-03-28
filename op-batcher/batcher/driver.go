@@ -380,10 +380,10 @@ const txManagerTimeout = 25 * time.Minute // How long the tx manager can take to
 // This is a blocking method. It should not be called concurrently.
 func (l *BatchSubmitter) sendTransaction(ctx context.Context, data []byte) (*types.Receipt, error) {
 	// Do the gas estimation offline. A value of 0 will cause the [txmgr] to estimate the gas limit.
-	intrinsicGas, err := core.IntrinsicGas(data, nil, false, true, true, false)
+	/*intrinsicGas, err := core.IntrinsicGas(data, nil, false, true, true, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate intrinsic gas: %w", err)
-	}
+	}*/
 
 	// Send the transaction through the txmgr
 	ctx, cancel := context.WithTimeout(ctx, txManagerTimeout)
@@ -392,7 +392,8 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, data []byte) (*typ
 		To:       l.Rollup.BatchInboxAddress,
 		TxData:   data,
 		From:     l.txMgr.From(),
-		GasLimit: intrinsicGas,
+		// SYSCOIN let L1 estimate gas due to precompile
+		GasLimit: 0,
 	}); err != nil {
 		l.log.Warn("unable to publish tx", "err", err, "data_size", len(data))
 		return nil, err
