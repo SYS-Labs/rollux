@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/eth"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
-	"github.com/ethereum/go-ethereum/core"
+	_ "github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -389,9 +389,9 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, data []byte) (*typ
 	ctx, cancel := context.WithTimeout(ctx, txManagerTimeout)
 	defer cancel()
 	if receipt, err := l.txMgr.Send(ctx, txmgr.TxCandidate{
-		To:       l.Rollup.BatchInboxAddress,
-		TxData:   data,
-		From:     l.txMgr.From(),
+		To:     l.Rollup.BatchInboxAddress,
+		TxData: data,
+		From:   l.txMgr.From(),
 		// SYSCOIN let L1 estimate gas due to precompile
 		GasLimit: 0,
 	}); err != nil {
