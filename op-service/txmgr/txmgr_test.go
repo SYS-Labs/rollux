@@ -34,7 +34,8 @@ func newTestHarnessWithConfig(t *testing.T, cfg Config) *testHarness {
 	g := newGasPricer(3)
 	backend := newMockBackend(g)
 	cfg.Backend = backend
-	mgr := NewSimpleTxManager("TEST", testlog.Logger(t, log.LvlCrit), cfg)
+	// SYSCOIN
+	mgr := NewSimpleTxManager("TEST", testlog.Logger(t, log.LvlCrit), cfg, nil)
 
 	return &testHarness{
 		cfg:       cfg,
