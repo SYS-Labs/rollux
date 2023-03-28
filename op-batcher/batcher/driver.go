@@ -348,7 +348,7 @@ func (l *BatchSubmitter) publishStateToL1(ctx context.Context) {
 			break
 		}
 		// SYSCOIN Record TX Status
-		if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil {
+		if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
 			l.recordFailedTx(txdata.ID(), err)
 		} else {
 			l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
@@ -358,7 +358,7 @@ func (l *BatchSubmitter) publishStateToL1(ctx context.Context) {
 			// we avoid changing Receipt object and just reuse TxHash for VH
 			calldata := append(sig, receipt.TxHash.Bytes()...)
 			nreceipt, err := l.sendTransaction(ctx, calldata)
-			if err != nil {
+			if err != nil || nreceipt.Status == types.ReceiptStatusFailed {
 				l.recordFailedTx(txdata.ID(), err)
 			} else {
 				l.recordConfirmedTx(txdata.ID(), nreceipt)
