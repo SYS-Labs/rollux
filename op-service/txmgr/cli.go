@@ -77,7 +77,8 @@ func CLIFlags(envPrefix string) []cli.Flag {
 		cli.DurationFlag{
 			Name:   "resubmission-timeout",
 			Usage:  "Duration we will wait before resubmitting a transaction to L1",
-			Value:  30 * time.Second,
+			// SYSCOIN
+			Value:  525 * time.Second,
 			EnvVar: opservice.PrefixEnvVar(envPrefix, "RESUBMISSION_TIMEOUT"),
 		},
 	}, client.CLIFlags(envPrefix)...)

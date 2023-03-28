@@ -368,7 +368,7 @@ const networkTimeout = 2 * time.Second // How long a single network request can 
 // fix(refcell):
 // SYSCOIN combined with above, these config variables should also be replicated in the op-proposer
 // along with op-proposer changes to include the updated tx manager
-const txManagerTimeout = 20 * time.Minute // How long the tx manager can take to send a transaction.
+const txManagerTimeout = 25 * time.Minute // How long the tx manager can take to send a transaction.
 
 // sendTransaction creates & submits a transaction to the batch inbox address with the given `data`.
 // It currently uses the underlying `txmgr` to handle transaction sending & price management.

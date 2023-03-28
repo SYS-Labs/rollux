@@ -364,7 +364,7 @@ func (l *L2OutputSubmitter) loop() {
 			}
 
 			// SYSCOIN increase timeout
-			cCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
+			cCtx, cancel := context.WithTimeout(ctx, 25*time.Minute)
 			if err := l.sendTransaction(cCtx, output); err != nil {
 				l.log.Error("Failed to send proposal transaction", "err", err)
 				cancel()
