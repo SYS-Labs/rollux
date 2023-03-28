@@ -52,22 +52,26 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 	// most expensive.
 	l1Client, err := dialEthClientWithTimeout(ctx, cfg.L1EthRpc)
 	if err != nil {
+		l.Warn("l1 dialEthClientWithTimeout", "err", err)
 		return nil, err
 	}
 
 	l2Client, err := dialEthClientWithTimeout(ctx, cfg.L2EthRpc)
 	if err != nil {
+		l.Warn("l2 dialEthClientWithTimeout", "err", err)
 		return nil, err
 	}
 
 	rollupClient, err := dialRollupClientWithTimeout(ctx, cfg.RollupRpc)
 	if err != nil {
+		l.Warn("dialRollupClientWithTimeout", "err", err)
 		return nil, err
 	}
 
 	// SYSCOIN
 	syscoinClient, err := dialSyscoinClientWithTimeout(ctx, cfg.SysDesc, cfg.SysDescInternal)
 	if err != nil {
+		l.Warn("dialSyscoinClientWithTimeout", "err", err)
 		return nil, err
 	}
 
@@ -78,6 +82,7 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 
 	txManagerConfig, err := txmgr.NewConfig(cfg.TxMgrConfig, l)
 	if err != nil {
+		l.Warn("txmgr.NewConfig", "err", err)
 		return nil, err
 	}
 	// SYSCOIN
