@@ -87,7 +87,7 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 		return nil, err
 	}
 	// SYSCOIN
-	txManager := txmgr.NewSimpleTxManager("batcher", l, txManagerConfig, cfg.SyscoinNode)
+	txManager := txmgr.NewSimpleTxManager("batcher", l, txManagerConfig, syscoinClient)
 
 	batcherCfg := Config{
 		L1Client:     l1Client,
@@ -352,7 +352,7 @@ func (l *BatchSubmitter) publishStateToL1(ctx context.Context) {
 			break
 		}
 		// SYSCOIN Record TX Status
-		if receipt, err := l.sendBlobTransaction(l.ctx, txdata.Bytes()); err != nil {
+		if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil {
 			l.recordFailedTx(txdata.ID(), err)
 		} else {
 			l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
@@ -361,7 +361,7 @@ func (l *BatchSubmitter) publishStateToL1(ctx context.Context) {
 			sig := crypto.Keccak256([]byte(appendSequencerBatchMethodName))[:4]
 			// we avoid changing Receipt object and just reuse TxHash for VH
 			calldata := append(sig, receipt.TxHash.Bytes()...)
-			nreceipt, err := l.sendTransaction(l.ctx, calldata)
+			nreceipt, err := l.sendTransaction(ctx, calldata)
 			if err != nil {
 				l.recordFailedTx(txdata.ID(), err)
 			} else {

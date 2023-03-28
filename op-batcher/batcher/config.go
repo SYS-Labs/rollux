@@ -2,14 +2,15 @@ package batcher
 
 import (
 	"time"
-
+	// SYSCOIN
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/urfave/cli"
 
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
-	oprpc "github.com/ethereum-optimism/optimism/op-batcher/rpc"
+	"github.com/ethereum-optimism/optimism/op-batcher/rpc"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/sources"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
@@ -104,7 +105,6 @@ type CLIConfig struct {
 	SequencerBatchInboxAddress string
 	SysDesc                    string
 	SysDescInternal            string
-	RPCConfig                  oprpc.CLIConfig
 }
 
 func (c CLIConfig) Check() error {
