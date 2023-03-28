@@ -49,13 +49,6 @@ var (
 		Required: true,
 		EnvVar:   opservice.PrefixEnvVar(envVarPrefix, "POLL_INTERVAL"),
 	}
-	// SYSCOIN
-	SequencerBatchInboxAddressFlag = cli.StringFlag{
-		Name:     "sequencer-batch-inbox-address",
-		Usage:    "L1 Address to receive batch transactions",
-		Required: true,
-		EnvVar:   opservice.PrefixEnvVar(envVarPrefix, "SEQUENCER_BATCH_INBOX_ADDRESS"),
-	}
 	// Optional flags
 	MaxChannelDurationFlag = cli.Uint64Flag{
 		Name:   "max-channel-duration",
@@ -113,8 +106,6 @@ var requiredFlags = []cli.Flag{
 	RollupRpcFlag,
 	SubSafetyMarginFlag,
 	PollIntervalFlag,
-	// SYSCOIN
-	SequencerBatchInboxAddressFlag,
 }
 
 var optionalFlags = []cli.Flag{

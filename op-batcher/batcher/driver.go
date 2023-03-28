@@ -48,12 +48,6 @@ type BatchSubmitter struct {
 func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metricer) (*BatchSubmitter, error) {
 	ctx := context.Background()
 
-	// SYSCOIN
-	batchInboxAddress, err := parseAddress(cfg.SequencerBatchInboxAddress)
-	if err != nil {
-		return nil, err
-	}
-
 	// Connect to L1 and L2 providers. Perform these last since they are the
 	// most expensive.
 	l1Client, err := dialEthClientWithTimeout(ctx, cfg.L1EthRpc)
@@ -96,9 +90,6 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 		PollInterval: cfg.PollInterval,
 		TxManager:    txManager,
 		Rollup:       rcfg,
-		// SYSCOIN
-		BatchInboxAddress: batchInboxAddress,
-		SyscoinNode:     syscoinClient,
 		Channel: ChannelConfig{
 			SeqWindowSize:      rcfg.SeqWindowSize,
 			ChannelTimeout:     rcfg.ChannelTimeout,

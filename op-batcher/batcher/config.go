@@ -2,8 +2,6 @@ package batcher
 
 import (
 	"time"
-	// SYSCOIN
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/urfave/cli"
@@ -34,9 +32,6 @@ type Config struct {
 
 	// Channel builder parameters
 	Channel ChannelConfig
-	// SYSCOIN Where to send the batch txs to.
-	SyscoinNode     *sources.SyscoinClient
-	BatchInboxAddress common.Address
 }
 
 // Check ensures that the [Config] is valid.
@@ -100,9 +95,6 @@ type CLIConfig struct {
 	MetricsConfig opmetrics.CLIConfig
 	PprofConfig   oppprof.CLIConfig
 	// SYSCOIN
-	// SequencerBatchInboxAddress is the address in which to send batch
-	// transactions.
-	SequencerBatchInboxAddress string
 	SysDesc                    string
 	SysDescInternal            string
 }
@@ -149,7 +141,6 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		MetricsConfig:      opmetrics.ReadCLIConfig(ctx),
 		PprofConfig:        oppprof.ReadCLIConfig(ctx),
 		// SYSCOIN
-		SequencerBatchInboxAddress: ctx.GlobalString(flags.SequencerBatchInboxAddressFlag.Name),
 		SysDesc:                    ctx.GlobalString(flags.SysDescFlag.Name),
 		SysDescInternal:            ctx.GlobalString(flags.SysDescInternalFlag.Name),
 	}
