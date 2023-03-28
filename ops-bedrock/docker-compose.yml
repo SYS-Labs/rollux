@@ -65,6 +65,8 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
+      --p2p.scoring.peers=light
+      --p2p.ban.peers=true
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
@@ -72,7 +74,6 @@ services:
       --metrics.port=7300
       --pprof.enabled
       --rpc.enable-admin
-      --l2.backup-unsafe-sync-rpc=https://rpc-tanenbaum.rollux.com/
     ports:
       - "7545:8545"
       - "9003:9003"
@@ -109,7 +110,6 @@ services:
       OP_PROPOSER_POLL_INTERVAL: 10s
       OP_PROPOSER_NUM_CONFIRMATIONS: 1
       OP_PROPOSER_SAFE_ABORT_NONCE_TOO_LOW_COUNT: 3
-      OP_PROPOSER_RESUBMISSION_TIMEOUT: 300s
       OP_PROPOSER_L2_OUTPUT_HD_PATH: "m/44'/60'/0'/0/1"
       OP_PROPOSER_L2OO_ADDRESS: "${L2OO_ADDRESS}"
       OP_PROPOSER_PPROF_ENABLED: "true"
@@ -136,6 +136,8 @@ services:
       OP_BATCHER_L1_ETH_RPC: http://l1:8545
       OP_BATCHER_L2_ETH_RPC: http://l2:8545
       OP_BATCHER_ROLLUP_RPC: http://op-node:8545
+      OP_BATCHER_TX_MANAGER_TIMEOUT: 20m
+      OP_BATCHER_OFFLINE_GAS_ESTIMATION: "false"
       OP_BATCHER_MAX_L1_TX_SIZE_BYTES: 2097120
       OP_BATCHER_TARGET_L1_TX_SIZE_BYTES: 2000000
       OP_BATCHER_TARGET_NUM_FRAMES: 1
@@ -145,9 +147,7 @@ services:
       OP_BATCHER_MAX_CHANNEL_DURATION: 24
       OP_BATCHER_NUM_CONFIRMATIONS: 1
       OP_BATCHER_SAFE_ABORT_NONCE_TOO_LOW_COUNT: 3
-      OP_BATCHER_RESUBMISSION_TIMEOUT: 300s
       OP_BATCHER_SEQUENCER_HD_PATH: "m/44'/60'/0'/0/2"
-      OP_BATCHER_SEQUENCER_BATCH_INBOX_ADDRESS: "${SEQUENCER_BATCH_INBOX_ADDRESS}"
       OP_BATCHER_LOG_TERMINAL: "true"
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"

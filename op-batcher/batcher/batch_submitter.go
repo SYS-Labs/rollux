@@ -12,9 +12,9 @@ import (
 	gethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/urfave/cli"
 
+	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
 	"github.com/ethereum-optimism/optimism/op-batcher/rpc"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
-	opmetrics "github.com/ethereum-optimism/optimism/op-service/metrics"
 	oppprof "github.com/ethereum-optimism/optimism/op-service/pprof"
 	oprpc "github.com/ethereum-optimism/optimism/op-service/rpc"
 )
@@ -38,9 +38,10 @@ func Main(version string, cliCtx *cli.Context) error {
 	}
 
 	l := oplog.NewLogger(cfg.LogConfig)
+	m := metrics.NewMetrics("default")
 	l.Info("Initializing Batch Submitter")
 
-	batchSubmitter, err := NewBatchSubmitterFromCLIConfig(cfg, l)
+	batchSubmitter, err := NewBatchSubmitterFromCLIConfig(cfg, l, m)
 	if err != nil {
 		l.Error("Unable to create Batch Submitter", "error", err)
 		return err
@@ -52,7 +53,7 @@ func Main(version string, cliCtx *cli.Context) error {
 			return err
 		}
 	}
-	defer batchSubmitter.StopIfRunning()
+	defer batchSubmitter.StopIfRunning(context.Background())
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -66,16 +67,15 @@ func Main(version string, cliCtx *cli.Context) error {
 		}()
 	}
 
-	registry := opmetrics.NewRegistry()
 	metricsCfg := cfg.MetricsConfig
 	if metricsCfg.Enabled {
 		l.Info("starting metrics server", "addr", metricsCfg.ListenAddr, "port", metricsCfg.ListenPort)
 		go func() {
-			if err := opmetrics.ListenAndServe(ctx, registry, metricsCfg.ListenAddr, metricsCfg.ListenPort); err != nil {
+			if err := m.Serve(ctx, metricsCfg.ListenAddr, metricsCfg.ListenPort); err != nil {
 				l.Error("error starting metrics server", err)
 			}
 		}()
-		opmetrics.LaunchBalanceMetrics(ctx, l, registry, "", batchSubmitter.L1Client, batchSubmitter.From)
+		m.StartBalanceMetrics(ctx, l, batchSubmitter.L1Client, batchSubmitter.TxManager.From())
 	}
 
 	rpcCfg := cfg.RPCConfig
@@ -96,6 +96,9 @@ func Main(version string, cliCtx *cli.Context) error {
 		cancel()
 		return fmt.Errorf("error starting RPC server: %w", err)
 	}
+
+	m.RecordInfo(version)
+	m.RecordUp()
 
 	interruptChannel := make(chan os.Signal, 1)
 	signal.Notify(interruptChannel, []os.Signal{

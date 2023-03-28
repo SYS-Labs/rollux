@@ -189,6 +189,8 @@ const deployFn: DeployFunction = async (hre) => {
         false // do not pause the the OptimismPortal when initializing
       )
     } else {
+      // pause the OptimismPortal when initializing
+      const optimismPortalPaused = true
       const tx = await SystemDictator.populateTransaction.updateDynamicConfig(
         {
           l2OutputOracleStartingBlockNumber:
@@ -196,9 +198,22 @@ const deployFn: DeployFunction = async (hre) => {
           l2OutputOracleStartingTimestamp:
             hre.deployConfig.l2OutputOracleStartingTimestamp,
         },
-        true
+        optimismPortalPaused
       )
       console.log(`Please update dynamic oracle config...`)
+      console.log(
+        JSON.stringify(
+          {
+            l2OutputOracleStartingBlockNumber:
+              hre.deployConfig.l2OutputOracleStartingBlockNumber,
+            l2OutputOracleStartingTimestamp:
+              hre.deployConfig.l2OutputOracleStartingTimestamp,
+            optimismPortalPaused,
+          },
+          null,
+          2
+        )
+      )
       console.log(`MSD address: ${SystemDictator.address}`)
       console.log(`JSON:`)
       console.log(jsonifyTransaction(tx))
@@ -210,7 +225,7 @@ const deployFn: DeployFunction = async (hre) => {
       async () => {
         return SystemDictator.dynamicConfigSet()
       },
-      30000,
+      5000,
       1000
     )
   }
@@ -246,7 +261,7 @@ const deployFn: DeployFunction = async (hre) => {
       )
       const resourceParams = await OptimismPortal.params()
       assert(
-        resourceParams.prevBaseFee.eq(await OptimismPortal.INITIAL_BASE_FEE()),
+        resourceParams.prevBaseFee.eq(ethers.utils.parseUnits('1', 'gwei')),
         `OptimismPortal was not initialized with the correct initial base fee`
       )
       assert(
@@ -328,7 +343,7 @@ const deployFn: DeployFunction = async (hre) => {
         const paused = await OptimismPortal.paused()
         return !paused
       },
-      30000,
+      5000,
       1000
     )
 
@@ -357,7 +372,7 @@ const deployFn: DeployFunction = async (hre) => {
       async () => {
         return SystemDictator.finalized()
       },
-      30000,
+      5000,
       1000
     )
 

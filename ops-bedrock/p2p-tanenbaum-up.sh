@@ -56,12 +56,8 @@ function wait_up {
   done
   echo "Done!"
 }
-mkdir -p ./.devnet
+#mkdir -p ./.devnet
 
-# Export all secrets from file to environment variables
-(
-  export $(grep -v '^#' ./envs/op-node.env | xargs)
-)
 # Regenerate the L1 genesis file if necessary. The existence of the genesis
 # file is used to determine if we need to recreate the devnet's state folder.
 if [ ! -f "$DEVNET/done" ]; then
@@ -81,8 +77,9 @@ fi
 # Bring up L1.
 (
   cd ops-bedrock
+  export DOCKER_BUILDKIT=1
   echo "Bringing up L1..."
-  DOCKER_BUILDKIT=1 docker-compose build --progress plain
+  docker-compose -f p2p-docker-compose.yml build --progress plain
   docker-compose -f p2p-docker-compose.yml up -d l1
   wait_up $L1_URL
 )
@@ -96,14 +93,11 @@ fi
 )
 
 L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
-SEQUENCER_BATCH_INBOX_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.batch_inbox_address')"
-
 # Bring up everything else.
 (
   cd ops-bedrock
   echo "Bringing up L2 services..."
   L2OO_ADDRESS="$L2OO_ADDRESS" \
-      SEQUENCER_BATCH_INBOX_ADDRESS="$SEQUENCER_BATCH_INBOX_ADDRESS" \
       docker-compose -f p2p-docker-compose.yml up -d op-node
 )
 

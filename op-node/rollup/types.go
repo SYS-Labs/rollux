@@ -78,7 +78,7 @@ type Config struct {
 	// Note: below addresses are part of the block-derivation process,
 	// and required to be the same network-wide to stay in consensus.
 
-	// SYSCOIN L1 address that batches are sent to.
+	// L1 address that batches are sent to.
 	BatchInboxAddress common.Address `json:"batch_inbox_address"`
 	// SYSCOIN L2 Output Oracle Address
 	L2OutputOracleAddress common.Address `json:"output_oracle_address"`

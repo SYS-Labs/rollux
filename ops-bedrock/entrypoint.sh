@@ -2,6 +2,7 @@
 set -exu
 
 VERBOSITY=${GETH_VERBOSITY:-3}
+ALLOW_UNPROTECTED_TXS=${ALLOW_UNPROTECTED_TXS:-false}
 GETH_DATA_DIR=/db
 GETH_CHAINDATA_DIR="$GETH_DATA_DIR/geth/chaindata"
 GETH_KEYSTORE_DIR="$GETH_DATA_DIR/keystore"
@@ -9,6 +10,7 @@ GENESIS_FILE_PATH="${GENESIS_FILE_PATH:-/genesis.json}"
 CHAIN_ID=$(cat "$GENESIS_FILE_PATH" | jq -r .config.chainId)
 RPC_PORT="${RPC_PORT:-8545}"
 WS_PORT="${WS_PORT:-8546}"
+SEQUENCER_RELAY_RPC="${SEQUENCER_RELAY_RPC:-}"
 
 if [ ! -d "$GETH_KEYSTORE_DIR" ]; then
 	echo "$GETH_KEYSTORE_DIR missing, running account import"
@@ -69,7 +71,8 @@ exec geth \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
-	--maxpeers=1 \
+	--nodiscover \
+	--maxpeers=0 \
 	--networkid=$CHAIN_ID \
 	--unlock=$BLOCK_SIGNER_ADDRESS \
 	--mine \
@@ -84,4 +87,7 @@ exec geth \
 	--metrics \
 	--metrics.addr=0.0.0.0 \
 	--metrics.port=6060 \
-	"$@" >> "$GETH_DATA_DIR"/xout-geth.log
+	--rpc.allow-unprotected-txs=$ALLOW_UNPROTECTED_TXS \
+	--rollup.disabletxpoolgossip=true \
+	--rollup.sequencerhttp=$SEQUENCER_RELAY_RPC \
+	"$@"

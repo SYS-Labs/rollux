@@ -18,6 +18,8 @@ import { PortalSender } from "./PortalSender.sol";
 import { SystemConfig } from "../L1/SystemConfig.sol";
 // SYSCOIN
 import { BatchInbox } from "../L1/BatchInbox.sol";
+import { ResourceMetering } from "../L1/ResourceMetering.sol";
+import { Constants } from "../libraries/Constants.sol";
 
 /**
  * @title SystemDictator
@@ -88,6 +90,7 @@ contract SystemDictator is OwnableUpgradeable {
         bytes32 batcherHash;
         uint64 gasLimit;
         address unsafeBlockSigner;
+        ResourceMetering.ResourceConfig resourceConfig;
     }
 
     /**
@@ -167,6 +170,35 @@ contract SystemDictator is OwnableUpgradeable {
     }
 
     /**
+     * @notice Constructor required to ensure that the implementation of the SystemDictator is
+     *         initialized upon deployment.
+     */
+    constructor() {
+        ResourceMetering.ResourceConfig memory rcfg = Constants.DEFAULT_RESOURCE_CONFIG();
+
+        // Using this shorter variable as an alias for address(0) just prevents us from having to
+        // to use a new line for every single parameter.
+        address zero = address(0);
+        initialize(
+            DeployConfig(
+                GlobalConfig(AddressManager(zero), ProxyAdmin(zero), zero, zero),
+                ProxyAddressConfig(zero, zero, zero, zero, zero, zero, zero),
+                ImplementationAddressConfig(
+                    L2OutputOracle(zero),
+                    OptimismPortal(payable(zero)),
+                    L1CrossDomainMessenger(zero),
+                    L1StandardBridge(payable(zero)),
+                    OptimismMintableERC20Factory(zero),
+                    L1ERC721Bridge(zero),
+                    PortalSender(zero),
+                    SystemConfig(zero)
+                ),
+                SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg)
+            )
+        );
+    }
+
+    /**
      * @param _config System configuration.
      */
     function initialize(DeployConfig memory _config) public initializer {
@@ -228,7 +260,8 @@ contract SystemDictator is OwnableUpgradeable {
                     config.systemConfigConfig.scalar,
                     config.systemConfigConfig.batcherHash,
                     config.systemConfigConfig.gasLimit,
-                    config.systemConfigConfig.unsafeBlockSigner
+                    config.systemConfigConfig.unsafeBlockSigner,
+                    config.systemConfigConfig.resourceConfig
                 )
             )
         );
