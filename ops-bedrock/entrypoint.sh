@@ -11,7 +11,7 @@ CHAIN_ID=$(cat "$GENESIS_FILE_PATH" | jq -r .config.chainId)
 RPC_PORT="${RPC_PORT:-8545}"
 WS_PORT="${WS_PORT:-8546}"
 SEQUENCER_RELAY_RPC="${SEQUENCER_RELAY_RPC:-}"
-MINING_ENABLED="${$MINING_ENABLED:-true}"
+MINING_ENABLED="${MINING_ENABLED:-true}"
 if [ ! -d "$GETH_KEYSTORE_DIR" ]; then
 	echo "$GETH_KEYSTORE_DIR missing, running account import"
 	echo -n "pwd" > "$GETH_DATA_DIR"/password
