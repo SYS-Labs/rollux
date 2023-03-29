@@ -401,6 +401,8 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, data []byte) (*typ
 // This is a blocking method. It should not be called concurrently.
 // TODO: where to put concurrent transaction handling logic.
 func (l *BatchSubmitter) sendBlobTransaction(ctx context.Context, data []byte) (*types.Receipt, error) {
+	ctx, cancel := context.WithTimeout(ctx, 25 * time.Minute)
+	defer cancel()
 	if receipt, err := l.txMgr.SendBlob(ctx, data); err != nil {
 		l.log.Warn("unable to publish blob", "err", err)
 		return nil, err
