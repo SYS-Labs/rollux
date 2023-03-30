@@ -25,7 +25,8 @@ type Config struct {
 	RollupNode *sources.RollupClient
 	TxManager  txmgr.TxManager
 
-	PollInterval time.Duration
+	NetworkTimeout time.Duration
+	PollInterval   time.Duration
 
 	// RollupConfig is queried at startup
 	Rollup *rollup.Config

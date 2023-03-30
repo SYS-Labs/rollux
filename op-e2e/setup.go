@@ -581,6 +581,7 @@ func (cfg SystemConfig) Start(_opts ...SystemConfigOption) (*System, error) {
 			SafeAbortNonceTooLowCount: 3,
 			ResubmissionTimeout:       3 * time.Second,
 			ReceiptQueryInterval:      50 * time.Millisecond,
+			NetworkTimeout:            2 * time.Second,
 		},
 		AllowNonFinalized: cfg.NonFinalizedProposals,
 		LogConfig: oplog.CLIConfig{
@@ -615,6 +616,7 @@ func (cfg SystemConfig) Start(_opts ...SystemConfigOption) (*System, error) {
 			SafeAbortNonceTooLowCount: 3,
 			ResubmissionTimeout:       3 * time.Second,
 			ReceiptQueryInterval:      50 * time.Millisecond,
+			NetworkTimeout:            2 * time.Second,
 		},
 		LogConfig: oplog.CLIConfig{
 			Level:  "info",

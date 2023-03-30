@@ -10,8 +10,10 @@ GENESIS_FILE_PATH="${GENESIS_FILE_PATH:-/genesis.json}"
 CHAIN_ID=$(cat "$GENESIS_FILE_PATH" | jq -r .config.chainId)
 RPC_PORT="${RPC_PORT:-8545}"
 WS_PORT="${WS_PORT:-8546}"
-SEQUENCER_RELAY_RPC="${SEQUENCER_RELAY_RPC:-}"
-#MINING_ENABLED="${$MINING_ENABLED:-true}"
+
+SEQUENCER_RELAY_RPC="$SEQUENCER_RELAY_RPC"
+MINING_ENABLED="$MINING_ENABLED"
+
 if [ ! -d "$GETH_KEYSTORE_DIR" ]; then
 	echo "$GETH_KEYSTORE_DIR missing, running account import"
 	echo -n "pwd" > "$GETH_DATA_DIR"/password
@@ -89,5 +91,4 @@ exec geth \
 	--metrics.port=6060 \
 	--rpc.allow-unprotected-txs=$ALLOW_UNPROTECTED_TXS \
 	--rollup.disabletxpoolgossip=true \
-	--rollup.sequencerhttp=$SEQUENCER_RELAY_RPC \
 	"$@" >> "$GETH_DATA_DIR"/xout-geth.log
