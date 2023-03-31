@@ -279,9 +279,45 @@ func (m *SimpleTxManager) SendBlob(ctx context.Context, data []byte) (*types.Rec
 	// background, returning the first successfully mined receipt back to
 	// the main event loop via receiptChan.
 	receiptChan := make(chan *types.Receipt, 1)
-	sendTxAsync := func(tx *types.Transaction) {
+	sendTxAsync := func() {
 		defer wg.Done()
-		m.publishAndWaitForTxBlob(ctx, tx, sendState, receiptChan)
+
+		vh, err := m.sysbackend.CreateBlob(data)
+		sendState.ProcessSendError(err)
+		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				return
+			}
+			if errors.Is(err, txpool.ErrAlreadyKnown) {
+				log.Info("resubmitted already known blob")
+				return
+			}
+			log.Error("unable to publish blob", "err", err)
+			if sendState.ShouldAbortImmediately() {
+				log.Warn("Aborting blob submission")
+				cancel()
+			}
+			// TODO(conner): add retry?
+			return
+		}
+
+		log.Info("blob published successfully", "vh", vh)
+
+		// Wait for the transaction to be mined, reporting the receipt
+		// back to the main event loop if found.
+		receipt, err := m.waitMinedBlob(ctx, vh, sendState)
+		if err != nil {
+			log.Debug("blob tx failed", "err", err)
+		}
+		if receipt != nil {
+			// Use non-blocking select to ensure function can exit
+			// if more than one receipt is discovered.
+			select {
+			case receiptChan <- receipt:
+				log.Trace("blob tx succeeded")
+			default:
+			}
+		}
 	}
 
 	// Submit and wait for the receipt at our first gas price in the
