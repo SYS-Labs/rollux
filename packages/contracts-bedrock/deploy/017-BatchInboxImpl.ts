@@ -30,6 +30,6 @@ const deployFn: DeployFunction = async (hre) => {
   })
 }
 
-deployFn.tags = ['BatchInboxImpl']
+deployFn.tags = ['BatchInboxImpl', 'setup', 'l1']
 
 export default deployFn
