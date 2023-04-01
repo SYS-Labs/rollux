@@ -82,9 +82,8 @@ const config: HardhatUserConfig = {
       },
     },
     goerli: {
-      live: true,
-      chainId: 5700,
-      url: `https://rpc.tanenbaum.io`,
+      chainId: 5,
+      url: `https://goerli.infura.io/v3/${getenv('INFURA_PROJECT_ID')}`,
       accounts,
       verify: {
         etherscan: {

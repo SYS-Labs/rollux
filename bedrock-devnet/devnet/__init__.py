@@ -61,7 +61,6 @@ def main():
         addresses = read_json(addresses_json_path)
     else:
         log.info('Deploying contracts.')
-
         run_command(['yarn', 'hardhat', '--network', 'devnetL1', 'deploy', '--tags', 'l1'], env={
             'CHAIN_ID': '900',
             'L1_RPC': 'http://localhost:8545',
