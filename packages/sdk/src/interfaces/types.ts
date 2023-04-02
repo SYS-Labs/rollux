@@ -13,7 +13,7 @@ import { IBridgeAdapter } from './bridge-adapter'
  * L1 network chain IDs
  */
 export enum L1ChainID {
-  MAINNET = 1,
+  MAINNET = 57,
   GOERLI = 5700,
   HARDHAT_LOCAL = 31337,
   BEDROCK_LOCAL_DEVNET = 900,
@@ -23,7 +23,7 @@ export enum L1ChainID {
  * L2 network chain IDs
  */
 export enum L2ChainID {
-  OPTIMISM = 10,
+  OPTIMISM = 570,
   OPTIMISM_GOERLI = 57000,
   OPTIMISM_HARDHAT_LOCAL = 31337,
   OPTIMISM_HARDHAT_DEVNET = 17,

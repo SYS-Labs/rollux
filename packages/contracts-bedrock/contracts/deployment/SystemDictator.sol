@@ -182,7 +182,8 @@ contract SystemDictator is OwnableUpgradeable {
         initialize(
             DeployConfig(
                 GlobalConfig(AddressManager(zero), ProxyAdmin(zero), zero, zero),
-                ProxyAddressConfig(zero, zero, zero, zero, zero, zero, zero),
+                // SYSCOIN
+                ProxyAddressConfig(zero, zero, zero, zero, zero, zero, zero, zero),
                 ImplementationAddressConfig(
                     L2OutputOracle(zero),
                     OptimismPortal(payable(zero)),
@@ -191,9 +192,13 @@ contract SystemDictator is OwnableUpgradeable {
                     OptimismMintableERC20Factory(zero),
                     L1ERC721Bridge(zero),
                     PortalSender(zero),
-                    SystemConfig(zero)
+                    SystemConfig(zero),
+                    // SYSCION
+                    BatchInbox(zero)
                 ),
-                SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg)
+                SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg),
+                // SYSCOIN
+                BatchInboxConfig(zero)
             )
         );
     }
