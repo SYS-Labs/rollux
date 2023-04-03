@@ -43,8 +43,8 @@ const accounts = getenv('PRIVATE_KEY')
 const config: HardhatUserConfig = {
   networks: {
     optimism: {
-      chainId: 10,
-      url: 'https://mainnet.optimism.io',
+      chainId: 570,
+      url: process.env.L2_RPC || 'https://rpc.rollux.com',
       accounts,
       verify: {
         etherscan: {
@@ -56,8 +56,8 @@ const config: HardhatUserConfig = {
       },
     },
     'optimism-goerli': {
-      chainId: 420,
-      url: 'https://goerli.optimism.io',
+      chainId: 57000,
+      url: 'https://rpc.rollux.com',
       accounts,
       verify: {
         etherscan: {
@@ -69,8 +69,8 @@ const config: HardhatUserConfig = {
       },
     },
     mainnet: {
-      chainId: 1,
-      url: `https://mainnet.infura.io/v3/${getenv('INFURA_PROJECT_ID')}`,
+      chainId: 57,
+      url: process.env.L1_RPC || 'https://rpc.syscoin.org',
       accounts,
       verify: {
         etherscan: {
@@ -80,6 +80,7 @@ const config: HardhatUserConfig = {
       companionNetworks: {
         l2: 'optimism',
       },
+      live: true,
     },
     goerli: {
       live: true,

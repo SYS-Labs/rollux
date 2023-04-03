@@ -28,6 +28,17 @@ const config: HardhatUserConfig = {
       url: process.env.L1_RPC || 'https://rpc.syscoin.org',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
+      companionNetworks: {
+        l2: 'optimism',
+      },
+    },
+    'optimism': {
+      chainId: 570,
+      url: process.env.L2_RPC || 'https://rpc.rollux.com',
+      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
+      companionNetworks: {
+        l1: 'mainnet',
+      },
     },
     devnetL1: {
       live: false,
@@ -53,6 +64,17 @@ const config: HardhatUserConfig = {
       url: process.env.L1_RPC || '',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
+      companionNetworks: {
+        l2: 'optimism-goerli',
+      },
+    },
+    'optimism-goerli': {
+      chainId: 57000,
+      url: process.env.L2_RPC || '',
+      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
+      companionNetworks: {
+        l1: 'goerli',
+      },
     },
     'alpha-1': {
       chainId: 5,
