@@ -2,7 +2,7 @@
     "finalSystemOwner": "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
     "controller": "0xbcCC3Ba5e2F84A88d66f62A9fE260A7C303cf440",
     "portalGuardian": "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
-    "l1StartingBlockTag": "0x8639e91d74dd212ffce0042aaf1adfd54662304ca35abe8b5e2ea44a8116c7e4",
+    "l1StartingBlockTag": "0xb44e5346cbc4f88729b1ab23441bdede45083d61bf3aafe0ceddc2667bd2a424",
     "l1ChainID": 57,
     "l2ChainID": 570,
     "l2BlockTime": 2,
@@ -10,7 +10,7 @@
 
 
     "maxSequencerDrift": 1500,
-    "finalizationPeriodSeconds": 604800,
+    "finalizationPeriodSeconds": 1500,
     "sequencerWindowSize": 288,
     "channelTimeout": 24,
     "p2pSequencerAddress": "0x56Bcd9bf70Cb8c49A7649f223B6100206EC5AC8E",
