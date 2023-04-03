@@ -37,7 +37,9 @@ CONTRACTS_GOVERNANCE="$PWD/packages/contracts-governance"
 NETWORK=tanenbaum
 DEVNET="$PWD/.devnet"
 
-mkdir -p ./.devnet
+#mkdir -p ./.devnet
+
+TESTNET=1
 
 # Helper method that waits for a given URL to be up. Can't use
 # cURL's built-in retry logic because connection reset errors

@@ -582,6 +582,7 @@ func (cfg SystemConfig) Start(_opts ...SystemConfigOption) (*System, error) {
 			ResubmissionTimeout:       3 * time.Second,
 			ReceiptQueryInterval:      50 * time.Millisecond,
 			NetworkTimeout:            2 * time.Second,
+			TxNotInMempoolTimeout:     2 * time.Minute,
 		},
 		AllowNonFinalized: cfg.NonFinalizedProposals,
 		LogConfig: oplog.CLIConfig{
@@ -617,6 +618,7 @@ func (cfg SystemConfig) Start(_opts ...SystemConfigOption) (*System, error) {
 			ResubmissionTimeout:       3 * time.Second,
 			ReceiptQueryInterval:      50 * time.Millisecond,
 			NetworkTimeout:            2 * time.Second,
+			TxNotInMempoolTimeout:     2 * time.Minute,
 		},
 		LogConfig: oplog.CLIConfig{
 			Level:  "info",

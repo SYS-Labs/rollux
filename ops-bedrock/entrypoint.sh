@@ -35,7 +35,7 @@ if [ ! -d "$GETH_CHAINDATA_DIR" ]; then
 else
 	echo "$GETH_CHAINDATA_DIR exists."
 fi
-L1_URL="http://u:p@l1:18370"
+L1_URL="http://u:p@l1:8370"
 function wait_up {
   echo -n "Waiting for $1 to come up inside entrypoint ..."
   i=0

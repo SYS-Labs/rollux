@@ -86,7 +86,7 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 		return nil, err
 	}
 	// SYSCOIN
-	txManager := txmgr.NewSimpleTxManager("batcher", l, txManagerConfig, syscoinClient)
+	txManager := txmgr.NewSimpleTxManager("batcher", l, m, txManagerConfig, syscoinClient)
 
 	batcherCfg := Config{
 		L1Client:       l1Client,

@@ -22,8 +22,12 @@ const config: HardhatUserConfig = {
     hardhat: {
       live: false,
     },
+    // NOTE: The 'mainnet' network is currently being used for mainnet rehearsals.
     mainnet: {
-      url: process.env.L1_RPC || 'http://localhost:8545',
+      chainId: 57,
+      url: process.env.L1_RPC || 'https://rpc.syscoin.org',
+      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
+      live: true,
     },
     devnetL1: {
       live: false,

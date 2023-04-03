@@ -6,7 +6,8 @@ RUN apk add --no-cache jq
 ENV VERBOSITY=${GETH_VERBOSITY:-3}
 ENV RPC_PORT="${RPC_PORT:-8545}"
 ENV WS_PORT="${WS_PORT:-8546}"
-ENV SYSRPC_PORT="${SYSRPC_PORT:-18370}"
+ENV SYSRPC_PORT="${SYSRPC_PORT:-8370}"
+ENV TESTNET="${TESTNET:-0}"
 ENV SYSCOIN_DATA=/db/.syscoin
 ENV SYSCOIN_PREFIX=/opt/syscoin
 COPY --from=syscoin-alpine ${SYSCOIN_PREFIX}/bin/syscoind /usr/local/bin/syscoind
@@ -25,7 +26,9 @@ RUN apk --no-cache add \
 # Warning: Archive mode is required, otherwise old trie nodes will be
 # pruned within minutes of starting the tanenbaum.
 RUN echo $'mkdir -p ${SYSCOIN_DATA}/testnet3/geth/keystore/' >> geth.sh
-RUN echo $'exec syscoind --testnet --addnode=52.38.76.82 --datadir=${SYSCOIN_DATA} \
+RUN echo $'mkdir -p ${SYSCOIN_DATA}/geth/keystore/' >> geth.sh
+RUN echo $'exec syscoind --datadir=${SYSCOIN_DATA} \
+    --testnet=$TESTNET \
 	--server=1 \
 	--rpcuser=u \
 	--rpcpassword=p \

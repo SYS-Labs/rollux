@@ -40,6 +40,10 @@ op-proposer:
 	make -C ./op-proposer op-proposer
 .PHONY: op-proposer
 
+op-program:
+	make -C ./op-program op-program
+.PHONY: op-program
+
 mod-tidy:
 	# Below GOPRIVATE line allows mod-tidy to be run immediately after
 	# releasing new versions. This bypasses the Go modules proxy, which
@@ -86,7 +90,26 @@ tanenbaum-clean:
 	cd ./ops-bedrock && docker-compose down
 	docker image ls 'ops-bedrock*' --format='{{.Repository}}' | xargs -r docker rmi
 	docker volume ls --filter name=ops-bedrock --format='{{.Name}}' | xargs -r docker volume rm
-.PHONY: devnet-clean
+.PHONY: tanenbaum-clean
+
+rollux-up:
+	@bash ./ops-bedrock/rollux-up.sh
+.PHONY: rollux-up
+
+p2p-rollux-up:
+	@bash ./ops-bedrock/p2p-rollux-up.sh
+.PHONY: p2p-rollux-up
+
+rollux-down:
+	@(cd ./ops-bedrock && GENESIS_TIMESTAMP=$(shell date +%s) docker-compose stop)
+.PHONY: rollux-down
+
+rollux-clean:
+	rm -rf ./.devnet
+	cd ./ops-bedrock && docker-compose down
+	docker image ls 'ops-bedrock*' --format='{{.Repository}}' | xargs -r docker rmi
+	docker volume ls --filter name=ops-bedrock --format='{{.Name}}' | xargs -r docker volume rm
+.PHONY: rollux-clean
 
 devnet-logs:
 	@(cd ./ops-bedrock && docker-compose logs -f)

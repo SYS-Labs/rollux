@@ -62,7 +62,7 @@ const config: HardhatUserConfig = {
       accounts: [privateKey],
     },
     mainnet: {
-      chainId: 1,
+      chainId: 57,
       url: process.env.CONTRACTS_RPC_URL || '',
       deploy,
       accounts: [privateKey],
