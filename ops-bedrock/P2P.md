@@ -36,7 +36,7 @@ Next, you need to put your node key in a file called `p2p-node-key.txt` inside o
 
 ## Step 5: Start node
 
-Finally, you can run the `make p2p-tanenbaum-up` command to start your P2P node. This command will start the Docker
+Finally, you can run `make p2p-rollux-up` for mainnet and `make p2p-tanenbaum-up` for testnet to start your P2P node. This command will start the Docker
 container and connect to the nodes specified in your `--p2p-static` flag. You will find your peer id in the startup
 logs of op-node service. On first time run on a fresh machine, op-node will exit, this is expected because it requires
 l1 to be synced up to the genesis block in .devnet/rollup.json, but ideally would be better to allow l1 sync up completely
