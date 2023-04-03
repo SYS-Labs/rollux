@@ -44,6 +44,15 @@ export const deploy = async ({
   // external deployments when doing this check. By doing the check ourselves, we also get to
   // consider external deployments. If we already have the deployment, return early.
   let result: Deployment | DeployResult = await hre.deployments.getOrNull(name)
+
+  // Wrap in a try/catch in case there is not a deployConfig for the current network.
+  let numDeployConfirmations: number
+  try {
+    numDeployConfirmations = hre.deployConfig.numDeployConfirmations
+  } catch (e) {
+    numDeployConfirmations = 1
+  }
+
   if (result) {
     console.log(`skipping ${name}, using existing at ${result.address}`)
   } else {
@@ -52,7 +61,7 @@ export const deploy = async ({
       from: deployer,
       args,
       log: true,
-      waitConfirmations: hre.deployConfig.numDeployConfirmations,
+      waitConfirmations: numDeployConfirmations,
     })
     console.log(`Deployed ${name} at ${result.address}`)
     // Only wait for the transaction if it was recently deployed in case the
@@ -68,7 +77,7 @@ export const deploy = async ({
 
   // Create the contract object to return.
   const created = asAdvancedContract({
-    confirmations: hre.deployConfig.numDeployConfirmations,
+    confirmations: numDeployConfirmations,
     contract: new Contract(
       result.address,
       iface !== undefined
@@ -118,7 +127,6 @@ export const asAdvancedContract = (opts: {
 
   // Now reset Object.defineProperty
   Object.defineProperty = def
-  // Override each function call to also `.wait()` so as to simplify the deploy scripts' syntax.
   for (const fnName of Object.keys(contract.functions)) {
     const fn = contract[fnName].bind(contract)
     ;(contract as any)[fnName] = async (...args: any) => {
@@ -198,8 +206,15 @@ export const getContractFromArtifact = async (
     }
   }
 
+  let numDeployConfirmations: number
+  try {
+    numDeployConfirmations = hre.deployConfig.numDeployConfirmations
+  } catch (e) {
+    numDeployConfirmations = 1
+  }
+
   return asAdvancedContract({
-    confirmations: hre.deployConfig.numDeployConfirmations,
+    confirmations: numDeployConfirmations,
     contract: new hre.ethers.Contract(
       artifact.address,
       iface,
