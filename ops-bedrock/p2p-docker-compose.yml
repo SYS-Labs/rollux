@@ -26,6 +26,10 @@ services:
       - "7060:6060"
     volumes:
       - "l1_data:/db/.syscoin"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
   l2:
     build:
       context: .
