@@ -86,7 +86,7 @@ fi
 (
   cd ops-bedrock
   echo "Bringing up L2..."
-  docker-compose docker-compose-rollux.yml up -d l2
+  docker-compose -f docker-compose-rollux.yml up -d l2
   wait_up $L2_URL
 )
 
@@ -96,10 +96,10 @@ L2OO_ADDRESS="$(cat $ROLLUX/rollup.json | jq -r '.output_oracle_address')"
   cd ops-bedrock
   echo "Bringing up L2 services..."
   L2OO_ADDRESS="$L2OO_ADDRESS" \
-      docker-compose docker-compose-rollux.yml up -d op-proposer op-batcher
+      docker-compose -f docker-compose-rollux.yml up -d op-proposer op-batcher
 
   echo "Bringing up stateviz webserver..."
-  docker-compose docker-compose-rollux.yml up -d stateviz
+  docker-compose -f docker-compose-rollux.yml up -d stateviz
 )
 
 echo "L2 ready."
