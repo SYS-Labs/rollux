@@ -602,8 +602,8 @@ func TestWaitMinedMultipleConfs(t *testing.T) {
 // when attempting to configure with NumConfirmations set to zero.
 func TestManagerErrsOnZeroConfs(t *testing.T) {
 	t.Parallel()
-
-	_, err := NewSimpleTxManager("TEST", testlog.Logger(t, log.LvlCrit), &metrics.NoopTxMetrics{}, CLIConfig{})
+	// SYSCOIN
+	_, err := NewSimpleTxManager("TEST", testlog.Logger(t, log.LvlCrit), &metrics.NoopTxMetrics{}, CLIConfig{}, nil)
 	require.Error(t, err)
 }
 

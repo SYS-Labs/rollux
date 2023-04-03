@@ -35,7 +35,7 @@ RUN echo $'exec syscoind --datadir=${SYSCOIN_DATA} \
 	--rest \
 	--rpcallowip=192.168.0.0/16 \
 	--rpcbind=0.0.0.0 \
-	--rpcport="$SYSRPC_PORT" \
+	--rpcport=$SYSRPC_PORT \
 	--changetype=bech32 \
 	--gethcommandline=--verbosity="$VERBOSITY" \
 	--gethcommandline=--http \

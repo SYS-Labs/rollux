@@ -151,8 +151,8 @@ func NewL2OutputSubmitterConfigFromCLIConfig(cfg CLIConfig, l log.Logger, m metr
 	if err != nil {
 		return nil, err
 	}
-
-	txManager, err := txmgr.NewSimpleTxManager("proposer", l, m, cfg.TxMgrConfig)
+	// SYSCOIN
+	txManager, err := txmgr.NewSimpleTxManager("proposer", l, m, cfg.TxMgrConfig, nil)
 	if err != nil {
 		return nil, err
 	}

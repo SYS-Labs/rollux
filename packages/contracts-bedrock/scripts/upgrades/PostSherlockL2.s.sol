@@ -35,12 +35,12 @@ contract PostSherlockL2 is Script {
     /**
      * @notice OP Mainnet chain id.
      */
-    uint256 constant OP_MAINNET = 10;
+    uint256 constant OP_MAINNET = 57;
 
     /**
      * @notice OP Goerli chain id.
      */
-    uint256 constant OP_GOERLI = 420;
+    uint256 constant OP_GOERLI = 5700;
 
     /**
      * @notice The proxy admin predeploy on L2.
