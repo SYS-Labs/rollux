@@ -48,7 +48,7 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string) (*SyscoinClient, e
 	}
 	s := &SyscoinRPC{
 		client:       http.Client{Timeout: time.Duration(600) * time.Second, Transport: transport},
-		rpcURL:       "http://l1:18370",
+		rpcURL:       "http://l1:8370",
 		user:         "u",
 		password:     "p",
 		RPCMarshaler: JSONMarshalerV2{},
