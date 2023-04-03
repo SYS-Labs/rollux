@@ -59,7 +59,6 @@ services:
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
       --rollup.config=/rollup.json
-      --p2p.static=/ip4/44.239.43.79/tcp/9003/p2p/16Uiu2HAkzLRee3JTYeuFk8MUooQe41oxDQx6FDL2AeZYX7e8RALH
       --rpc.addr=0.0.0.0
       --rpc.port=8545
       --p2p.listen.ip=0.0.0.0
@@ -119,10 +118,10 @@ services:
       - ./envs/op-node.env
 
   op-batcher:
-    depends_on:
-      - l1
+#    depends_on:
+#      - l1
  #     - l2
-      - op-node
+#      - op-node
     build:
       context: ../
       dockerfile: ./op-batcher/Dockerfile
