@@ -25,20 +25,9 @@ const config: HardhatUserConfig = {
     // NOTE: The 'mainnet' network is currently being used for mainnet rehearsals.
     mainnet: {
       chainId: 57,
-      url: process.env.L1_RPC || 'https://rpc.syscoin.org',
+      url: 'https://rpc.syscoin.org',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
-      companionNetworks: {
-        l2: 'optimism',
-      },
-    },
-    'optimism': {
-      chainId: 570,
-      url: process.env.L2_RPC || 'https://rpc.rollux.com',
-      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
-      companionNetworks: {
-        l1: 'mainnet',
-      },
     },
     devnetL1: {
       live: false,
@@ -61,7 +50,7 @@ const config: HardhatUserConfig = {
     },
     goerli: {
       chainId: 5700,
-      url: process.env.L1_RPC || '',
+      url: 'https://rpc.tanenbaum.io',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
       companionNetworks: {
@@ -70,7 +59,7 @@ const config: HardhatUserConfig = {
     },
     'optimism-goerli': {
       chainId: 57000,
-      url: process.env.L2_RPC || '',
+      url: 'https://rpc-tanenbaum.rollux.com',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       companionNetworks: {
         l1: 'goerli',
