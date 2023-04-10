@@ -19,8 +19,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l1
-      args:
-        - TAG="${TAG}"
     image: l1:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
@@ -37,8 +35,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l2
-      args:
-        - TAG="${TAG}"
     image: l2:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
@@ -65,8 +61,6 @@ services:
     build:
       context: ../
       dockerfile: ./op-node/Dockerfile
-      args:
-        - TAG="${TAG}"
     image: op-node:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
@@ -115,8 +109,6 @@ services:
     build:
       context: ../
       dockerfile: ./op-heartbeat/Dockerfile
-      args:
-        - TAG="${TAG}"
     image: op-heartbeat:${TAG}
     environment:
       OP_HEARTBEAT_HTTP_ADDR: 0.0.0.0
@@ -128,8 +120,6 @@ services:
     build:
       context: ../
       dockerfile: ./op-exporter/Dockerfile
-      args:
-        - TAG="${TAG}"
     image: op-exporter:${TAG}
     ports:
       - "9100:9100"
