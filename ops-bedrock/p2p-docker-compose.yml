@@ -168,6 +168,16 @@ services:
       - ./docker/scripts/:/scripts
       - grafana_dashboards:/grafana-dashboards
 
+  batcher-monitor:
+    build:
+      context: ./
+      dockerfile: docker/batcher_monitor/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      L2_URL: "http://l2:8545"
+      BATCH_INBOX_ADDRESS: "${BATCH_INBOX_ADDRESS}"
+
 
 networks:
   default:
