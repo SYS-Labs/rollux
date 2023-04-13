@@ -50,10 +50,9 @@ def check_contract_called_in_past_hour():
 
 def update_metrics():
     logging.info("update_metrics called")
-    while True:
-        contract_called = check_contract_called_in_past_hour()
-        contract_health_metric.labels(called_in_past_hour=int(contract_called)).set(1)
-        time.sleep(3600)
+    contract_called = check_contract_called_in_past_hour()
+    contract_health_metric.labels(called_in_past_hour=int(contract_called)).set(1)
+    time.sleep(3600)
 
 
 if __name__ == "__main__":
@@ -61,5 +60,6 @@ if __name__ == "__main__":
     start_http_server(PORT)
 
     logging.info(f"Starting metrics update loop")
-    metrics_thread = threading.Thread(target=update_metrics)
-    metrics_thread.start()
+    while True:
+        metrics_thread = threading.Thread(target=update_metrics)
+        metrics_thread.start()
