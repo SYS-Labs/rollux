@@ -34,12 +34,12 @@ contract PostSherlock is Script {
     /**
      * @notice Mainnet chain id.
      */
-    uint256 constant MAINNET = 1;
+    uint256 constant MAINNET = 57;
 
     /**
      * @notice Goerli chain id.
      */
-    uint256 constant GOERLI = 5;
+    uint256 constant GOERLI = 5700;
 
     /**
      * @notice Represents a set of L1 contracts. Used to represent a set of
