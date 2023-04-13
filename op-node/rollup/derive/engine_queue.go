@@ -77,9 +77,9 @@ const maxUnsafePayloadsMemory = 500 * 1024 * 1024
 // SYSCOIN
 const finalityLookback = 20 + 1
 
-// finalityDelay is the number of L1 blocks to traverse before trying to finalize L2 blocks again.
+// SYSCOIN finalityDelay is the number of L1 blocks to traverse before trying to finalize L2 blocks again.
 // We do not want to do this too often, since it requires fetching a L1 block by number, so no cache data.
-const finalityDelay = 64
+const finalityDelay = 5
 
 type FinalityData struct {
 	// The last L2 block that was fully derived and inserted into the L2 engine while processing this L1 block.
