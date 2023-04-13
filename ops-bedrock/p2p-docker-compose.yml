@@ -170,8 +170,8 @@ services:
 
   batcher-monitor:
     build:
-      context: ./
-      dockerfile: docker/batcher_monitor/Dockerfile
+      context: ./docker/batcher_monitor/
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
