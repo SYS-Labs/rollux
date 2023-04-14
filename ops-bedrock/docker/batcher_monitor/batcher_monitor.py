@@ -28,11 +28,11 @@ def check_contract_called_in_past_hour():
 
     # Iterate back through blocks to find the one that is approximately two hours ago
     two_hours_ago_block_number = current_block_number
-    one_hour_ago_timestamp = current_timestamp - 7200
+    one_hour_ago_timestamp = current_timestamp - 3600
 
     while True:
         logging.info(f"Entering while loop for checking all blocks in the past 2hrs")
-        two_hours_ago_block_number -= 20
+        two_hours_ago_block_number -= 1
         block = w3.eth.get_block(two_hours_ago_block_number)
         if block['timestamp'] <= one_hour_ago_timestamp:
             logging.info(f"Exiting while loop that checks all blocks in the past 2hrs")
@@ -52,7 +52,7 @@ def update_metrics():
     logging.info("update_metrics called")
     while True:
         contract_called = check_contract_called_in_past_hour()
-        contract_health_metric.labels(called_in_past_hour=int(contract_called)).set(1)
+        contract_health_metric.labels(called_in_past_hour=int(contract_called))
         time.sleep(3600)
 
 
