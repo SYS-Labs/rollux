@@ -45,7 +45,7 @@ def check_contract_called_in_past_hour():
     }
 
     contract_call_events = w3.eth.get_logs(filter_params)
-    return len(contract_call_events) > 0
+    return len(contract_call_events) > 1
 
 
 def update_metrics():
