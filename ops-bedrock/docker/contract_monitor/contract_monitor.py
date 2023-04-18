@@ -39,14 +39,14 @@ def check_contract_called_in_past_hour():
             logging.info(f"Exiting while loop that checks all blocks in the past 2hrs")
             break
 
-    filter_params = {
-      'fromBlock': two_hours_ago_block_number,
-      'toBlock': current_block_number,
-      'address': checksum_address
-    }
-    contract_filter = w3.eth.filter(filter_params)
-    logging.info(f"filter params: {filter_params}")
-    contract_call_events = w3.eth.get_filter_changes(contract_filter.filter_id)
+    # filter_params = {
+    #   'fromBlock': two_hours_ago_block_number,
+    #   'toBlock': current_block_number,
+    #   'address': checksum_address
+    # }
+    # contract_filter = w3.eth.filter(filter_params)
+    # logging.info(f"filter params: {filter_params}")
+    contract_call_events = get_contract_transactions(checksum_address, two_hours_ago_block_number, current_block_number)
     logging.info(f"contract call events: {contract_call_events}")
     logging.info(f"number of contract call events is {len(contract_call_events)}")
     return len(contract_call_events) > 0
@@ -58,6 +58,21 @@ def update_metrics():
         contract_called = check_contract_called_in_past_hour()
         contract_health_metric.labels(called_in_past_hour=int(contract_called)).set(int(contract_called))
         time.sleep(7200)
+
+
+def get_contract_transactions(contract_address, from_block, to_block):
+    contract_transactions = []
+
+    for block_number in range(from_block, to_block + 1):
+        block = w3.eth.get_block(block_number, full_transactions=True)
+
+        for transaction in block.get("transactions"):
+            logging.info(f"Transaction {transaction}")
+            tx = w3.eth.get_transaction(transaction)
+            if tx.get('to') == contract_address:
+                contract_transactions.append(transaction)
+
+    return contract_transactions
 
 
 if __name__ == "__main__":
