@@ -55,7 +55,7 @@ def update_metrics():
     while True:
         contract_called = check_contract_called_in_past_hour()
         contract_health_metric.labels(called_in_past_hour=int(contract_called)).set(int(contract_called))
-        time.sleep(3600)
+        time.sleep(7200)
 
 
 if __name__ == "__main__":
