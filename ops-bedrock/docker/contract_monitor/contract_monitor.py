@@ -17,7 +17,7 @@ CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
 METRIC_NAME = os.getenv("METRIC_NAME")
 
 w3 = Web3(Web3.HTTPProvider(L2_URL))
-# checksum_address = w3.to_checksum_address(CONTRACT_ADDRESS)
+checksum_address = w3.to_checksum_address(CONTRACT_ADDRESS)
 
 contract_health_metric = Gauge(METRIC_NAME, "Contract called in the past hour", ["called_in_past_hour"])
 
@@ -42,10 +42,11 @@ def check_contract_called_in_past_hour():
     filter_params = {
       'fromBlock': two_hours_ago_block_number,
       'toBlock': current_block_number,
-      'address': CONTRACT_ADDRESS
+      'address': checksum_address
     }
     logging.info(f"filter params: {filter_params}")
     contract_call_events = w3.eth.get_logs(filter_params)
+    logging.info(f"contract call events: {contract_call_events}")
     logging.info(f"number of contract call events is {len(contract_call_events)}")
     return len(contract_call_events) > 0
 
