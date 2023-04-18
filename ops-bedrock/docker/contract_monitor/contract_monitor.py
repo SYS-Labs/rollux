@@ -19,7 +19,7 @@ METRIC_NAME = os.getenv("METRIC_NAME")
 w3 = Web3(Web3.HTTPProvider(L2_URL))
 checksum_address = w3.to_checksum_address(CONTRACT_ADDRESS)
 
-contract_health_metric = Gauge(METRIC_NAME, "Contract called in the past hour", ["called_in_past_hour"])
+contract_health_metric = Gauge(METRIC_NAME, "Contract called in the past hour")
 
 
 def check_contract_called_in_past_hour():
@@ -38,14 +38,6 @@ def check_contract_called_in_past_hour():
         if block['timestamp'] <= one_hour_ago_timestamp:
             logging.info(f"Exiting while loop that checks all blocks in the past 2hrs")
             break
-
-    # filter_params = {
-    #   'fromBlock': two_hours_ago_block_number,
-    #   'toBlock': current_block_number,
-    #   'address': checksum_address
-    # }
-    # contract_filter = w3.eth.filter(filter_params)
-    # logging.info(f"filter params: {filter_params}")
     contract_call_events = get_contract_transactions(checksum_address, two_hours_ago_block_number, current_block_number)
     logging.info(f"contract call events: {contract_call_events}")
     logging.info(f"number of contract call events is {len(contract_call_events)}")
@@ -56,7 +48,7 @@ def update_metrics():
     logging.info("update_metrics called")
     while True:
         contract_called = check_contract_called_in_past_hour()
-        contract_health_metric.labels(called_in_past_hour=int(contract_called)).set(int(contract_called))
+        contract_health_metric.set(int(contract_called))
         time.sleep(7200)
 
 
@@ -68,7 +60,7 @@ def get_contract_transactions(contract_address, from_block, to_block):
 
         for transaction in block.get("transactions"):
             logging.info(f"Transaction {transaction}")
-            tx = w3.eth.get_transaction(transaction)
+            tx = w3.eth.get_transaction(transaction.get("hash"))
             if tx.get('to') == contract_address:
                 contract_transactions.append(transaction)
 
