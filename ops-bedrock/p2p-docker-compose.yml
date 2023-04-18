@@ -173,8 +173,16 @@ services:
       context: ./docker/batcher_monitor/
       dockerfile: Dockerfile
     environment:
-      L2_URL: "http://l2:8545"
+      L2_URL: "${L2_URL}"
       BATCH_INBOX_ADDRESS: "${BATCH_INBOX_ADDRESS}"
+
+  proposer-monitor:
+    build:
+      context: ./docker/batcher_monitor/
+      dockerfile: Dockerfile
+    environment:
+      L2_URL: "${L2_URL}"
+      BATCH_INBOX_ADDRESS: "${L2OO_ADDRESS}"
 
 
 networks:
