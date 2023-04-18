@@ -44,8 +44,9 @@ def check_contract_called_in_past_hour():
       'toBlock': current_block_number,
       'address': checksum_address
     }
+    contract_filter = w3.eth.filter(filter_params)
     logging.info(f"filter params: {filter_params}")
-    contract_call_events = w3.eth.get_logs(filter_params)
+    contract_call_events = w3.eth.get_filter_changes(contract_filter.filter_id)
     logging.info(f"contract call events: {contract_call_events}")
     logging.info(f"number of contract call events is {len(contract_call_events)}")
     return len(contract_call_events) > 0
