@@ -170,19 +170,21 @@ services:
 
   batcher-monitor:
     build:
-      context: ./docker/batcher_monitor/
+      context: docker/contract_monitor/
       dockerfile: Dockerfile
     environment:
-      L2_URL: "${L2_URL}"
-      BATCH_INBOX_ADDRESS: "${BATCH_INBOX_ADDRESS}"
+      L1_URL: http://l1:8545
+      CONTRACT_ADDRESS: "${BATCH_INBOX_ADDRESS}"
+      METRIC_NAME: "batcher_health"
 
   proposer-monitor:
     build:
-      context: ./docker/batcher_monitor/
+      context: docker/contract_monitor/
       dockerfile: Dockerfile
     environment:
-      L2_URL: "${L2_URL}"
-      BATCH_INBOX_ADDRESS: "${L2OO_ADDRESS}"
+      L1_URL: http://l1:8545
+      CONTRACT_ADDRESS: "${L2OO_ADDRESS}"
+      METRIC_NAME: "proposer_health"
 
 
 networks:

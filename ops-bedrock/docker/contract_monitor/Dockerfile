@@ -5,4 +5,4 @@ WORKDIR /app
 COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "batcher_monitor.py"]
+CMD ["python", "contract_monitor.py"]
