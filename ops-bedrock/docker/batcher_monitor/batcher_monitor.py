@@ -53,7 +53,7 @@ def update_metrics():
     logging.info("update_metrics called")
     while True:
         contract_called = check_contract_called_in_past_hour()
-        contract_health_metric.set(int(contract_called))
+        contract_health_metric.labels(called_in_past_hour=int(contract_called)).set(int(contract_called))
         time.sleep(3600)
 
 
