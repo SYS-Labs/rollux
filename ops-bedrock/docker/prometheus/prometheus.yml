@@ -21,3 +21,8 @@ scrape_configs:
     scrape_interval: 15s
     static_configs:
       - targets: [ 'batcher-monitor:8000' ]
+
+  - job_name: 'proposer_health'
+    scrape_interval: 15s
+    static_configs:
+      - targets: [ 'proposer-monitor:8000' ]
