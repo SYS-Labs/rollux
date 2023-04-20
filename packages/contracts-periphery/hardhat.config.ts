@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
     },
     'optimism-goerli': {
       chainId: 57000,
-      url: 'https://rpc.rollux.com',
+      url: 'https://rpc-tanenbaum.rollux.com',
       accounts,
       verify: {
         etherscan: {
@@ -178,10 +178,7 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: {
-      default: getenv('LEDGER_ADDRESS')
-        ? `ledger://${getenv('LEDGER_ADDRESS')}`
-        : 0,
-      hardhat: 0,
+      default: 0,
     },
   },
 }
