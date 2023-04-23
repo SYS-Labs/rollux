@@ -22,10 +22,18 @@ const config: HardhatUserConfig = {
     hardhat: {
       live: false,
     },
+    local: {
+      live: false,
+      url: 'http://localhost:8545',
+      saveDeployments: false,
+      accounts: [
+        'ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+      ],
+    },
     // NOTE: The 'mainnet' network is currently being used for mainnet rehearsals.
     mainnet: {
       chainId: 57,
-      url: process.env.L1_RPC || 'https://rpc.syscoin.org',
+      url: 'https://rpc.syscoin.org',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
     },
@@ -50,9 +58,20 @@ const config: HardhatUserConfig = {
     },
     goerli: {
       chainId: 5700,
-      url: process.env.L1_RPC || '',
+      url: 'https://rpc.tanenbaum.io',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
+      companionNetworks: {
+        l2: 'optimism-goerli',
+      },
+    },
+    'optimism-goerli': {
+      chainId: 57000,
+      url: 'https://rpc-tanenbaum.rollux.com',
+      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
+      companionNetworks: {
+        l1: 'goerli',
+      },
     },
     'alpha-1': {
       chainId: 5,
@@ -144,13 +163,13 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.15',
         settings: {
-          optimizer: { enabled: true, runs: 10_000 },
+          optimizer: { enabled: true, runs: 10000 },
         },
       },
       {
         version: '0.5.17', // Required for WETH9
         settings: {
-          optimizer: { enabled: true, runs: 10_000 },
+          optimizer: { enabled: true, runs: 10000 },
         },
       },
     ],

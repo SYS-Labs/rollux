@@ -34,12 +34,12 @@ contract PostSherlock is Script {
     /**
      * @notice Mainnet chain id.
      */
-    uint256 constant MAINNET = 1;
+    uint256 constant MAINNET = 57;
 
     /**
      * @notice Goerli chain id.
      */
-    uint256 constant GOERLI = 5;
+    uint256 constant GOERLI = 5700;
 
     /**
      * @notice Represents a set of L1 contracts. Used to represent a set of
@@ -77,7 +77,7 @@ contract PostSherlock is Script {
     string constant internal L1StandardBridge_Version = "1.1.0";
     string constant internal L2OutputOracle_Version = "1.2.0";
     string constant internal OptimismMintableERC20Factory_Version = "1.1.0";
-    string constant internal OptimismPortal_Version = "1.3.0";
+    string constant internal OptimismPortal_Version = "1.3.1";
     string constant internal SystemConfig_Version = "1.2.0";
     string constant internal L1ERC721Bridge_Version = "1.1.0";
 

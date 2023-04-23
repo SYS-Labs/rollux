@@ -41,6 +41,8 @@ DEVNET="$PWD/.devnet"
 
 TESTNET=1
 
+TAG="testnet-v1.0.0"
+
 # Helper method that waits for a given URL to be up. Can't use
 # cURL's built-in retry logic because connection reset errors
 # are ignored unless you're using a very recent version of cURL

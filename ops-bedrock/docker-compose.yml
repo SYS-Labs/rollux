@@ -10,6 +10,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l1
+    image: l1:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -21,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l2
+    image: l2:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -45,6 +47,7 @@ services:
     build:
       context: ../
       dockerfile: ./op-node/Dockerfile
+    image: op-node:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
     command: >
@@ -94,6 +97,7 @@ services:
     build:
       context: ../
       dockerfile: ./op-proposer/Dockerfile
+    image: op-proposer:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -122,6 +126,7 @@ services:
     build:
       context: ../
       dockerfile: ./op-batcher/Dockerfile
+    image: op-batcher:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -155,6 +160,7 @@ services:
     build:
       context: ../
       dockerfile: ./ops-bedrock/Dockerfile.stateviz
+    image: stateviz:${TAG}
     command:
       - stateviz
       - -addr=0.0.0.0:8080

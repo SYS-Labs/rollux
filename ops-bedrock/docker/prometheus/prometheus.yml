@@ -17,3 +17,12 @@ scrape_configs:
     static_configs:
       - targets: ['op-node:7300']
 
+  - job_name: 'batcher_health'
+    scrape_interval: 15s
+    static_configs:
+      - targets: [ 'batcher-monitor:8000' ]
+
+  - job_name: 'proposer_health'
+    scrape_interval: 15s
+    static_configs:
+      - targets: [ 'proposer-monitor:8000' ]
