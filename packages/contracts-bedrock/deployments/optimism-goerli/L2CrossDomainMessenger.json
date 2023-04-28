@@ -1,4 +1,5 @@
 {
+
   "address": "0x24eaCA97875ef560de23607eA47bd806e9BF12bf",
   "abi": [
     {
@@ -135,19 +136,6 @@
     },
     {
       "inputs": [],
-      "name": "MIN_GAS_CONSTANT_OVERHEAD",
-      "outputs": [
-        {
-          "internalType": "uint64",
-          "name": "",
-          "type": "uint64"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "MIN_GAS_DYNAMIC_OVERHEAD_DENOMINATOR",
       "outputs": [
         {
@@ -180,6 +168,58 @@
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "RELAY_CALL_OVERHEAD",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "RELAY_CONSTANT_OVERHEAD",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "RELAY_GAS_CHECK_BUFFER",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "RELAY_RESERVED_GAS",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
         }
       ],
       "stateMutability": "view",
@@ -473,9 +513,6 @@
       "MIN_GAS_CALLDATA_OVERHEAD()": {
         "notice": "Extra gas added to base gas for each byte of calldata in a message."
       },
-      "MIN_GAS_CONSTANT_OVERHEAD()": {
-        "notice": "Constant overhead added to the base gas for a message."
-      },
       "MIN_GAS_DYNAMIC_OVERHEAD_DENOMINATOR()": {
         "notice": "Denominator for dynamic overhead added to the base gas for a message."
       },
@@ -484,6 +521,18 @@
       },
       "OTHER_MESSENGER()": {
         "notice": "Address of the paired CrossDomainMessenger contract on the other chain."
+      },
+      "RELAY_CALL_OVERHEAD()": {
+        "notice": "Gas reserved for performing the external call in `relayMessage`."
+      },
+      "RELAY_CONSTANT_OVERHEAD()": {
+        "notice": "Constant overhead added to the base gas for a message."
+      },
+      "RELAY_GAS_CHECK_BUFFER()": {
+        "notice": "Gas reserved for the execution between the `hasMinGas` check and the external         call in `relayMessage`."
+      },
+      "RELAY_RESERVED_GAS()": {
+        "notice": "Gas reserved for finalizing the execution of `relayMessage` after the safe call."
       },
       "baseGas(bytes,uint32)": {
         "notice": "Computes the amount of gas required to guarantee that a given message will be         received on the other chain without running out of gas. Guaranteeing that a message         will not run out of gas is important because this ensures that a message can always         be replayed on the other chain if it fails to execute completely."
@@ -606,7 +655,7 @@
       {
         "astId": 45662,
         "contract": "contracts/L2/L2CrossDomainMessenger.sol:L2CrossDomainMessenger",
-        "label": "__gap_reentrancy_guard",
+        "label": "spacer_152_0_1568",
         "offset": 0,
         "slot": "152",
         "type": "t_array(t_uint256)49_storage"
@@ -672,8 +721,8 @@
         "contract": "contracts/L2/L2CrossDomainMessenger.sol:L2CrossDomainMessenger",
         "label": "__gap",
         "offset": 0,
-        "slot": "208",
-        "type": "t_array(t_uint256)41_storage"
+        "slot": "207",
+        "type": "t_array(t_uint256)42_storage"
       }
     ],
     "types": {
@@ -682,10 +731,10 @@
         "label": "address",
         "numberOfBytes": "20"
       },
-      "t_array(t_uint256)41_storage": {
+      "t_array(t_uint256)42_storage": {
         "encoding": "inplace",
-        "label": "uint256[41]",
-        "numberOfBytes": "1312",
+        "label": "uint256[42]",
+        "numberOfBytes": "1344",
         "base": "t_uint256"
       },
       "t_array(t_uint256)49_storage": {
