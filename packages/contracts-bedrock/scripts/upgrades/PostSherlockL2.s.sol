@@ -67,17 +67,17 @@ contract PostSherlockL2 is SafeBuilder {
      */
     function setUp() external {
         implementations[OP_GOERLI] = ContractSet({
-            BaseFeeVault: 0x984eBeFb32A5c2862e92ce90EA0C81Ab69F026B5,
-            GasPriceOracle: 0xb43C412454f5D1e58Fe895B1a832B6700ADB5FA7,
-            L1Block: 0x6dF83A19647A398d48e77a6835F4A28EB7e2f7c0,
-            L1FeeVault: 0xC7d3389726374B8BFF53116585e20A483415f6f6,
-            L2CrossDomainMessenger: 0x3305a8110469eB7168870126b26BDAD56067C679,
-            L2ERC721Bridge: 0x5Eb0EE8d7f29856F50b5c97F9CF1225491404bF1,
-            L2StandardBridge: 0x26A77636eD9A97BBDE9740bed362bFCE5CaB8e10,
-            L2ToL1MessagePasser: 0x50CcA47c1e06084459dc83c9E964F4a158cB28Ae,
-            SequencerFeeVault: 0x9eE472aB07Aa92bAe20a9d3E2d29beD3248b9075,
-            OptimismMintableERC20Factory: 0x3F94732CFd48eE3597d7cEDfb853cfB2De31219c,
-            OptimismMintableERC721Factory: 0x13DcfC403eCEF3E8Eab66C00dC64e793dc40Be1d
+            BaseFeeVault: 0x73ae51299eCA0167a5956e3D1DaE3D98b06CcD9D,
+            GasPriceOracle: 0xD6EA7Ac2455c4f8D52c0feAb893c6F0d71e43dC9,
+            L1Block: 0x48d6759fe9d583a7f685d8FfB96B62e5fddfE655,
+            L1FeeVault: 0x8ABee9676742a71b1b96F2e5E9c180E8f621793F,
+            L2CrossDomainMessenger: 0x77e4F622a2903149D00ACf3398Bf6288618f6AbD,
+            L2ERC721Bridge: 0xDd9D39bB7760De3b4b7672f2537Bdee172b67f7C,
+            L2StandardBridge: 0xCca5e2FD156D0eC93F12Aa5147a72176E3059ab1,
+            L2ToL1MessagePasser: 0x7C12CFc99386F775a63bd95642299843e185e50E,
+            SequencerFeeVault: 0xbb0D433fFCeE8738bB60dd82AF9207e2ddD30372,
+            OptimismMintableERC20Factory: 0x9C1b34e67daD1441fcf379A000f06D4b061Aa1cF,
+            OptimismMintableERC721Factory: 0xF118Fa4553b9c1CB38a1822234014B3550cF09e2
         });
 
         proxies[OP_GOERLI] = ContractSet({
@@ -131,12 +131,12 @@ contract PostSherlockL2 is SafeBuilder {
      * @notice Test coverage of the logic. Should only run on goerli but other chains
      *         could be added.
      */
-    function test_script_succeeds() skipWhenNotForking external {
+    function run() skipWhenNotForking external {
         address safe;
         address proxyAdmin;
 
         if (block.chainid == OP_GOERLI) {
-            safe = 0xE534ccA2753aCFbcDBCeB2291F596fc60495257e;
+            safe = 0x298e4eDced84698aa7c6A69b721EAC2d95A261D5;
             proxyAdmin = 0x4200000000000000000000000000000000000018;
         }
 

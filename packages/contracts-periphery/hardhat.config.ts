@@ -85,7 +85,7 @@ const config: HardhatUserConfig = {
     goerli: {
       live: true,
       chainId: 5700,
-      url: `https://rpc.tanenbaum.io`,
+      url: 'https://rpc.tanenbaum.io',
       accounts,
       verify: {
         etherscan: {

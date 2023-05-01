@@ -63,23 +63,23 @@ contract PostSherlockL1 is SafeBuilder {
      */
     function setUp() external {
         implementations[GOERLI] = ContractSet({
-            L1CrossDomainMessenger: 0x9D1dACf9d9299D17EFFE1aAd559c06bb3Fbf9BC4,
-            L1StandardBridge: 0x022Fc3EBAA3d53F8f9b270CC4ABe1B0e4A406253,
-            L2OutputOracle: 0x0C2b6590De9D61b37094617b5e6f794Ae118176E,
-            OptimismMintableERC20Factory: 0x0EebA1A5da867EB3bc0956f6389d490d0F4b8086,
-            OptimismPortal: 0x9e760aBd847E48A56b4a348Cba56Ae7267FeCE80,
-            SystemConfig: 0x821EE96B88dAA1569F41cD46b0EA87fA89714b45,
-            L1ERC721Bridge: 0x015609dC8cBF8f9947ba571432Bc0d9837c583a4
+            L1CrossDomainMessenger: 0x9b30CdC1aff7e7569E628834D00D2dd887F00174,
+            L1StandardBridge: 0x75592Cb636e0fbE48F576C7b0A54e65C8945BA64,
+            L2OutputOracle: 0x078A91d66fFc654C340093e472FEaC8156b98811,
+            OptimismMintableERC20Factory: 0xbd0046FC69f969810267aC53f979b9325A6196f3,
+            OptimismPortal: 0x6e8fd67c9E74918be4A6A983a8DD5aa82D775EDe,
+            SystemConfig: 0x73703c5027FAA45fd66d592C61d22268B9730540,
+            L1ERC721Bridge: 0xf7Fda8917c6B5589a514177F1878cc8ffE66f04a
         });
 
         proxies[GOERLI] = ContractSet({
-            L1CrossDomainMessenger: 0x5086d1eEF304eb5284A0f6720f79403b4e9bE294,
-            L1StandardBridge: 0x636Af16bf2f682dD3109e60102b8E1A089FedAa8,
-            L2OutputOracle: 0xE6Dfba0953616Bacab0c9A8ecb3a9BBa77FC15c0,
-            OptimismMintableERC20Factory: 0x883dcF8B05364083D849D8bD226bC8Cb4c42F9C5,
-            OptimismPortal: 0x5b47E1A08Ea6d985D6649300584e6722Ec4B1383,
-            SystemConfig: 0xAe851f927Ee40dE99aaBb7461C00f9622ab91d60,
-            L1ERC721Bridge: 0x8DD330DdE8D9898d43b4dc840Da27A07dF91b3c9
+            L1CrossDomainMessenger: 0x46e963BE7CcF839b741f9DF0272d5241f22c2eA5,
+            L1StandardBridge: 0xB806228Cd25620BBC55552632Bce419Aa403ba94,
+            L2OutputOracle: 0x02dBDb985dC0fBa30De6715D1A34ee7179AC63Da,
+            OptimismMintableERC20Factory: 0xc538309F438d52653A8f38290fB1da1e5f490395,
+            OptimismPortal: 0xD251398404fD73E9f023dcfb66F913eecA4859F1,
+            SystemConfig: 0x19CeD9B883cC0420F170DC0D1B270295699A5e8A,
+            L1ERC721Bridge: 0x9365574Ee984442894a00aE25dFb72e68A567987
         });
     }
 
@@ -115,13 +115,13 @@ contract PostSherlockL1 is SafeBuilder {
      * @notice Test coverage of the logic. Should only run on goerli but other chains
      *         could be added.
      */
-    function test_script_succeeds() skipWhenNotForking external {
+    function run() skipWhenNotForking external {
         address safe;
         address proxyAdmin;
 
         if (block.chainid == GOERLI) {
-            safe = 0xBc1233d0C3e6B5d53Ab455cF65A6623F6dCd7e4f;
-            proxyAdmin = 0x01d3670863c3F4b24D7b107900f0b75d4BbC6e0d;
+            safe = 0xA1307B87C87dbe4782C4C975e5Ba2326490DD720;
+            proxyAdmin = 0xE77924D4073642019EC2338f911ab1D16311A1B9;
             // Set the proxy admin for the `_postCheck` function
             PROXY_ADMIN = ProxyAdmin(proxyAdmin);
         }

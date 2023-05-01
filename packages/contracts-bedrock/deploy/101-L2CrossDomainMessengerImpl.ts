@@ -8,7 +8,7 @@ import { assertContractVariable, deploy } from '../src/deploy-utils'
 const deployFn: DeployFunction = async (hre) => {
   const Artifact__L1CrossDomainMessenger = await hre.companionNetworks[
     'l1'
-  ].deployments.get('L1CrossDomainMessengerProxy')
+  ].deployments.get('Proxy__OVM_L1CrossDomainMessenger')
 
   await deploy({
     hre,

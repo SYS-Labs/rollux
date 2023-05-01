@@ -1,8 +1,8 @@
 {
   "numDeployConfirmations": 1,
-  "finalSystemOwner": "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
+  "finalSystemOwner": "0xA1307B87C87dbe4782C4C975e5Ba2326490DD720",
   "controller": "0xbcCC3Ba5e2F84A88d66f62A9fE260A7C303cf440",
-  "portalGuardian": "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
+  "portalGuardian": "0xA1307B87C87dbe4782C4C975e5Ba2326490DD720",
   "l1StartingBlockTag": "0xbaaa9a7834d9b5e928eeb36942b96eb64167701e16b9da02a7a5f3aa9c0a216c",
   "l1ChainID": 5700,
   "l2ChainID": 57000,

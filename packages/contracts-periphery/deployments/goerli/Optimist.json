@@ -1,5 +1,5 @@
 {
-  "address": "0x328ca86BeaDB4C7D80859386524e54B8795c3dE9",
+  "address": "0xaA8Bb6F6209Ebef6D160B35134fb0C6775c8D357",
   "abi": [
     {
       "inputs": [
@@ -539,7 +539,7 @@
   "args": [
     "Optimist",
     "OPTIMIST",
-    "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
+    "0xe7C107c8C05438A9E1809E447263b1d4b14AED37",
     "0x2462C9c9c18b96d55e4F364DeD21b92cefFF4968",
     "0xe106660fC77d008d218c8c2e4f50204aD9E91ed6"
   ],
