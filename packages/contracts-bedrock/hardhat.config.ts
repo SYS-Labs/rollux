@@ -37,6 +37,14 @@ const config: HardhatUserConfig = {
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
     },
+    'optimism-mainnet': {
+      chainId: 57000,
+      url: 'https://rpc.rollux.com',
+      accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
+      companionNetworks: {
+        l1: 'mainnet',
+      },
+    },
     devnetL1: {
       live: false,
       url: 'http://localhost:8545',

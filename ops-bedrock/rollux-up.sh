@@ -22,7 +22,7 @@
 # time in this script.
 #
 # This script is safe to run multiple times. It stores state in `.rollux`, and
-# contracts-bedrock/deployments/mainnet.
+# contracts-bedrock/deployments/rollux.
 #
 # Don't run this script directly. Run it using the makefile, e.g. `make rollux-up`.
 # To clean up your rollux, run `make rollux-clean`.
@@ -35,7 +35,9 @@ OP_NODE="$PWD/op-node"
 CONTRACTS_BEDROCK="$PWD/packages/contracts-bedrock"
 CONTRACTS_GOVERNANCE="$PWD/packages/contracts-governance"
 NETWORK=rollux
-ROLLUX="$PWD/.rollux"
+DEVNET="$PWD/.rollux"
+TESTNET=0
+TAG="rollux-v1.0.0"
 # Helper method that waits for a given URL to be up. Can't use
 # cURL's built-in retry logic because connection reset errors
 # are ignored unless you're using a very recent version of cURL
@@ -55,21 +57,47 @@ function wait_up {
   done
   echo "Done!"
 }
+function manage_secret() {
+    local key_name="$1"
+    local secret_type="$2"
+    local env_var_name="$3"
+    local aws_region="not-sure-what-region-yet"
+
+    secret_exists=$(aws secretsmanager list-secrets --region $aws_region --query "SecretList[?Name=='$key_name'].Name" --output text)
+
+    if [ -n "$secret_exists" ]; then
+        secret_value=$(aws secretsmanager get-secret-value --secret-id "$key_name" --region $aws_region --query SecretString --output text)
+        export $env_var_name="$secret_value"
+        echo "Key exists. Value saved in environment variable $env_var_name."
+    else
+        if [ "$secret_type" == "mnemonic" ]; then
+            mnemonic=$(node -e "const bip39 = require('bip39'); console.log(bip39.generateMnemonic(128));")
+            aws secretsmanager create-secret --name "$key_name" --secret-string "$mnemonic" --region $aws_region
+            export $env_var_name="$mnemonic"
+        else
+            random_key=$(openssl rand -hex 32)
+            aws secretsmanager create-secret --name "$key_name" --secret-string "$random_key" --region $aws_region
+            export $env_var_name="$random_key"
+        fi
+        echo "Key created. Value saved in environment variable $env_var_name."
+    fi
+}
+
 mkdir -p ./.rollux
 
 # Regenerate the L1 genesis file if necessary. The existence of the genesis
 # file is used to determine if we need to recreate the rollux's state folder.
-if [ ! -f "$ROLLUX/done" ]; then
+if [ ! -f "$DEVNET/done" ]; then
   echo "Regenerating genesis files"
   (
     cd "$OP_NODE"
     go run cmd/main.go genesis l2 \
         --l1-rpc https://rpc.syscoin.org \
-        --deployment-dir $CONTRACTS_BEDROCK/deployments/mainnet \
-        --deploy-config $CONTRACTS_BEDROCK/deploy-config/mainnet.json \
-        --outfile.l2 $ROLLUX/genesis-l2.json \
-        --outfile.rollup $ROLLUX/rollup.json
-    touch "$ROLLUX/done"
+        --deployment-dir $CONTRACTS_BEDROCK/deployments/goerli \
+        --deploy-config $CONTRACTS_BEDROCK/deploy-config/goerli.json \
+        --outfile.l2 $DEVNET/genesis-l2.json \
+        --outfile.rollup $DEVNET/rollup.json
+    touch "$DEVNET/done"
   )
 fi
 
@@ -84,15 +112,19 @@ fi
 
 # Bring up L2.
 (
+  manage_secret "block-signer-key" "hex" BLOCK_SIGNER_PRIVATE_KEY
   cd ops-bedrock
   echo "Bringing up L2..."
   docker-compose -f docker-compose-rollux.yml up -d l2
   wait_up $L2_URL
 )
 
-L2OO_ADDRESS="$(cat $ROLLUX/rollup.json | jq -r '.output_oracle_address')"
+L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
 # Bring up everything else.
 (
+  manage_secret "batcher-mnemonic" "mnemonic" OP_BATCHER_MNEMONIC
+  manage_secret "proposer-mnemonic" "mnemonic" OP_PROPOSER_MNEMONIC
+  manage_secret "op-node-key" "hex" OP_NODE_P2P_SEQUENCER_KEY
   cd ops-bedrock
   echo "Bringing up L2 services..."
   L2OO_ADDRESS="$L2OO_ADDRESS" \

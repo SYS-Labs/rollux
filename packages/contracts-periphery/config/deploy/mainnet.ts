@@ -1,17 +1,17 @@
 import { DeployConfig } from '../../src'
 
 const config: DeployConfig = {
-  ddd: '0x9C6373dE60c2D3297b18A8f964618ac46E011B58',
-  l2ProxyOwnerAddress: '0x60c5C9c98bcBd0b0F2fD89B24c16e533BaA8CdA3',
+  ddd: '0x77698D0dd7AF3cf488134ac49E230130E43F3237',
+  l2ProxyOwnerAddress: '0xe7C107c8C05438A9E1809E447263b1d4b14AED37',
   optimistName: 'Optimist',
   optimistSymbol: 'OPTIMIST',
-  optimistBaseUriAttestorAddress: '0x60c5C9c98bcBd0b0F2fD89B24c16e533BaA8CdA3',
-  optimistInviterInviteGranter: '0x60c5C9c98bcBd0b0F2fD89B24c16e533BaA8CdA3',
+  optimistBaseUriAttestorAddress: '0xe7C107c8C05438A9E1809E447263b1d4b14AED37',
+  optimistInviterInviteGranter: '0xe7C107c8C05438A9E1809E447263b1d4b14AED37',
   optimistInviterName: 'OptimistInviter',
   optimistAllowlistAllowlistAttestor:
-    '0x60c5C9c98bcBd0b0F2fD89B24c16e533BaA8CdA3',
+    '0xe7C107c8C05438A9E1809E447263b1d4b14AED37',
   optimistAllowlistCoinbaseQuestAttestor:
-    '0x661B7Acca8ebd93AFd349a088e9a9A00053DB1BF',
+    '0x2fA8986FBf4F9999FBC0CF3f955aDED88444c3EA',
 }
 
 export default config

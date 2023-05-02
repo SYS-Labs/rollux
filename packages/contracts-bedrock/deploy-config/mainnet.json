@@ -1,7 +1,7 @@
 {
-    "finalSystemOwner": "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
+    "finalSystemOwner": "0x1343EB8992175a722943b18B61784c97edAb8077",
     "controller": "0xbcCC3Ba5e2F84A88d66f62A9fE260A7C303cf440",
-    "portalGuardian": "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
+    "portalGuardian": "0x1343EB8992175a722943b18B61784c97edAb8077",
     "l1StartingBlockTag": "0xb44e5346cbc4f88729b1ab23441bdede45083d61bf3aafe0ceddc2667bd2a424",
     "l1ChainID": 57,
     "l2ChainID": 570,

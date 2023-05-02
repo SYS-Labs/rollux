@@ -77,9 +77,6 @@ const config: HardhatUserConfig = {
           apiKey: getenv('ETHEREUM_ETHERSCAN_API_KEY'),
         },
       },
-      companionNetworks: {
-        l2: 'optimism',
-      },
       live: true,
     },
     goerli: {
