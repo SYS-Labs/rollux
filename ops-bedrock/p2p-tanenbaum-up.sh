@@ -78,6 +78,7 @@ fi
 
 # Bring up L1.
 (
+  export TAG=$TAG
   cd ops-bedrock
   export DOCKER_BUILDKIT=1
   echo "Bringing up L1..."
@@ -88,6 +89,7 @@ fi
 
 # Bring up L2.
 (
+  export TAG=$TAG
   cd ops-bedrock
   echo "Bringing up L2..."
   docker-compose -f p2p-docker-compose.yml up -d l2
@@ -97,6 +99,7 @@ fi
 L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
 # Bring up everything else.
 (
+  export TAG=$TAG
   cd ops-bedrock
   echo "Bringing up L2 services..."
   L2OO_ADDRESS="$L2OO_ADDRESS" \
@@ -107,6 +110,7 @@ echo "L2 ready."
 
 # Bring up Monitoring infrastructure; exporter, heartbeat, influxdb, prometheus and grafana
 (
+  export TAG=$TAG
   cd ops-bedrock
   echo "Bringing up monitoring infrastructure"
   docker-compose -f p2p-docker-compose.yml up -d op-exporter prometheus grafana influxdb dashboard-sync

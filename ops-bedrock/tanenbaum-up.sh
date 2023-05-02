@@ -104,6 +104,7 @@ fi
 # Bring up L1.
 (
   cd ops-bedrock
+  export TAG=$TAG
   echo "Bringing up L1..."
   DOCKER_BUILDKIT=1 docker-compose build --progress plain
   docker-compose up -d l1
@@ -112,6 +113,7 @@ fi
 
 # Bring up L2.
 (
+  export TAG=$TAG
   manage_secret "block-signer-key" "hex" BLOCK_SIGNER_PRIVATE_KEY
   cd ops-bedrock
   echo "Bringing up L2..."
@@ -122,6 +124,7 @@ fi
 L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
 # Bring up everything else.
 (
+  export TAG=$TAG
   manage_secret "batcher-mnemonic" "mnemonic" OP_BATCHER_MNEMONIC
   manage_secret "proposer-mnemonic" "mnemonic" OP_PROPOSER_MNEMONIC
   manage_secret "op-node-key" "hex" OP_NODE_P2P_SEQUENCER_KEY
