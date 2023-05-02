@@ -93,8 +93,8 @@ if [ ! -f "$DEVNET/done" ]; then
     cd "$OP_NODE"
     go run cmd/main.go genesis l2 \
         --l1-rpc https://rpc.syscoin.org \
-        --deployment-dir $CONTRACTS_BEDROCK/deployments/goerli \
-        --deploy-config $CONTRACTS_BEDROCK/deploy-config/goerli.json \
+        --deployment-dir $CONTRACTS_BEDROCK/deployments/mainnet \
+        --deploy-config $CONTRACTS_BEDROCK/deploy-config/mainnet.json \
         --outfile.l2 $DEVNET/genesis-l2.json \
         --outfile.rollup $DEVNET/rollup.json
     touch "$DEVNET/done"
