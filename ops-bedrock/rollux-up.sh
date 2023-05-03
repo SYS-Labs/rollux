@@ -58,6 +58,10 @@ function wait_up {
   echo "Done!"
 }
 function manage_secret() {
+    if [ -n "$DEV" ]; then
+        echo "DEV environment variable detected. Exiting."
+        return
+    fi
     local key_name="$1"
     local secret_type="$2"
     local env_var_name="$3"
