@@ -9,15 +9,20 @@ contract GlobalConstants {
     /**
      * @notice Mainnet chain id.
      */
-    uint256 constant MAINNET = 1;
+    uint256 constant MAINNET = 57;
+
+    /**
+     * @notice Optimism Mainnet chain id.
+     */
+    uint256 constant OP_MAINNET = 570;
 
     /**
      * @notice Goerli chain id.
      */
-    uint256 constant GOERLI = 5;
+    uint256 constant GOERLI = 5700;
 
     /**
      * @notice Optimism Goerli chain id.
      */
-    uint256 constant OP_GOERLI = 420;
+    uint256 constant OP_GOERLI = 57000;
 }
