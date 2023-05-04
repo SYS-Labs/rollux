@@ -115,25 +115,25 @@ contract PostSherlockL1 is SafeBuilder {
      * @notice Test coverage of the logic. Should only run on goerli but other chains
      *         could be added.
      */
-    function run() skipWhenNotForking external {
-        address safe;
-        address proxyAdmin;
+    function test_script_succeeds() skipWhenNotForking external {
+        address _safe;
+        address _proxyAdmin;
 
         if (block.chainid == GOERLI) {
-            safe = 0xA1307B87C87dbe4782C4C975e5Ba2326490DD720;
-            proxyAdmin = 0xE77924D4073642019EC2338f911ab1D16311A1B9;
+            _safe = 0xA1307B87C87dbe4782C4C975e5Ba2326490DD720;
+            _proxyAdmin = 0xE77924D4073642019EC2338f911ab1D16311A1B9;
             // Set the proxy admin for the `_postCheck` function
-            PROXY_ADMIN = ProxyAdmin(proxyAdmin);
+            PROXY_ADMIN = ProxyAdmin(_proxyAdmin);
         }
 
-        require(safe != address(0) && proxyAdmin != address(0));
+        require(_safe != address(0) && _proxyAdmin != address(0));
 
-        address[] memory owners = IGnosisSafe(payable(safe)).getOwners();
+        address[] memory owners = IGnosisSafe(payable(_safe)).getOwners();
 
         for (uint256 i; i < owners.length; i++) {
             address owner = owners[i];
             vm.startBroadcast(owner);
-            bool success = _run(safe, proxyAdmin);
+            bool success = _run(_safe, _proxyAdmin);
             vm.stopBroadcast();
 
             if (success) {

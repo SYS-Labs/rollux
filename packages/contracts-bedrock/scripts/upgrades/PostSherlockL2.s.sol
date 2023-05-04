@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 import { console } from "forge-std/console.sol";
 import { SafeBuilder } from "../universal/SafeBuilder.sol";
-import { IGnosisSafe, Enum } from "../libraries/IGnosisSafe.sol";
+import { IGnosisSafe, Enum } from "../interfaces/IGnosisSafe.sol";
 import { IMulticall3 } from "forge-std/interfaces/IMulticall3.sol";
 import { Predeploys } from "../../contracts/libraries/Predeploys.sol";
 import { ProxyAdmin } from "../../contracts/universal/ProxyAdmin.sol";
@@ -131,23 +131,23 @@ contract PostSherlockL2 is SafeBuilder {
      * @notice Test coverage of the logic. Should only run on goerli but other chains
      *         could be added.
      */
-    function run() skipWhenNotForking external {
-        address safe;
-        address proxyAdmin;
+    function test_script_succeeds() skipWhenNotForking external {
+        address _safe;
+        address _proxyAdmin;
 
         if (block.chainid == OP_GOERLI) {
-            safe = 0x298e4eDced84698aa7c6A69b721EAC2d95A261D5;
-            proxyAdmin = 0x4200000000000000000000000000000000000018;
+            _safe = 0x298e4eDced84698aa7c6A69b721EAC2d95A261D5;
+            _proxyAdmin = 0x4200000000000000000000000000000000000018;
         }
 
-        require(safe != address(0) && proxyAdmin != address(0));
+        require(_safe != address(0) && _proxyAdmin != address(0));
 
-        address[] memory owners = IGnosisSafe(payable(safe)).getOwners();
+        address[] memory owners = IGnosisSafe(payable(_safe)).getOwners();
 
         for (uint256 i; i < owners.length; i++) {
             address owner = owners[i];
             vm.startBroadcast(owner);
-            bool success = _run(safe, proxyAdmin);
+            bool success = _run(_safe, _proxyAdmin);
             vm.stopBroadcast();
 
             if (success) {
