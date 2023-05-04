@@ -126,6 +126,7 @@ var optionalFlags = []cli.Flag{
 	// SYSCOIN
 	SysDescFlag,
 	SysDescInternalFlag,
+	SequencerHDPathFlag,
 }
 
 func init() {
