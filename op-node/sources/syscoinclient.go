@@ -35,12 +35,13 @@ type SyscoinRPC struct {
 	rpcURL       string
 	user         string
 	password     string
+	podaurl	     string
 	RPCMarshaler JSONMarshalerV2
 }
 type SyscoinClient struct {
 	client *SyscoinRPC
 }
-func NewSyscoinClient(sysdesc string, sysdescinternal string) (*SyscoinClient, error) {
+func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string) (*SyscoinClient, error) {
 	transport := &http.Transport{
 		Dial:                (&net.Dialer{KeepAlive: 600 * time.Second}).Dial,
 		MaxIdleConns:        100,
@@ -51,6 +52,7 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string) (*SyscoinClient, e
 		rpcURL:       "http://l1:8370",
 		user:         "u",
 		password:     "p",
+		podaurl:	  podaurl,
 		RPCMarshaler: JSONMarshalerV2{},
 	}
 	client := SyscoinClient{s}
@@ -328,7 +330,7 @@ func (s *SyscoinClient) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
 }
 
 func (s *SyscoinClient) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
-	url := "http://poda.tanenbaum.io/vh/" + vh.String()[2:]
+	url :=  s.client.podaurl + vh.String()[2:]
 	var res *http.Response
 	var err error
 	// try 4 times incase of timeout or reset/hanging socket with 5+i second expiry each attempt

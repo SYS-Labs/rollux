@@ -152,6 +152,8 @@ type L1EndpointConfig struct {
 	// It is recommended to use websockets or IPC for efficient following of the changing block.
 	// Setting this to 0 disables polling.
 	HttpPollInterval time.Duration
+	// SYSCOIN PoDA URL
+	SysPODAURL string
 }
 
 var _ L1EndpointSetup = (*L1EndpointConfig)(nil)
@@ -181,6 +183,8 @@ func (cfg *L1EndpointConfig) Setup(ctx context.Context, log log.Logger, rollupCf
 	}
 	rpcCfg := sources.L1ClientDefaultConfig(rollupCfg, cfg.L1TrustRPC, cfg.L1RPCKind)
 	rpcCfg.MaxRequestsPerBatch = cfg.BatchSize
+	// SYSCOIN
+	rpcCfg.SysPODAURL = cfg.SysPODAURL
 	return l1Node, rpcCfg, nil
 }
 

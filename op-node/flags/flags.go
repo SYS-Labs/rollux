@@ -210,6 +210,12 @@ var (
 		EnvVar:   prefixEnvVar("L2_BACKUP_UNSAFE_SYNC_RPC_TRUST_RPC"),
 		Required: false,
 	}
+	// SYSCOIN
+	SysPODAURLFlag = cli.StringFlag{
+		Name:   "sys-poda-url",
+		Usage:  "PoDA storage URL",
+		Required: false,
+	}
 )
 
 var requiredFlags = []cli.Flag{
@@ -247,6 +253,8 @@ var optionalFlags = []cli.Flag{
 	HeartbeatURLFlag,
 	BackupL2UnsafeSyncRPC,
 	BackupL2UnsafeSyncRPCTrustRPC,
+	// SYSCOIN
+	SysPODAURLFlag,
 }
 
 // Flags contains the list of configuration options available to the binary.

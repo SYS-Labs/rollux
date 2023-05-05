@@ -62,6 +62,8 @@ type EthClientConfig struct {
 	// till we re-attempt the user-preferred methods.
 	// If this is 0 then the client does not fall back to less optimal but available methods.
 	MethodResetDuration time.Duration
+	// SYSCOIN PoDA URL
+	SysPODAURL string
 }
 
 func (c *EthClientConfig) Check() error {
@@ -172,7 +174,7 @@ func NewEthClient(client client.RPC, log log.Logger, metrics caching.Metrics, co
 		return nil, fmt.Errorf("bad config, cannot create L1 source: %w", err)
 	}
 	client = LimitRPC(client, config.MaxConcurrentRequests)
-	sysClient, err := NewSyscoinClient("", "")
+	sysClient, err := NewSyscoinClient("", "", config.SysPODAURL)
 	if err != nil {
 		return nil, fmt.Errorf("Could not create Syscoin RPC client: %w", err)
 	}

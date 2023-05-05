@@ -644,6 +644,8 @@ func configureL1(rollupNodeCfg *rollupNode.Config, l1Node *node.Node) {
 		RateLimit:        0,
 		BatchSize:        20,
 		HttpPollInterval: time.Millisecond * 100,
+		// SYSCOIN
+		SysPODAURL:		  rollupNodeCfg.SysPODAURL,
 	}
 }
 func configureL2(rollupNodeCfg *rollupNode.Config, l2Node *node.Node, jwtSecret [32]byte) {
