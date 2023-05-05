@@ -36,9 +36,12 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.syscoin.org',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
+      companionNetworks: {
+        l2: 'optimism-mainnet',
+      },
     },
     'optimism-mainnet': {
-      chainId: 57000,
+      chainId: 570,
       url: 'https://rpc.rollux.com',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       companionNetworks: {

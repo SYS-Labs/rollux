@@ -78,6 +78,9 @@ const config: HardhatUserConfig = {
         },
       },
       live: true,
+      companionNetworks: {
+        l2: 'optimism',
+      },
     },
     goerli: {
       live: true,
