@@ -16,12 +16,12 @@ const deployFn: DeployFunction = async (hre) => {
   await deploy({
     hre,
     name: 'OptimismMintableERC721Factory',
-    args: [predeploys.L2StandardBridge, remoteChainId],
+    args: [predeploys.L2ERC721Bridge, remoteChainId],
     postDeployAction: async (contract) => {
       await assertContractVariable(
         contract,
         'BRIDGE',
-        ethers.utils.getAddress(predeploys.L2StandardBridge)
+        ethers.utils.getAddress(predeploys.L2ERC721Bridge)
       )
       await assertContractVariable(contract, 'REMOTE_CHAIN_ID', remoteChainId)
     },
