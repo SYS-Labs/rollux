@@ -81,6 +81,26 @@ contract PostSherlockL1 is SafeBuilder {
             SystemConfig: 0x19CeD9B883cC0420F170DC0D1B270295699A5e8A,
             L1ERC721Bridge: 0x9365574Ee984442894a00aE25dFb72e68A567987
         });
+        
+        implementations[MAINNET] = ContractSet({
+            L1CrossDomainMessenger: 0x9C1b34e67daD1441fcf379A000f06D4b061Aa1cF,
+            L1StandardBridge: 0xF118Fa4553b9c1CB38a1822234014B3550cF09e2,
+            L2OutputOracle: 0xdc6f816556c2f1BB95224C9AB14E71514447060B,
+            OptimismMintableERC20Factory: 0x6B6c693f6833C2c471d8733c8f2482348ad38bab,
+            OptimismPortal: 0xfECdDF9a056d7020fa4DAA80cc3f1F02DE41474e,
+            SystemConfig: 0xEa682Bf5d026644Eb0193D0126A9F64e19c34109,
+            L1ERC721Bridge: 0x7F4B038E236Acb13c729c12fF6fb945d25bcbCE4
+        });
+
+        proxies[MAINNET] = ContractSet({
+            L1CrossDomainMessenger: 0x7C12CFc99386F775a63bd95642299843e185e50E,
+            L1StandardBridge: 0x77e4F622a2903149D00ACf3398Bf6288618f6AbD,
+            L2OutputOracle: 0xCca5e2FD156D0eC93F12Aa5147a72176E3059ab1,
+            OptimismMintableERC20Factory: 0xD6EA7Ac2455c4f8D52c0feAb893c6F0d71e43dC9,
+            OptimismPortal: 0xDd9D39bB7760De3b4b7672f2537Bdee172b67f7C,
+            SystemConfig: 0x73ae51299eCA0167a5956e3D1DaE3D98b06CcD9D,
+            L1ERC721Bridge: 0xbb0D433fFCeE8738bB60dd82AF9207e2ddD30372
+        });
     }
 
     /**
