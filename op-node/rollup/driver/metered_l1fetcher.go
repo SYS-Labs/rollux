@@ -52,9 +52,19 @@ func (m *MeteredL1Fetcher) InfoAndTxsByHash(ctx context.Context, hash common.Has
 	return m.inner.InfoAndTxsByHash(ctx, hash)
 }
 
-func (m *MeteredL1Fetcher) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, error) {
+func (m *MeteredL1Fetcher) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
 	defer m.recordTime("FetchReceipts")()
 	return m.inner.FetchReceipts(ctx, blockHash)
+}
+
+func (m *MeteredL1Fetcher) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
+	defer m.recordTime("GetBlobFromCloud")()
+	return m.inner.GetBlobFromCloud(vh)
+}
+
+func (m *MeteredL1Fetcher) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
+	defer m.recordTime("GetBlobFromRPC")()
+	return m.inner.GetBlobFromRPC(vh)
 }
 
 var _ derive.L1Fetcher = (*MeteredL1Fetcher)(nil)
