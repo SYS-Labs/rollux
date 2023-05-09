@@ -80,7 +80,7 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string, re
 		if err != nil {
 			return &client, err
 		}
-		if balance > 0.0 {
+		if balance <= 0.0 {
 			log.Info("NewSyscoinClient balance is empty, rescanning", "startblock", rescanstartblock)
 			err = client.RescanWallet()
 			if err != nil {
