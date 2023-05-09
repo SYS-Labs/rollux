@@ -51,17 +51,17 @@ func (m *MeteredL1Fetcher) InfoAndTxsByHash(ctx context.Context, hash common.Has
 	defer m.recordTime("InfoAndTxsByHash")()
 	return m.inner.InfoAndTxsByHash(ctx, hash)
 }
-
+// SYSCOIN
 func (m *MeteredL1Fetcher) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
 	defer m.recordTime("FetchReceipts")()
 	return m.inner.FetchReceipts(ctx, blockHash)
 }
-
+// SYSCOIN
 func (m *MeteredL1Fetcher) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
 	defer m.recordTime("GetBlobFromCloud")()
 	return m.inner.GetBlobFromCloud(vh)
 }
-
+// SYSCOIN
 func (m *MeteredL1Fetcher) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
 	defer m.recordTime("GetBlobFromRPC")()
 	return m.inner.GetBlobFromRPC(vh)

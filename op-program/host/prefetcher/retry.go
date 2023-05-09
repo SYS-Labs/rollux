@@ -56,12 +56,12 @@ func (s *RetryingL1Source) InfoAndTxsByHash(ctx context.Context, blockHash commo
 	})
 	return info, txs, err
 }
-
-func (s *RetryingL1Source) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, error) {
+// SYSCOIN
+func (s *RetryingL1Source) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
 	var info eth.BlockInfo
 	var rcpts types.Receipts
 	err := backoff.DoCtx(ctx, maxAttempts, s.strategy, func() error {
-		i, r, err := s.source.FetchReceipts(ctx, blockHash)
+		i, r, t, err := s.source.FetchReceipts(ctx, blockHash)
 		if err != nil {
 			s.logger.Warn("Failed to fetch receipts", "hash", blockHash, "err", err)
 			return err
@@ -70,7 +70,7 @@ func (s *RetryingL1Source) FetchReceipts(ctx context.Context, blockHash common.H
 		rcpts = r
 		return nil
 	})
-	return info, rcpts, err
+	return info, rcpts, t, err
 }
 
 var _ L1Source = (*RetryingL1Source)(nil)

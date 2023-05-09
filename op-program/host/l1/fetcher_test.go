@@ -155,7 +155,7 @@ func (s stubSource) InfoByHash(ctx context.Context, blockHash common.Hash) (eth.
 func (s stubSource) InfoAndTxsByHash(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Transactions, error) {
 	return s.nextInfo, s.nextTxs, s.nextErr
 }
-
-func (s stubSource) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, error) {
-	return s.nextInfo, s.nextRcpts, s.nextErr
+// SYSCOIN
+func (s stubSource) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
+	return s.nextInfo, s.nextRcpts, s.nextTxs, s.nextErr
 }

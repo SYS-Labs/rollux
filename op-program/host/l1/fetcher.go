@@ -13,7 +13,7 @@ import (
 type Source interface {
 	InfoByHash(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, error)
 	InfoAndTxsByHash(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Transactions, error)
-	FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, error)
+	FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error)
 }
 
 type FetchingL1Oracle struct {

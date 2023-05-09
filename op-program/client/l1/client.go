@@ -70,10 +70,12 @@ func (o *OracleL1Client) L1BlockRefByHash(ctx context.Context, hash common.Hash)
 func (o *OracleL1Client) InfoByHash(ctx context.Context, hash common.Hash) (eth.BlockInfo, error) {
 	return o.oracle.HeaderByBlockHash(hash), nil
 }
-
-func (o *OracleL1Client) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, error) {
+// SYSCOIN
+func (o *OracleL1Client) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
 	info, rcpts := o.oracle.ReceiptsByBlockHash(blockHash)
-	return info, rcpts, nil
+	// SYSCOIN
+	_, txs := o.oracle.TransactionsByBlockHash(blockHash)
+	return info, rcpts, txs, nil
 }
 
 func (o *OracleL1Client) InfoAndTxsByHash(ctx context.Context, hash common.Hash) (eth.BlockInfo, types.Transactions, error) {
