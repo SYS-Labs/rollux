@@ -42,7 +42,6 @@ services:
       - "9545:8545"
       - "9546:8546"
       - "8060:6060"
-      - "30303:30303"
     volumes:
       - "l2_data:/db"
       - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
@@ -120,7 +119,7 @@ services:
       - "6062:6060"
       - "7302:7300"
     environment:
-      OP_PROPOSER_L1_ETH_RPC: http://l1:8545
+      OP_PROPOSER_L1_ETH_RPC: https://rpc.tanenbaum.io
       OP_PROPOSER_ROLLUP_RPC: http://op-node:8545
       OP_PROPOSER_POLL_INTERVAL: 10s
       OP_PROPOSER_NUM_CONFIRMATIONS: 1
@@ -130,6 +129,10 @@ services:
       OP_PROPOSER_PPROF_ENABLED: "true"
       OP_PROPOSER_METRICS_ENABLED: "true"
       OP_PROPOSER_ALLOW_NON_FINALIZED: "true"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
     env_file:
       - ./envs/op-node.env
 
@@ -149,7 +152,7 @@ services:
       - "7301:7300"
       - "6545:8545"
     environment:
-      OP_BATCHER_L1_ETH_RPC: http://l1:8545
+      OP_BATCHER_L1_ETH_RPC: https://rpc.tanenbaum.io
       OP_BATCHER_L2_ETH_RPC: http://l2:8545
       OP_BATCHER_ROLLUP_RPC: http://op-node:8545
       OP_BATCHER_MAX_L1_TX_SIZE_BYTES: 2097120
@@ -166,6 +169,10 @@ services:
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
       OP_BATCHER_RPC_ENABLE_ADMIN: "true"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
     env_file:
       - ./envs/op-node.env
 
