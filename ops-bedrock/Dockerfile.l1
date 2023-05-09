@@ -51,6 +51,7 @@ RUN echo $'exec syscoind --datadir=${SYSCOIN_DATA} \
 	--gethcommandline=--ws.api=debug,eth,txpool,net,engine \
 	--gethcommandline=--syncmode=full \
 	--gethcommandline=--allow-insecure-unlock \
+	--gethcommandline=--bootnodes=enode://6f417e6740e559818cedd1ae31ea339657f4580c06491ab9c9a7be9dc9136e858e5bc9a3c2e8d6ea49567af5102afced9d8a99c04410244b0c0880911720439a@54.203.37.244:30303,enode://c38f0a4eba5ec7ac2336b3c6d63458522d8e5237ec1c4e245ba5bca5446c921360f6dfa7fb90af2d94b4018709bf0e9eca6b87604f7900a8b50a89b8bb379eb9@35.84.168.199:30303,enode://debfb0d7df1c1c22e25025e09e0279e50750e54797809ee2c52bba574fdd2b56e31cc351ae7ca394cfea6ffa373971f7e53c836249c12dad8fcec73ea5bb9ca8@195.201.146.108:30303,enode://b58d8ed1a5e4a43f05553a54434214ec0d83114e94c8c2688405d3f0e90ff03f49b8469939c7159949741d9b993f224b3d747904740a7ce2572937656de6ffec@88.99.80.84:30303,enode://99e39d457f60b15e2386d4a813042e4435eb73ebe08d1b03a6a216c215219e1bd0f2fdd5e290becda1c90add2ef803ad09320f9db8acd3f538e13e8561ad4b2e@95.216.163.121:30303 \
 	--gethcommandline=--gcmode=archive' >> geth.sh
 VOLUME ["/db/.syscoin"]
 ENTRYPOINT ["/bin/sh", "geth.sh"]

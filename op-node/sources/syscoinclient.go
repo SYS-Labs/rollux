@@ -16,6 +16,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 // JSONMarshalerV2 is used for marshalling requests to newer Syscoin Type RPC interfaces
@@ -57,21 +58,26 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string) (*
 	}
 	client := SyscoinClient{s}
 	if len(sysdesc) > 0 && len(sysdescinternal) > 0 {
+		log.Info("NewSyscoinClient loading wallet...")
 		walletName := "wallet"
-		err := client.CreateOrLoadWallet(walletName)
+		exists, err := client.CreateOrLoadWallet(walletName)
 		if err != nil {
 			return &client, err
 		}
-		err = client.ImportDescriptor(sysdesc)
-		if err != nil {
-			return &client, err
-		}
-		err = client.ImportDescriptor(sysdescinternal)
-		if err != nil {
-			return &client, err
+		if exists == false {
+			log.Info("NewSyscoinClient importing descriptors...")
+			err = client.ImportDescriptor(sysdesc)
+			if err != nil {
+				return &client, err
+			}
+			err = client.ImportDescriptor(sysdescinternal)
+			if err != nil {
+				return &client, err
+			}
 		}
 		client.client.rpcURL += "/wallet/" + walletName
 	}
+	log.Info("NewSyscoinClient loaded!")
 	return &client, nil
 }
 // RPCError defines rpc error returned by backend
@@ -159,7 +165,7 @@ func (s *SyscoinClient) CreateBlob(data []byte) (common.Hash, error) {
 	}
 	return common.HexToHash(res.Result.VH), err
 }
-func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (error) {
+func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (bool, error) {
 	type ResCreateWallet struct {
 		Error  *RPCError `json:"error"`
 		Result struct {
@@ -178,7 +184,7 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (error) {
 	req.Params.WalletName = walletName
 	err := s.Call(&req, &res)
 	if err != nil {
-		return err
+		return false, err
 	}
 	// might actually be created already so just load it
 	if res.Error != nil {
@@ -200,16 +206,17 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (error) {
 		req.Params.WalletName = walletName
 		err = s.Call(&req, &res)
 		if err != nil {
-			return err
+			return false, err
 		}
 		if res.Error != nil {
-			return res.Error
+			return false, res.Error
 		}
+		return true, nil
 	}
 	if len(res.Result.Warning) > 0 {
-		return errors.New(res.Result.Warning)
+		return false, errors.New(res.Result.Warning)
 	}
-	return nil
+	return false, nil
 }
 func (s *SyscoinClient) ImportDescriptor(descriptor string) (error) {
 	type ResImportDescriptor struct {
