@@ -37,12 +37,13 @@ type SyscoinRPC struct {
 	user         string
 	password     string
 	podaurl	     string
+	rescanstartblock uint64
 	RPCMarshaler JSONMarshalerV2
 }
 type SyscoinClient struct {
 	client *SyscoinRPC
 }
-func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string) (*SyscoinClient, error) {
+func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string, rescanstartblock uint64) (*SyscoinClient, error) {
 	transport := &http.Transport{
 		Dial:                (&net.Dialer{KeepAlive: 600 * time.Second}).Dial,
 		MaxIdleConns:        100,
@@ -54,6 +55,7 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string) (*
 		user:         "u",
 		password:     "p",
 		podaurl:	  podaurl,
+		rescanstartblock: rescanstartblock,
 		RPCMarshaler: JSONMarshalerV2{},
 	}
 	client := SyscoinClient{s}
@@ -74,6 +76,17 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string) (*
 			return &client, err
 		}
 		client.client.rpcURL += "/wallet/" + walletName
+		balance, err := client.GetBalance()
+		if err != nil {
+			return &client, err
+		}
+		if balance > 0.0 {
+			log.Info("NewSyscoinClient balance is empty, rescanning", "startblock", rescanstartblock)
+			err = client.RescanWallet()
+			if err != nil {
+				return &client, err
+			}
+		}
 	}
 	log.Info("NewSyscoinClient loaded!")
 	return &client, nil
@@ -242,6 +255,51 @@ func (s *SyscoinClient) ImportDescriptor(descriptor string) (error) {
 		return res.Error
 	}
 	return nil
+}
+func (s *SyscoinClient) RescanWallet() (error) {
+	type ResRescanWallet struct {
+		Error  *RPCError `json:"error"`
+	}
+
+	res := ResRescanWallet{}
+	type CmdRescanWallet struct {
+		Method string `json:"method"`
+		Params struct {
+			StartBlock uint64 `json:"start_height"`
+		} `json:"params"`
+	}
+	req := CmdRescanWallet{Method: "rescanblockchain"}
+	req.Params.StartBlock = s.client.rescanstartblock
+	err := s.Call(&req, &res)
+	if err != nil {
+		return err
+	}
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+func (s *SyscoinClient) GetBalance() (float64, error) {
+	type ResGetBalance struct {
+		Error  *RPCError `json:"error"`
+		Balance float64 `json:"result"`
+	}
+
+	res := ResGetBalance{}
+	type CmdGetBalance struct {
+		Method string `json:"method"`
+		Params struct {
+		} `json:"params"`
+	}
+	req := CmdGetBalance{Method: "getbalance"}
+	err := s.Call(&req, &res)
+	if err != nil {
+		return 0, err
+	}
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	return res.Balance, nil
 }
 // SYSCOIN used to get blob confirmation by checking block number then tx receipt below to get block height of blob confirmation
 func (s *SyscoinClient) BlockNumber(ctx context.Context) (uint64, error) {

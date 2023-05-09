@@ -103,6 +103,7 @@ type CLIConfig struct {
 	// SYSCOIN
 	SysDesc         string
 	SysDescInternal string
+	SysStartWalletBlock uint64
 }
 
 func (c CLIConfig) Check() error {
@@ -151,5 +152,6 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		// SYSCOIN
 		SysDesc:         ctx.GlobalString(flags.SysDescFlag.Name),
 		SysDescInternal: ctx.GlobalString(flags.SysDescInternalFlag.Name),
+		SysStartWalletBlock: ctx.GlobalUint64(flags.SysStartWalletBlockFlag.Name),
 	}
 }

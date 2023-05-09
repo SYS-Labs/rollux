@@ -70,7 +70,7 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 	}
 
 	// SYSCOIN
-	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx, cfg.SysDesc, cfg.SysDescInternal)
+	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx, cfg.SysDesc, cfg.SysDescInternal, cfg.SysStartWalletBlock)
 	if err != nil {
 		l.Warn("dialSyscoinClientWithTimeout", "err", err)
 		return nil, err
