@@ -60,20 +60,18 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string) (*
 	if len(sysdesc) > 0 && len(sysdescinternal) > 0 {
 		log.Info("NewSyscoinClient loading wallet...")
 		walletName := "wallet"
-		exists, err := client.CreateOrLoadWallet(walletName)
+		err := client.CreateOrLoadWallet(walletName)
 		if err != nil {
 			return &client, err
 		}
-		if exists == false {
-			log.Info("NewSyscoinClient importing descriptors...")
-			err = client.ImportDescriptor(sysdesc)
-			if err != nil {
-				return &client, err
-			}
-			err = client.ImportDescriptor(sysdescinternal)
-			if err != nil {
-				return &client, err
-			}
+		log.Info("NewSyscoinClient importing descriptors...")
+		err = client.ImportDescriptor(sysdesc)
+		if err != nil {
+			return &client, err
+		}
+		err = client.ImportDescriptor(sysdescinternal)
+		if err != nil {
+			return &client, err
 		}
 		client.client.rpcURL += "/wallet/" + walletName
 	}
@@ -165,7 +163,7 @@ func (s *SyscoinClient) CreateBlob(data []byte) (common.Hash, error) {
 	}
 	return common.HexToHash(res.Result.VH), err
 }
-func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (bool, error) {
+func (s *SyscoinClient) CreateOrLoadWallet(walletName string) error {
 	type ResCreateWallet struct {
 		Error  *RPCError `json:"error"`
 		Result struct {
@@ -184,7 +182,7 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (bool, error) {
 	req.Params.WalletName = walletName
 	err := s.Call(&req, &res)
 	if err != nil {
-		return false, err
+		return err
 	}
 	// might actually be created already so just load it
 	if res.Error != nil {
@@ -206,17 +204,17 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (bool, error) {
 		req.Params.WalletName = walletName
 		err = s.Call(&req, &res)
 		if err != nil {
-			return false, err
+			return err
 		}
 		if res.Error != nil {
-			return false, res.Error
+			return res.Error
 		}
-		return true, nil
+		return nil
 	}
 	if len(res.Result.Warning) > 0 {
-		return false, errors.New(res.Result.Warning)
+		return errors.New(res.Result.Warning)
 	}
-	return false, nil
+	return nil
 }
 func (s *SyscoinClient) ImportDescriptor(descriptor string) (error) {
 	type ResImportDescriptor struct {
