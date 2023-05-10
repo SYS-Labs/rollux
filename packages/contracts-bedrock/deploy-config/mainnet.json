@@ -2,7 +2,7 @@
     "finalSystemOwner": "0x1343EB8992175a722943b18B61784c97edAb8077",
     "controller": "0xbcCC3Ba5e2F84A88d66f62A9fE260A7C303cf440",
     "portalGuardian": "0x1343EB8992175a722943b18B61784c97edAb8077",
-    "l1StartingBlockTag": "0xb44e5346cbc4f88729b1ab23441bdede45083d61bf3aafe0ceddc2667bd2a424",
+    "l1StartingBlockTag": "0xe2b95767e696099b3a3aaa8b52a29e92472828051a3a203c8dfac32d9dd21616",
     "l1ChainID": 57,
     "l2ChainID": 570,
     "l2BlockTime": 2,
@@ -39,5 +39,6 @@
     "gasPriceOracleOverhead": 2100,
     "gasPriceOracleScalar": 1000000,
     "eip1559Denominator": 50,
-    "eip1559Elasticity": 10
+    "eip1559Elasticity": 10,
+    "fundDevAccounts": true
 }
