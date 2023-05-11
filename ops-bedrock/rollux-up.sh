@@ -57,35 +57,6 @@ function wait_up {
   done
   echo "Done!"
 }
-function manage_secret() {
-    if [ -n "$DEV" ]; then
-        echo "DEV environment variable detected. Exiting."
-        return
-    fi
-    local key_name="$1"
-    local secret_type="$2"
-    local env_var_name="$3"
-    local aws_region="not-sure-what-region-yet"
-
-    secret_exists=$(aws secretsmanager list-secrets --region $aws_region --query "SecretList[?Name=='$key_name'].Name" --output text)
-
-    if [ -n "$secret_exists" ]; then
-        secret_value=$(aws secretsmanager get-secret-value --secret-id "$key_name" --region $aws_region --query SecretString --output text)
-        export $env_var_name="$secret_value"
-        echo "Key exists. Value saved in environment variable $env_var_name."
-    else
-        if [ "$secret_type" == "mnemonic" ]; then
-            mnemonic=$(node -e "const bip39 = require('bip39'); console.log(bip39.generateMnemonic(128));")
-            aws secretsmanager create-secret --name "$key_name" --secret-string "$mnemonic" --region $aws_region
-            export $env_var_name="$mnemonic"
-        else
-            random_key=$(openssl rand -hex 32)
-            aws secretsmanager create-secret --name "$key_name" --secret-string "$random_key" --region $aws_region
-            export $env_var_name="$random_key"
-        fi
-        echo "Key created. Value saved in environment variable $env_var_name."
-    fi
-}
 
 mkdir -p ./.rollux
 
@@ -118,7 +89,6 @@ fi
 # Bring up L2.
 (
   export TAG=$TAG
-  manage_secret "block-signer-key" "hex" BLOCK_SIGNER_PRIVATE_KEY
   cd ops-bedrock
   echo "Bringing up L2..."
   docker-compose -f docker-compose-rollux.yml up -d l2
@@ -129,13 +99,10 @@ L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
 # Bring up everything else.
 (
   export TAG=$TAG
-  manage_secret "batcher-mnemonic" "mnemonic" OP_BATCHER_MNEMONIC
-  manage_secret "proposer-mnemonic" "mnemonic" OP_PROPOSER_MNEMONIC
-  manage_secret "op-node-key" "hex" OP_NODE_P2P_SEQUENCER_KEY
   cd ops-bedrock
   echo "Bringing up L2 services..."
   L2OO_ADDRESS="$L2OO_ADDRESS" \
-      docker-compose -f docker-compose-rollux.yml up -d op-proposer op-batcher
+      docker-compose -f docker-compose-rollux.yml up -d op-batcher
 
   echo "Bringing up stateviz webserver..."
   docker-compose -f docker-compose-rollux.yml up -d stateviz
