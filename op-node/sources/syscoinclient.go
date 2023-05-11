@@ -61,7 +61,7 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 	if podaurl == "" {
 		log.Info("NewSyscoinClient loading wallet...")
 		walletName := "wallet"
-		var err error = ErrWalletAlreadyLoaded
+		var err error = errors.New("")
 		for err != nil {
 			err = client.CreateOrLoadWallet(walletName)
 			if err != nil {
