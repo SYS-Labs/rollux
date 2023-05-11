@@ -92,23 +92,6 @@ var (
 		Usage:  "Initialize the batcher in a stopped state. The batcher can be started using the admin_startBatcher RPC",
 		EnvVar: opservice.PrefixEnvVar(EnvVarPrefix, "STOPPED"),
 	}
-	// SYSCOIN
-	SysDescFlag = cli.StringFlag{
-		Name:   "sys-desc",
-		Usage:  "Descriptor for batcher UTXO wallet",
-		EnvVar: opservice.PrefixEnvVar(EnvVarPrefix, "SYS_DESC"),
-	}
-	SysDescInternalFlag = cli.StringFlag{
-		Name:   "sys-desc-internal",
-		Usage:  "Descriptor for batcher UTXO wallet (change)",
-		EnvVar: opservice.PrefixEnvVar(EnvVarPrefix, "SYS_DESC_INTERNAL"),
-	}
-	SysStartWalletBlockFlag = cli.Uint64Flag{
-		Name:   "sys-start-block",
-		Usage:  "Scan start block for wallet to fetch transaction",
-		Value:  1591616,
-		EnvVar: opservice.PrefixEnvVar(EnvVarPrefix, "SYS_WALLET_START_BLOCK"),
-	}
 	// Legacy Flags
 	SequencerHDPathFlag = txmgr.SequencerHDPathFlag
 )
@@ -129,10 +112,6 @@ var optionalFlags = []cli.Flag{
 	TargetNumFramesFlag,
 	ApproxComprRatioFlag,
 	StoppedFlag,
-	// SYSCOIN
-	SysDescFlag,
-	SysDescInternalFlag,
-	SysStartWalletBlockFlag,
 	SequencerHDPathFlag,
 }
 

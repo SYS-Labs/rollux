@@ -174,7 +174,7 @@ func NewEthClient(client client.RPC, log log.Logger, metrics caching.Metrics, co
 		return nil, fmt.Errorf("bad config, cannot create L1 source: %w", err)
 	}
 	client = LimitRPC(client, config.MaxConcurrentRequests)
-	sysClient, err := NewSyscoinClient("", "", config.SysPODAURL, 0)
+	sysClient, err := NewSyscoinClient(config.SysPODAURL)
 	if err != nil {
 		return nil, fmt.Errorf("Could not create Syscoin RPC client: %w", err)
 	}

@@ -28,6 +28,6 @@ func DialRollupClientWithTimeout(ctx context.Context, url string, timeout time.D
 // dialRollupClientWithTimeout attempts to dial the RPC provider using the provided
 // URL. If the dial doesn't complete within defaultDialTimeout seconds, this
 // method will return an error.
-func DialSyscoinClientWithTimeout(ctx context.Context, sysdesc string, sysdescinternal string, startblock uint64) (*sources.SyscoinClient, error) {
-	return sources.NewSyscoinClient(sysdesc, sysdescinternal, "", startblock)
+func DialSyscoinClientWithTimeout(ctx context.Context) (*sources.SyscoinClient, error) {
+	return sources.NewSyscoinClient("")
 }

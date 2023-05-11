@@ -100,10 +100,6 @@ type CLIConfig struct {
 	LogConfig     oplog.CLIConfig
 	MetricsConfig opmetrics.CLIConfig
 	PprofConfig   oppprof.CLIConfig
-	// SYSCOIN
-	SysDesc         string
-	SysDescInternal string
-	SysStartWalletBlock uint64
 }
 
 func (c CLIConfig) Check() error {
@@ -149,9 +145,5 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		LogConfig:              oplog.ReadCLIConfig(ctx),
 		MetricsConfig:          opmetrics.ReadCLIConfig(ctx),
 		PprofConfig:            oppprof.ReadCLIConfig(ctx),
-		// SYSCOIN
-		SysDesc:         ctx.GlobalString(flags.SysDescFlag.Name),
-		SysDescInternal: ctx.GlobalString(flags.SysDescInternalFlag.Name),
-		SysStartWalletBlock: ctx.GlobalUint64(flags.SysStartWalletBlockFlag.Name),
 	}
 }

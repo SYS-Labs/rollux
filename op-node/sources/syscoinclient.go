@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -21,7 +22,6 @@ import (
 )
 // JSONMarshalerV2 is used for marshalling requests to newer Syscoin Type RPC interfaces
 type JSONMarshalerV2 struct{}
-
 // Marshal converts struct passed by parameter to JSON
 func (JSONMarshalerV2) Marshal(v interface{}) ([]byte, error) {
 	d, err := json.Marshal(v)
@@ -37,13 +37,12 @@ type SyscoinRPC struct {
 	user         string
 	password     string
 	podaurl	     string
-	rescanstartblock uint64
 	RPCMarshaler JSONMarshalerV2
 }
 type SyscoinClient struct {
 	client *SyscoinRPC
 }
-func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string, rescanstartblock uint64) (*SyscoinClient, error) {
+func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 	transport := &http.Transport{
 		Dial:                (&net.Dialer{KeepAlive: 600 * time.Second}).Dial,
 		MaxIdleConns:        100,
@@ -55,39 +54,45 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string, podaurl string, re
 		user:         "u",
 		password:     "p",
 		podaurl:	  podaurl,
-		rescanstartblock: rescanstartblock,
 		RPCMarshaler: JSONMarshalerV2{},
 	}
 	client := SyscoinClient{s}
-	if len(sysdesc) > 0 && len(sysdescinternal) > 0 {
+	// if its empty it means we are in batcher mode which needs SYS gas for PoDA transactions
+	if podaurl == "" {
 		log.Info("NewSyscoinClient loading wallet...")
 		walletName := "wallet"
-		err := client.CreateOrLoadWallet(walletName)
-		if err != nil {
-			return &client, err
-		}
-		log.Info("NewSyscoinClient importing descriptors...")
-		err = client.ImportDescriptor(sysdesc)
-		if err != nil {
-			return &client, err
-		}
-		err = client.ImportDescriptor(sysdescinternal)
-		if err != nil {
-			return &client, err
+		var err error = ErrWalletAlreadyLoaded
+		for err != nil {
+			err = client.CreateOrLoadWallet(walletName)
+			if err != nil {
+				log.Info("NewSyscoinClient", "err", err)
+			}
+			time.Sleep(1 * time.Second)
 		}
 		client.client.rpcURL += "/wallet/" + walletName
+		log.Info("NewSyscoinClient checking balance...")
 		balance, err := client.GetBalance()
 		if err != nil {
 			return &client, err
 		}
 		if balance <= 0.0 {
-			log.Info("NewSyscoinClient balance is empty, rescanning", "startblock", rescanstartblock)
-			err = client.RescanWallet()
+			log.Info("NewSyscoinClient balance is empty, creating new address for funding")
+			address, err := client.GetNewAddress()
 			if err != nil {
 				return &client, err
 			}
+			log.Info("NewSyscoinClient please fund SYS", "address", address)
+		}
+		for balance <= 0.0 {
+			balance, err = client.GetBalance()
+			if err != nil {
+				return &client, err
+			}
+			time.Sleep(10 * time.Second)
+			log.Info("NewSyscoinClient waiting for funds at funding destination", "address")
 		}
 	}
+
 	log.Info("NewSyscoinClient loaded!")
 	return &client, nil
 }
@@ -199,6 +204,7 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) error {
 	}
 	// might actually be created already so just load it
 	if res.Error != nil {
+		log.Info("CreateOrLoadWallet wallet exists, loading it...")
 		type ResLoadWallet struct {
 			Error  *RPCError `json:"error"`
 			Result struct {
@@ -217,65 +223,23 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) error {
 		req.Params.WalletName = walletName
 		err = s.Call(&req, &res)
 		if err != nil {
+			if strings.Contains(err.Error(), "is already loaded") {
+				log.Info("CreateOrLoadWallet wallet already loaded...")
+				return nil
+			}
 			return err
 		}
 		if res.Error != nil {
+			if strings.Contains(res.Error.Error(), "is already loaded") {
+				log.Info("CreateOrLoadWallet wallet already loaded...")
+				return nil
+			}
 			return res.Error
 		}
 		return nil
 	}
 	if len(res.Result.Warning) > 0 {
-		return errors.New(res.Result.Warning)
-	}
-	return nil
-}
-func (s *SyscoinClient) ImportDescriptor(descriptor string) (error) {
-	type ResImportDescriptor struct {
-		Error  *RPCError `json:"error"`
-	}
-
-	res := ResImportDescriptor{}
-	type CmdImportDescriptor struct {
-		Method string `json:"method"`
-		Params struct {
-			Desc interface{} `json:"requests"`
-		} `json:"params"`
-	}
-	req := CmdImportDescriptor{Method: "importdescriptors"}
-	descBytes := []byte(descriptor)
-	err := json.Unmarshal(descBytes, &req.Params.Desc)
-	if err != nil {
-		return err
-	}
-	err = s.Call(&req, &res)
-	if err != nil {
-		return err
-	}
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil
-}
-func (s *SyscoinClient) RescanWallet() (error) {
-	type ResRescanWallet struct {
-		Error  *RPCError `json:"error"`
-	}
-
-	res := ResRescanWallet{}
-	type CmdRescanWallet struct {
-		Method string `json:"method"`
-		Params struct {
-			StartBlock uint64 `json:"start_height"`
-		} `json:"params"`
-	}
-	req := CmdRescanWallet{Method: "rescanblockchain"}
-	req.Params.StartBlock = s.client.rescanstartblock
-	err := s.Call(&req, &res)
-	if err != nil {
-		return err
-	}
-	if res.Error != nil {
-		return res.Error
+		log.Info("CreateOrLoadWallet", "warning", res.Result.Warning)
 	}
 	return nil
 }
@@ -300,6 +264,28 @@ func (s *SyscoinClient) GetBalance() (float64, error) {
 		return 0, res.Error
 	}
 	return res.Balance, nil
+}
+func (s *SyscoinClient) GetNewAddress() (string, error) {
+	type ResGetAddress struct {
+		Error  *RPCError `json:"error"`
+		Address string `json:"result"`
+	}
+
+	res := ResGetAddress{}
+	type CmdGetAddress struct {
+		Method string `json:"method"`
+		Params struct {
+		} `json:"params"`
+	}
+	req := CmdGetAddress{Method: "getnewaddress"}
+	err := s.Call(&req, &res)
+	if err != nil {
+		return "", err
+	}
+	if res.Error != nil {
+		return "", res.Error
+	}
+	return res.Address, nil
 }
 // SYSCOIN used to get blob confirmation by checking block number then tx receipt below to get block height of blob confirmation
 func (s *SyscoinClient) BlockNumber(ctx context.Context) (uint64, error) {
