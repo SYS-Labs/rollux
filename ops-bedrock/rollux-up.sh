@@ -102,7 +102,7 @@ L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
   cd ops-bedrock
   echo "Bringing up L2 services..."
   L2OO_ADDRESS="$L2OO_ADDRESS" \
-      docker-compose -f docker-compose-rollux.yml up -d op-batcher
+      docker-compose -f docker-compose-rollux.yml up -d op-proposer op-batcher
 
   echo "Bringing up stateviz webserver..."
   docker-compose -f docker-compose-rollux.yml up -d stateviz
