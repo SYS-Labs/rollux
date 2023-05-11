@@ -170,13 +170,17 @@ func (s *EthClient) OnReceiptsMethodErr(m ReceiptsFetchingMethod, err error) {
 // NewEthClient returns an [EthClient], wrapping an RPC with bindings to fetch ethereum data with added error logging,
 // metric tracking, and caching. The [EthClient] uses a [LimitRPC] wrapper to limit the number of concurrent RPC requests.
 func NewEthClient(client client.RPC, log log.Logger, metrics caching.Metrics, config *EthClientConfig) (*EthClient, error) {
-	if err := config.Check(); err != nil {
+	var err error
+	if err = config.Check(); err != nil {
 		return nil, fmt.Errorf("bad config, cannot create L1 source: %w", err)
 	}
 	client = LimitRPC(client, config.MaxConcurrentRequests)
-	sysClient, err := NewSyscoinClient(config.SysPODAURL)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create Syscoin RPC client: %w", err)
+	var sysClient *SyscoinClient = nil
+	if config.SysPODAURL != "" {
+		sysClient, err = NewSyscoinClient(config.SysPODAURL)
+		if err != nil {
+			return nil, fmt.Errorf("Could not create Syscoin RPC client: %w", err)
+		}
 	}
 	return &EthClient{
 		client:            client,

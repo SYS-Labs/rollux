@@ -22,6 +22,7 @@ import (
 )
 // JSONMarshalerV2 is used for marshalling requests to newer Syscoin Type RPC interfaces
 type JSONMarshalerV2 struct{}
+var addressLabel string = "podalabel"
 // Marshal converts struct passed by parameter to JSON
 func (JSONMarshalerV2) Marshal(v interface{}) ([]byte, error) {
 	d, err := json.Marshal(v)
@@ -75,11 +76,16 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 		if err != nil {
 			return &client, err
 		}
-		if balance <= 0.0 {
-			log.Info("NewSyscoinClient balance is empty, creating new address for funding")
-			address, err := client.GetNewAddress()
-			if err != nil {
-				return &client, err
+		var address string
+		if balance > 0.0 {
+			log.Info("NewSyscoinClient balance is empty, fetching funding address", "label", addressLabel)
+			address, err = client.FetchAddressByLabel(addressLabel)
+			if address == "" {
+				log.Info("NewSyscoinClient label does not exist, creating new funding address")
+				address, err = client.GetNewAddress(addressLabel)
+				if err != nil {
+					return &client, err
+				}
 			}
 			log.Info("NewSyscoinClient please fund SYS", "address", address)
 		}
@@ -89,7 +95,7 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 				return &client, err
 			}
 			time.Sleep(10 * time.Second)
-			log.Info("NewSyscoinClient waiting for funds at funding destination", "address")
+			log.Info("NewSyscoinClient waiting for funds at funding destination", "address", address)
 		}
 	}
 
@@ -265,7 +271,7 @@ func (s *SyscoinClient) GetBalance() (float64, error) {
 	}
 	return res.Balance, nil
 }
-func (s *SyscoinClient) GetNewAddress() (string, error) {
+func (s *SyscoinClient) GetNewAddress(addresslabel string) (string, error) {
 	type ResGetAddress struct {
 		Error  *RPCError `json:"error"`
 		Address string `json:"result"`
@@ -275,9 +281,11 @@ func (s *SyscoinClient) GetNewAddress() (string, error) {
 	type CmdGetAddress struct {
 		Method string `json:"method"`
 		Params struct {
+			Label string `json:"label"`
 		} `json:"params"`
 	}
 	req := CmdGetAddress{Method: "getnewaddress"}
+	req.Params.Label = addresslabel
 	err := s.Call(&req, &res)
 	if err != nil {
 		return "", err
@@ -286,6 +294,37 @@ func (s *SyscoinClient) GetNewAddress() (string, error) {
 		return "", res.Error
 	}
 	return res.Address, nil
+}
+func (s *SyscoinClient) FetchAddressByLabel(addresslabel string) (string, error) {
+	type GetAddressesByLabelRespElement struct {
+		// Purpose of address ("send" for sending address, "receive" for receiving address)
+		Purpose string `json:"purpose"`
+	}
+	type ResGetAddress struct {
+		Error  *RPCError `json:"error"`
+		Result map[string]GetAddressesByLabelRespElement `json:"result"`
+	}
+
+	res := ResGetAddress{}
+	type CmdGetAddress struct {
+		Method string `json:"method"`
+		Params struct {
+			Label string `json:"label"`
+		} `json:"params"`
+	}
+	req := CmdGetAddress{Method: "getaddressesbylabel"}
+	req.Params.Label = addresslabel
+	err := s.Call(&req, &res)
+	if err != nil {
+		return "", err
+	}
+	if res.Error != nil {
+		return "", res.Error
+	}
+	for key, _ := range res.Result {
+		return key, nil
+	}
+	return "", nil
 }
 // SYSCOIN used to get blob confirmation by checking block number then tx receipt below to get block height of blob confirmation
 func (s *SyscoinClient) BlockNumber(ctx context.Context) (uint64, error) {
