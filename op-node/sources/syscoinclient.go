@@ -247,7 +247,6 @@ func (s *SyscoinClient) ImportDescriptor(descriptor string) (error) {
 	if err != nil {
 		return err
 	}
-	log.Info("ImportDescriptor", "descriptor", descriptor)
 	err = s.Call(&req, &res)
 	if err != nil {
 		return err
