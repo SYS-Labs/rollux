@@ -77,7 +77,7 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 			return &client, err
 		}
 		var address string
-		if balance > 0.0 {
+		if balance <= 0.0 {
 			log.Info("NewSyscoinClient balance is empty, fetching funding address", "label", addressLabel)
 			address, err = client.FetchAddressByLabel(addressLabel)
 			if address == "" {
