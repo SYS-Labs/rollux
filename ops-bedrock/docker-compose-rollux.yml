@@ -86,7 +86,7 @@ services:
       --metrics.port=7300
       --pprof.enabled
       --rpc.enable-admin
-      --sys-poda-url=https://poda-storage.syscoin.org/vh/
+      --sys-poda-url=https://poda-storage.syscoin.org/
     ports:
       - "7545:8545"
       - "9003:9003"
