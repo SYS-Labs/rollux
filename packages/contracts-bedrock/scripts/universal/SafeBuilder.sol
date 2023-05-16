@@ -42,7 +42,7 @@ abstract contract SafeBuilder is EnhancedScript, GlobalConstants {
     /**
      * @notice Follow up assertions to ensure that the script ran to completion.
      */
-    function _postCheck() internal virtual view;
+    function _postCheck(ProxyAdmin _proxyAdmin) internal virtual view;
 
     /**
      * @notice Creates the calldata
@@ -68,7 +68,7 @@ abstract contract SafeBuilder is EnhancedScript, GlobalConstants {
     function run(address _safe, address _proxyAdmin) public returns (bool) {
         vm.startBroadcast();
         bool success = _run(_safe, _proxyAdmin);
-        if (success) _postCheck();
+         _postCheck(ProxyAdmin(_proxyAdmin));
         return success;
     }
 

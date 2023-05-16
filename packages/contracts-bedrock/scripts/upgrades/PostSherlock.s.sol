@@ -81,32 +81,32 @@ contract PostSherlockL1 is SafeBuilder {
             SystemConfig: 0x19CeD9B883cC0420F170DC0D1B270295699A5e8A,
             L1ERC721Bridge: 0x9365574Ee984442894a00aE25dFb72e68A567987
         });
-        
+
         implementations[MAINNET] = ContractSet({
-            L1CrossDomainMessenger: 0x9C1b34e67daD1441fcf379A000f06D4b061Aa1cF,
-            L1StandardBridge: 0xF118Fa4553b9c1CB38a1822234014B3550cF09e2,
-            L2OutputOracle: 0xdc6f816556c2f1BB95224C9AB14E71514447060B,
-            OptimismMintableERC20Factory: 0x6B6c693f6833C2c471d8733c8f2482348ad38bab,
-            OptimismPortal: 0xfECdDF9a056d7020fa4DAA80cc3f1F02DE41474e,
-            SystemConfig: 0xEa682Bf5d026644Eb0193D0126A9F64e19c34109,
-            L1ERC721Bridge: 0x7F4B038E236Acb13c729c12fF6fb945d25bcbCE4
+            L1CrossDomainMessenger: 0x937435913986Bba3B60c78C0ACa4Cdd231C992F5,
+            L1StandardBridge: 0x66A13890dc60C3780ab303662F1C174d04F24F4b,
+            L2OutputOracle: 0x253807F6ECaC4DdD6E24b0a2F8d4042b0AC30dfd,
+            OptimismMintableERC20Factory: 0x3dbfcC0377a1e933870Ae7b5e5e370a199CE8c35,
+            OptimismPortal: 0xBe1AcfAa65c4AA917519276c6bA601F573E98E8C,
+            SystemConfig: 0x4FA0a6a3BDacCd3355F1504bA959C7B071120bcc,
+            L1ERC721Bridge: 0x16e46B7fB99a38384E149Ed07832C6C940d906B9
         });
 
         proxies[MAINNET] = ContractSet({
-            L1CrossDomainMessenger: 0x7C12CFc99386F775a63bd95642299843e185e50E,
-            L1StandardBridge: 0x77e4F622a2903149D00ACf3398Bf6288618f6AbD,
-            L2OutputOracle: 0xCca5e2FD156D0eC93F12Aa5147a72176E3059ab1,
-            OptimismMintableERC20Factory: 0xD6EA7Ac2455c4f8D52c0feAb893c6F0d71e43dC9,
-            OptimismPortal: 0xDd9D39bB7760De3b4b7672f2537Bdee172b67f7C,
-            SystemConfig: 0x73ae51299eCA0167a5956e3D1DaE3D98b06CcD9D,
-            L1ERC721Bridge: 0xbb0D433fFCeE8738bB60dd82AF9207e2ddD30372
+            L1CrossDomainMessenger: 0x4f0f13677f69F990013EF2f8f8D4c67e4b9a2d5F,
+            L1StandardBridge: 0x5eb41630CfA4465ec5b3EFe86979C32288895d7B,
+            L2OutputOracle: 0xf8d7Db6eeE25fe9c2F659936efD173C965B45F19,
+            OptimismMintableERC20Factory: 0xC0767C0EFd5bb9B2B17c1D106C8339263ADd8CD3,
+            OptimismPortal: 0xD46Bf6354725bFd4409cd6A952695bFEb213aCB9,
+            SystemConfig: 0x739d6e104C717566F65e4Ea711500CE81EF98D42,
+            L1ERC721Bridge: 0xc37Cf0839267CeE1827C0d70F74720d10618ba54
         });
     }
 
     /**
      * @notice Follow up assertions to ensure that the script ran to completion.
      */
-    function _postCheck() internal override view {
+    function _postCheck(ProxyAdmin _proxyAdmin) internal override view {
         ContractSet memory prox = getProxies();
         require(_versionHash(prox.L1CrossDomainMessenger) == keccak256(bytes(L1CrossDomainMessenger_Version)), "L1CrossDomainMessenger");
         require(_versionHash(prox.L1StandardBridge) == keccak256(bytes(L1StandardBridge_Version)), "L1StandardBridge");
@@ -122,13 +122,13 @@ contract PostSherlockL1 is SafeBuilder {
 
         // Check that the codehashes of all implementations match the proxies set implementations.
         ContractSet memory impl = getImplementations();
-        require(PROXY_ADMIN.getProxyImplementation(prox.L1CrossDomainMessenger).codehash == impl.L1CrossDomainMessenger.codehash, "L1CrossDomainMessenger codehash");
-        require(PROXY_ADMIN.getProxyImplementation(prox.L1StandardBridge).codehash == impl.L1StandardBridge.codehash, "L1StandardBridge codehash");
-        require(PROXY_ADMIN.getProxyImplementation(prox.L2OutputOracle).codehash == impl.L2OutputOracle.codehash, "L2OutputOracle codehash");
-        require(PROXY_ADMIN.getProxyImplementation(prox.OptimismMintableERC20Factory).codehash == impl.OptimismMintableERC20Factory.codehash, "OptimismMintableERC20Factory codehash");
-        require(PROXY_ADMIN.getProxyImplementation(prox.OptimismPortal).codehash == impl.OptimismPortal.codehash, "OptimismPortal codehash");
-        require(PROXY_ADMIN.getProxyImplementation(prox.SystemConfig).codehash == impl.SystemConfig.codehash, "SystemConfig codehash");
-        require(PROXY_ADMIN.getProxyImplementation(prox.L1ERC721Bridge).codehash == impl.L1ERC721Bridge.codehash, "L1ERC721Bridge codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.L1CrossDomainMessenger).codehash == impl.L1CrossDomainMessenger.codehash, "L1CrossDomainMessenger codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.L1StandardBridge).codehash == impl.L1StandardBridge.codehash, "L1StandardBridge codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.L2OutputOracle).codehash == impl.L2OutputOracle.codehash, "L2OutputOracle codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.OptimismMintableERC20Factory).codehash == impl.OptimismMintableERC20Factory.codehash, "OptimismMintableERC20Factory codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.OptimismPortal).codehash == impl.OptimismPortal.codehash, "OptimismPortal codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.SystemConfig).codehash == impl.SystemConfig.codehash, "SystemConfig codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.L1ERC721Bridge).codehash == impl.L1ERC721Bridge.codehash, "L1ERC721Bridge codehash");
     }
 
     /**
@@ -139,11 +139,9 @@ contract PostSherlockL1 is SafeBuilder {
         address _safe;
         address _proxyAdmin;
 
-        if (block.chainid == GOERLI) {
+        if (block.chainid == MAINNET) {
             _safe = 0xA1307B87C87dbe4782C4C975e5Ba2326490DD720;
             _proxyAdmin = 0xE77924D4073642019EC2338f911ab1D16311A1B9;
-            // Set the proxy admin for the `_postCheck` function
-            PROXY_ADMIN = ProxyAdmin(_proxyAdmin);
         }
 
         require(_safe != address(0) && _proxyAdmin != address(0));
@@ -162,7 +160,7 @@ contract PostSherlockL1 is SafeBuilder {
             }
         }
 
-        _postCheck();
+        _postCheck(ProxyAdmin(_proxyAdmin));
     }
 
     /**
