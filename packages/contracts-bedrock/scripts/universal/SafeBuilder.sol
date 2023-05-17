@@ -68,7 +68,7 @@ abstract contract SafeBuilder is EnhancedScript, GlobalConstants {
     function run(address _safe, address _proxyAdmin) public returns (bool) {
         vm.startBroadcast();
         bool success = _run(_safe, _proxyAdmin);
-         _postCheck(ProxyAdmin(_proxyAdmin));
+        _postCheck(ProxyAdmin(_proxyAdmin));
         return success;
     }
 

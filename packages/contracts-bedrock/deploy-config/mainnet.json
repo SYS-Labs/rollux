@@ -35,10 +35,9 @@
     "baseFeeVaultRecipient": "0x2fA8986FBf4F9999FBC0CF3f955aDED88444c3EA",
     "l1FeeVaultRecipient": "0xeBA2B8b07622b1eaBC80180A836664F1F7E16800",
     "sequencerFeeVaultRecipient": "0x5FBe15a6568140dB42B01092bC415a9B92ca4f58",
-    "proxyAdminOwner": "0x1D9E5b821c84644B6A83d249EF666ee3451a136A",
+    "proxyAdminOwner": "0x1343EB8992175a722943b18B61784c97edAb8077",
     "gasPriceOracleOverhead": 2100,
     "gasPriceOracleScalar": 1000000,
     "eip1559Denominator": 50,
-    "eip1559Elasticity": 10,
-    "fundDevAccounts": true
+    "eip1559Elasticity": 10
 }
