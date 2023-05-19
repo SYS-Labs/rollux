@@ -129,7 +129,7 @@ services:
       --gaseBaseFee.enable
 
   grafana:
-    image: grafana/grafana:7.5.5
+    image: grafana/grafana:9.5.2
     env_file:
       - ./envs/metrics.env
     ports:
