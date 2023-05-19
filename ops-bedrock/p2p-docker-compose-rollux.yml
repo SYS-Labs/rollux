@@ -162,7 +162,23 @@ services:
     volumes:
       - ./docker/scripts/:/scripts
       - grafana_dashboards:/grafana-dashboards
+  batcher-monitor:
+    build:
+      context: docker/contract_monitor/
+      dockerfile: Dockerfile
+    environment:
+      L1_URL: http://l1:8545
+      CONTRACT_ADDRESS: "${BATCH_INBOX_ADDRESS}"
+      METRIC_NAME: "batcher_health"
 
+  proposer-monitor:
+    build:
+      context: docker/contract_monitor/
+      dockerfile: Dockerfile
+    environment:
+      L1_URL: http://l1:8545
+      CONTRACT_ADDRESS: "${L2OO_ADDRESS}"
+      METRIC_NAME: "proposer_health"
 
 networks:
   default:
