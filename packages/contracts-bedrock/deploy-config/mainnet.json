@@ -10,7 +10,7 @@
 
 
     "maxSequencerDrift": 1500,
-    "finalizationPeriodSeconds": 1500,
+    "finalizationPeriodSeconds": 604800,
     "sequencerWindowSize": 288,
     "channelTimeout": 24,
     "p2pSequencerAddress": "0x56Bcd9bf70Cb8c49A7649f223B6100206EC5AC8E",
