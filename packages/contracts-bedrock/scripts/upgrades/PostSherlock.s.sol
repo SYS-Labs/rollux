@@ -51,7 +51,7 @@ contract PostSherlockL1 is SafeBuilder {
      * @notice The expected versions for the contracts to be upgraded to.
      */
     string constant internal L1CrossDomainMessenger_Version = "1.4.0";
-    string constant internal L1StandardBridge_Version = "1.1.0";
+    string constant internal L1StandardBridge_Version = "1.1.1";
     string constant internal L2OutputOracle_Version = "1.3.0";
     string constant internal OptimismMintableERC20Factory_Version = "1.1.0";
     string constant internal OptimismPortal_Version = "1.6.0";
@@ -84,7 +84,7 @@ contract PostSherlockL1 is SafeBuilder {
 
         implementations[MAINNET] = ContractSet({
             L1CrossDomainMessenger: 0x937435913986Bba3B60c78C0ACa4Cdd231C992F5,
-            L1StandardBridge: 0x66A13890dc60C3780ab303662F1C174d04F24F4b,
+            L1StandardBridge: 0x12E48403C4d3D30138130bE27F9456644bE5f365,
             L2OutputOracle: 0x253807F6ECaC4DdD6E24b0a2F8d4042b0AC30dfd,
             OptimismMintableERC20Factory: 0x3dbfcC0377a1e933870Ae7b5e5e370a199CE8c35,
             OptimismPortal: 0xBe1AcfAa65c4AA917519276c6bA601F573E98E8C,
