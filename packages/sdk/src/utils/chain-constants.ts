@@ -64,6 +64,7 @@ export const DEFAULT_L2_CONTRACT_ADDRESSES: OEL2ContractsLike = {
  * @returns The L1 contracts for the given network.
  */
 const getL1ContractsByNetworkName = (network: string): OEL1ContractsLike => {
+  // TODO this doesn't code split and makes the sdk artifacts way too big
   const getDeployedAddress = (name: string) => {
     return getDeployedContractDefinition(name, network).address
   }
@@ -109,6 +110,7 @@ export const CONTRACT_ADDRESSES: {
       CanonicalTransactionChain:
         '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9' as const,
       BondManager: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707' as const,
+      // FIXME
       OptimismPortal: '0x0000000000000000000000000000000000000000' as const,
       L2OutputOracle: '0x0000000000000000000000000000000000000000' as const,
     },
