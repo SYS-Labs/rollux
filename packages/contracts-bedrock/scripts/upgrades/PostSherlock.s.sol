@@ -83,23 +83,23 @@ contract PostSherlockL1 is SafeBuilder {
         });
 
         implementations[MAINNET] = ContractSet({
-            L1CrossDomainMessenger: 0x937435913986Bba3B60c78C0ACa4Cdd231C992F5,
-            L1StandardBridge: 0x12E48403C4d3D30138130bE27F9456644bE5f365,
-            L2OutputOracle: 0x253807F6ECaC4DdD6E24b0a2F8d4042b0AC30dfd,
-            OptimismMintableERC20Factory: 0x3dbfcC0377a1e933870Ae7b5e5e370a199CE8c35,
-            OptimismPortal: 0xBe1AcfAa65c4AA917519276c6bA601F573E98E8C,
-            SystemConfig: 0x4FA0a6a3BDacCd3355F1504bA959C7B071120bcc,
-            L1ERC721Bridge: 0x16e46B7fB99a38384E149Ed07832C6C940d906B9
+            L1CrossDomainMessenger: 0x29412Dd5fCB62D33135C444ae2b52815607c7504,
+            L1StandardBridge: 0x0A4f334087Ce64c5215876416c2510B3A5cC224F,
+            L2OutputOracle: 0x7D13c17B94fa4316b4950DAc9fae93746CAe2433,
+            OptimismMintableERC20Factory: 0x6FEa6eC5B1084d0Dc08dD5173B8bc07CF083b310,
+            OptimismPortal: 0x50639e69BE7BF18e348C1CE956650E9713f61c8B,
+            SystemConfig: 0x7397d962B45140b7Dd75bC3fAB1F9CeEf4079d8b,
+            L1ERC721Bridge: 0x77357AFfED40390532f8593BA2171B556e35e50e
         });
 
         proxies[MAINNET] = ContractSet({
-            L1CrossDomainMessenger: 0x4f0f13677f69F990013EF2f8f8D4c67e4b9a2d5F,
-            L1StandardBridge: 0x5eb41630CfA4465ec5b3EFe86979C32288895d7B,
-            L2OutputOracle: 0xf8d7Db6eeE25fe9c2F659936efD173C965B45F19,
-            OptimismMintableERC20Factory: 0xC0767C0EFd5bb9B2B17c1D106C8339263ADd8CD3,
-            OptimismPortal: 0xD46Bf6354725bFd4409cd6A952695bFEb213aCB9,
-            SystemConfig: 0x739d6e104C717566F65e4Ea711500CE81EF98D42,
-            L1ERC721Bridge: 0xc37Cf0839267CeE1827C0d70F74720d10618ba54
+            L1CrossDomainMessenger: 0xc78AB290181C375711E1E819b7Fa04CcE17623a8,
+            L1StandardBridge: 0xfAF8A7CdcC38C1360D158732F914962612E614FD,
+            L2OutputOracle: 0x74A6fe1C15Cc7f6E7C8D38d1d3260D769c783b18,
+            OptimismMintableERC20Factory: 0x97d61719894FC02c81f2acBE2C9acdfF05cAA03C,
+            OptimismPortal: 0xb9d19741cc7bC72ee31e11CE7d2F4a0Ad55F1c17,
+            SystemConfig: 0xdEAC0042ec397D8e30B226B0543bFc6011093fd7,
+            L1ERC721Bridge: 0x25d6662A67de9C574F12bc6f42F67198Eae1A8Fe
         });
     }
 
