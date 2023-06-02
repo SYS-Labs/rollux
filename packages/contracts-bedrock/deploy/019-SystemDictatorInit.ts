@@ -72,11 +72,6 @@ const deployFn: DeployFunction = async (hre) => {
         hre,
         'L1ERC721BridgeProxy'
       ),
-      // SYSCOIN
-      batchInboxProxy: await getDeploymentAddress(
-        hre,
-        'BatchInboxProxy'
-      ),
       systemConfigProxy: await getDeploymentAddress(hre, 'SystemConfigProxy'),
     },
     implementationAddressConfig: {
@@ -94,12 +89,6 @@ const deployFn: DeployFunction = async (hre) => {
       l1ERC721BridgeImpl: await getDeploymentAddress(hre, 'L1ERC721Bridge'),
       portalSenderImpl: await getDeploymentAddress(hre, 'PortalSender'),
       systemConfigImpl: await getDeploymentAddress(hre, 'SystemConfig'),
-      // SYSCOIN
-      batchInboxImpl: await getDeploymentAddress(hre, 'BatchInbox'),
-    },
-    // SYSCOIN
-    batchInboxConfig: {
-      batchInboxOwner: hre.deployConfig.batchInboxAddress,
     },
     systemConfigConfig: {
       owner: hre.deployConfig.finalSystemOwner,

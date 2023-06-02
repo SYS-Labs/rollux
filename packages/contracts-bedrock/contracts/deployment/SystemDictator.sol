@@ -16,8 +16,6 @@ import { ProxyAdmin } from "../universal/ProxyAdmin.sol";
 import { OptimismMintableERC20Factory } from "../universal/OptimismMintableERC20Factory.sol";
 import { PortalSender } from "./PortalSender.sol";
 import { SystemConfig } from "../L1/SystemConfig.sol";
-// SYSCOIN
-import { BatchInbox } from "../L1/BatchInbox.sol";
 import { ResourceMetering } from "../L1/ResourceMetering.sol";
 import { Constants } from "../libraries/Constants.sol";
 
@@ -49,8 +47,6 @@ contract SystemDictator is OwnableUpgradeable {
         address optimismMintableERC20FactoryProxy;
         address l1ERC721BridgeProxy;
         address systemConfigProxy;
-        // SYSCOIN
-        address batchInboxProxy;
     }
 
     /**
@@ -65,12 +61,6 @@ contract SystemDictator is OwnableUpgradeable {
         L1ERC721Bridge l1ERC721BridgeImpl;
         PortalSender portalSenderImpl;
         SystemConfig systemConfigImpl;
-        // SYSCOIN
-        BatchInbox batchInboxImpl;
-    }
-    // SYSCOIN
-    struct BatchInboxConfig {
-        address batchInboxOwner;
     }
     /**
      * @notice Dynamic L2OutputOracle config.
@@ -101,8 +91,6 @@ contract SystemDictator is OwnableUpgradeable {
         ProxyAddressConfig proxyAddressConfig;
         ImplementationAddressConfig implementationAddressConfig;
         SystemConfigConfig systemConfigConfig;
-        // SYSCOIN
-        BatchInboxConfig batchInboxConfig;
     }
 
     /**
@@ -182,8 +170,7 @@ contract SystemDictator is OwnableUpgradeable {
         initialize(
             DeployConfig(
                 GlobalConfig(AddressManager(zero), ProxyAdmin(zero), zero, zero),
-                // SYSCOIN
-                ProxyAddressConfig(zero, zero, zero, zero, zero, zero, zero, zero),
+                ProxyAddressConfig(zero, zero, zero, zero, zero, zero, zero),
                 ImplementationAddressConfig(
                     L2OutputOracle(zero),
                     OptimismPortal(payable(zero)),
@@ -192,13 +179,9 @@ contract SystemDictator is OwnableUpgradeable {
                     OptimismMintableERC20Factory(zero),
                     L1ERC721Bridge(zero),
                     PortalSender(zero),
-                    SystemConfig(zero),
-                    // SYSCION
-                    BatchInbox(zero)
+                    SystemConfig(zero)
                 ),
-                SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg),
-                // SYSCOIN
-                BatchInboxConfig(zero)
+                SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg)
             )
         );
     }
@@ -364,18 +347,6 @@ contract SystemDictator is OwnableUpgradeable {
                 (
                     l2OutputOracleDynamicConfig.l2OutputOracleStartingBlockNumber,
                     l2OutputOracleDynamicConfig.l2OutputOracleStartingTimestamp
-                )
-            )
-        );
-
-        // SYSCOIN Upgrade and initialize the BatchInbox.
-        config.globalConfig.proxyAdmin.upgradeAndCall(
-            payable(config.proxyAddressConfig.batchInboxProxy),
-            address(config.implementationAddressConfig.batchInboxImpl),
-            abi.encodeCall(
-                BatchInbox.initialize,
-                (
-                    config.batchInboxConfig.batchInboxOwner
                 )
             )
         );

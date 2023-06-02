@@ -13,7 +13,6 @@ contracts=(
   contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger
   contracts/L1/L1StandardBridge.sol:L1StandardBridge
   contracts/L1/L2OutputOracle.sol:L2OutputOracle
-  contracts/L1/BatchInbox.sol:BatchInbox
   contracts/L1/OptimismPortal.sol:OptimismPortal
   contracts/L1/SystemConfig.sol:SystemConfig
   contracts/legacy/DeployerWhitelist.sol:DeployerWhitelist

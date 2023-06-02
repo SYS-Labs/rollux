@@ -374,7 +374,7 @@ func (s *SyscoinClient) TransactionReceipt(ctx context.Context, vh common.Hash) 
 	}
 	receipt := types.Receipt{}
 	if res.Result.MPT > 0 {
-		// store VH in TxHash used by driver to put into BatchInbox
+		// store VH in TxHash used by driver to put into the batch
 		receipt = types.Receipt{
 			TxHash:      vh,
 			// store MPT in BlockNumber to be used in caller

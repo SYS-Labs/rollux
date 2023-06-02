@@ -6,7 +6,6 @@ import { awaitCondition } from '@eth-optimism/core-utils'
 import '@eth-optimism/hardhat-deploy-config'
 import 'hardhat-deploy'
 import '@nomiclabs/hardhat-ethers'
-
 import {
   assertContractVariable,
   getContractsFromArtifacts,
@@ -35,8 +34,6 @@ const deployFn: DeployFunction = async (hre) => {
     OptimismMintableERC20Factory,
     L1ERC721BridgeProxy,
     L1ERC721Bridge,
-    // SYSCOIN
-    BatchInbox,
   ] = await getContractsFromArtifacts(hre, [
     {
       name: 'SystemDictatorProxy',
@@ -86,11 +83,6 @@ const deployFn: DeployFunction = async (hre) => {
       name: 'L1ERC721BridgeProxy',
       iface: 'L1ERC721Bridge',
       signerOrProvider: deployer,
-    },
-    // SYSCOIN
-    {
-      name: 'BatchInboxProxy',
-      iface: 'BatchInbox',
     },
   ])
 
@@ -249,12 +241,7 @@ const deployFn: DeployFunction = async (hre) => {
         'latestBlockNumber',
         hre.deployConfig.l2OutputOracleStartingBlockNumber
       )
-      // SYSCOIN Check BatchInbox was initialized properly.
-      await assertContractVariable(
-        BatchInbox,
-        'owner',
-        hre.deployConfig.batchInboxAddress
-      )
+
       // Check OptimismPortal was initialized properly.
       await assertContractVariable(
         OptimismPortal,

@@ -39,7 +39,7 @@ var Mainnet = rollup.Config{
 	ChannelTimeout:         24,
 	L1ChainID:              big.NewInt(57),
 	L2ChainID:              big.NewInt(570),
-	BatchInboxAddress:      common.HexToAddress("0xD980ED9daE9c1D7e9Cb88b1a6df919236e87AB36"),
+	BatchInboxAddress:      common.HexToAddress("0xff00000000000000000000000000000000000420"),
 	DepositContractAddress: common.HexToAddress("0xD46Bf6354725bFd4409cd6A952695bFEb213aCB9"),
 	L1SystemConfigAddress:  common.HexToAddress("0x739d6e104C717566F65e4Ea711500CE81EF98D42"),
 	RegolithTime:           u64Ptr(0),
