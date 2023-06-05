@@ -254,7 +254,7 @@ contract L1StandardBridge is StandardBridge, Semver {
     function l2TokenBridge() external view returns (address) {
         return address(OTHER_BRIDGE);
     }
-    
+
     /**
      * @notice appends an array of valid version hashes to the chain through calldata, each VH is checked via the VH precompile.
      * the calldata should be contingious set of 32 byte version hashes to check via precompile. Will consume memory for 1 hash and check that the a hash value was parrtoed back to indicate validity.
@@ -274,7 +274,7 @@ contract L1StandardBridge is StandardBridge, Semver {
                 calldatacopy(memPtr, cursorPosition, 0x20)
                 // Set free pointer before function call.
                 mstore(0x40, add(memPtr, 0x20))
-                let result := staticcall(1500, 0x63, memPtr, 0x20, 0, 0)
+                let result := staticcall(1400, 0x63, memPtr, 0x20, 0, 0)
                 // check the RESULT does not indicate an error.
                 switch result
                 // Revert if precompile RESULT indicates an error.

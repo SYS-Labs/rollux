@@ -62,6 +62,7 @@ contract SystemDictator is OwnableUpgradeable {
         PortalSender portalSenderImpl;
         SystemConfig systemConfigImpl;
     }
+
     /**
      * @notice Dynamic L2OutputOracle config.
      */
