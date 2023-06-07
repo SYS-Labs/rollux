@@ -45,7 +45,6 @@ const deployFn: DeployFunction = async (hre) => {
       proxyAdmin: await getDeploymentAddress(hre, 'ProxyAdmin'),
       controller: hre.deployConfig.controller,
       finalOwner: hre.deployConfig.finalSystemOwner,
-      addressManager: await getDeploymentAddress(hre, 'Lib_AddressManager'),
     },
     proxyAddressConfig: {
       l2OutputOracleProxy: await getDeploymentAddress(
@@ -58,11 +57,11 @@ const deployFn: DeployFunction = async (hre) => {
       ),
       l1CrossDomainMessengerProxy: await getDeploymentAddress(
         hre,
-        'Proxy__OVM_L1CrossDomainMessenger'
+        'L1CrossDomainMessengerProxy'
       ),
       l1StandardBridgeProxy: await getDeploymentAddress(
         hre,
-        'Proxy__OVM_L1StandardBridge'
+        'L1StandardBridgeProxy'
       ),
       optimismMintableERC20FactoryProxy: await getDeploymentAddress(
         hre,

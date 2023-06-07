@@ -25,7 +25,7 @@ const deployFn: DeployFunction = async (hre) => {
   const [
     SystemDictator,
     ProxyAdmin,
-    AddressManager,
+    L1CrossDomainMessengerProxy,
     L1CrossDomainMessenger,
     L1StandardBridgeProxy,
     L1StandardBridge,
@@ -45,19 +45,18 @@ const deployFn: DeployFunction = async (hre) => {
       signerOrProvider: deployer,
     },
     {
-      name: 'Lib_AddressManager',
-      signerOrProvider: deployer,
+      name: 'L1CrossDomainMessengerProxy',
     },
     {
-      name: 'Proxy__OVM_L1CrossDomainMessenger',
+      name: 'L1CrossDomainMessengerProxy',
       iface: 'L1CrossDomainMessenger',
       signerOrProvider: deployer,
     },
     {
-      name: 'Proxy__OVM_L1StandardBridge',
+      name: 'L1StandardBridgeProxy',
     },
     {
-      name: 'Proxy__OVM_L1StandardBridge',
+      name: 'L1StandardBridgeProxy',
       iface: 'L1StandardBridge',
       signerOrProvider: deployer,
     },
@@ -195,41 +194,18 @@ const deployFn: DeployFunction = async (hre) => {
     `,
     checks: async () => {
       // Step 3 checks
-      const deads = [
-        'OVM_CanonicalTransactionChain',
-        'OVM_L2CrossDomainMessenger',
-        'OVM_DecompressionPrecompileAddress',
-        'OVM_Sequencer',
-        'OVM_Proposer',
-        'OVM_ChainStorageContainer-CTC-batches',
-        'OVM_ChainStorageContainer-CTC-queue',
-        'OVM_CanonicalTransactionChain',
-        'OVM_StateCommitmentChain',
-        'OVM_BondManager',
-        'OVM_ExecutionManager',
-        'OVM_FraudVerifier',
-        'OVM_StateManagerFactory',
-        'OVM_StateTransitionerFactory',
-        'OVM_SafetyChecker',
-        'OVM_L1MultiMessageRelayer',
-        'BondManager',
-      ]
-      for (const dead of deads) {
-        const addr = await AddressManager.getAddress(dead)
-        assert(addr === ethers.constants.AddressZero)
-      }
-
-      // Step 4 checks
-      await assertContractVariable(AddressManager, 'owner', ProxyAdmin.address)
-
       assert(
         (await L1StandardBridgeProxy.callStatic.getOwner({
           from: ethers.constants.AddressZero,
         })) === ProxyAdmin.address
       )
-
       assert(
         (await L1ERC721BridgeProxy.callStatic.admin({
+          from: ProxyAdmin.address,
+        })) === ProxyAdmin.address
+      )
+      assert(
+        (await L1CrossDomainMessengerProxy.callStatic.admin({
           from: ProxyAdmin.address,
         })) === ProxyAdmin.address
       )

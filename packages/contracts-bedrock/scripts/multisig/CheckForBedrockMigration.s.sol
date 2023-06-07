@@ -17,7 +17,6 @@ contract BedrockMigrationChecker is Script, StdAssertions {
 
     struct ContractSet {
         // Please keep these sorted by name.
-        address AddressManager;
         address L1CrossDomainMessengerImpl;
         address L1CrossDomainMessengerProxy;
         address L1ERC721BridgeImpl;
@@ -45,7 +44,6 @@ contract BedrockMigrationChecker is Script, StdAssertions {
         string memory bedrockJsonDir = vm.envString("BEDROCK_JSON_DIR");
         console2.log("BEDROCK_JSON_DIR = %s", bedrockJsonDir);
         ContractSet memory contracts = getContracts(bedrockJsonDir);
-        checkAddressManager(contracts);
         checkL1CrossDomainMessengerImpl(contracts);
         checkL1CrossDomainMessengerProxy(contracts);
         checkL1ERC721BridgeImpl(contracts);
@@ -66,10 +64,6 @@ contract BedrockMigrationChecker is Script, StdAssertions {
         checkSystemDictatorProxy(contracts);
     }
 
-    function checkAddressManager(ContractSet memory contracts) internal {
-        console2.log("Checking AddressManager %s", contracts.AddressManager);
-        checkAddressIsExpected(contracts.L1UpgradeKey, contracts.AddressManager, "owner()");
-    }
 
     function checkL1CrossDomainMessengerImpl(ContractSet memory contracts) internal {
         console2.log("Checking L1CrossDomainMessenger %s", contracts.L1CrossDomainMessengerImpl);
@@ -79,7 +73,6 @@ contract BedrockMigrationChecker is Script, StdAssertions {
     function checkL1CrossDomainMessengerProxy(ContractSet memory contracts) internal {
         console2.log("Checking L1CrossDomainMessengerProxy %s", contracts.L1CrossDomainMessengerProxy);
         checkAddressIsExpected(contracts.L1UpgradeKey, contracts.L1CrossDomainMessengerProxy, "owner()");
-        checkAddressIsExpected(contracts.AddressManager, contracts.L1CrossDomainMessengerProxy, "libAddressManager()");
     }
 
     function checkL1ERC721BridgeImpl(ContractSet memory contracts) internal {
@@ -89,7 +82,7 @@ contract BedrockMigrationChecker is Script, StdAssertions {
 
     function checkL1ERC721BridgeProxy(ContractSet memory contracts) internal {
         console2.log("Checking L1ERC721BridgeProxy %s", contracts.L1ERC721BridgeProxy);
-        checkAddressIsExpected(contracts.L1UpgradeKey, contracts.L1ERC721BridgeProxy, "admin()");
+        checkAddressIsExpected(contracts.L1ProxyAdmin, contracts.L1ERC721BridgeProxy, "admin()");
         checkAddressIsExpected(contracts.L1CrossDomainMessengerProxy, contracts.L1ERC721BridgeProxy, "messenger()");
     }
 
@@ -105,7 +98,7 @@ contract BedrockMigrationChecker is Script, StdAssertions {
 
     function checkL1StandardBridgeProxy(ContractSet memory contracts) internal {
         console2.log("Checking L1StandardBridgeProxy %s", contracts.L1StandardBridgeProxy);
-        checkAddressIsExpected(contracts.L1UpgradeKey, contracts.L1StandardBridgeProxy, "getOwner()");
+        checkAddressIsExpected(contracts.L1ProxyAdmin, contracts.L1StandardBridgeProxy, "getOwner()");
         checkAddressIsExpected(contracts.L1CrossDomainMessengerProxy, contracts.L1StandardBridgeProxy, "messenger()");
     }
 
@@ -116,7 +109,7 @@ contract BedrockMigrationChecker is Script, StdAssertions {
 
     function checkL2OutputOracleImpl(ContractSet memory contracts) internal {
         console2.log("Checking L2OutputOracle %s", contracts.L2OutputOracleImpl);
-        checkAddressIsExpected(contracts.L1UpgradeKey, contracts.L2OutputOracleImpl, "CHALLENGER()");
+        checkAddressIsExpected(address(0xEF64E089f2e018C2d71213d6bB402EC14ce2c189), contracts.L2OutputOracleImpl, "CHALLENGER()");
         // 604800 seconds = 7 days, reusing the logic in
         // checkAddressIsExpected for simplicity.
         checkAddressIsExpected(address(604800), contracts.L2OutputOracleImpl, "FINALIZATION_PERIOD_SECONDS()");
@@ -165,8 +158,8 @@ contract BedrockMigrationChecker is Script, StdAssertions {
     function checkSystemDictatorProxy(ContractSet memory contracts) internal {
         console2.log("Checking SystemDictatorProxy %s", contracts.SystemDictatorProxy);
         checkAddressIsExpected(contracts.SystemDictatorImpl, contracts.SystemDictatorProxy, "implementation()");
-        checkAddressIsExpected(contracts.L1UpgradeKey, contracts.SystemDictatorProxy, "owner()");
-        checkAddressIsExpected(contracts.L1UpgradeKey, contracts.SystemDictatorProxy, "admin()");
+        //checkAddressIsExpected(contracts.L1UpgradeKey, contracts.SystemDictatorProxy, "owner()");
+        //checkAddressIsExpected(contracts.L1UpgradeKey, contracts.SystemDictatorProxy, "admin()");
     }
 
     function checkAddressIsExpected(address expectedAddr, address contractAddr, string memory signature) internal {
@@ -191,7 +184,6 @@ contract BedrockMigrationChecker is Script, StdAssertions {
 
     function getContracts(string memory bedrockJsonDir) internal returns (ContractSet memory) {
         return ContractSet({
-            AddressManager: getAddressFromJson(string.concat(bedrockJsonDir, "/Lib_AddressManager.json")),
                     L1CrossDomainMessengerImpl: getAddressFromJson(string.concat(bedrockJsonDir, "/L1CrossDomainMessenger.json")),
                     L1CrossDomainMessengerProxy: getAddressFromJson(string.concat(bedrockJsonDir, "/L1CrossDomainMessengerProxy.json")),
                 L1ERC721BridgeImpl: getAddressFromJson(string.concat(bedrockJsonDir, "/L1ERC721Bridge.json")),

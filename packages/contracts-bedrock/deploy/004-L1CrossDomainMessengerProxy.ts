@@ -1,17 +1,26 @@
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
-import { deploy, getDeploymentAddress } from '../src/deploy-utils'
+import {
+  assertContractVariable,
+  deploy,
+  getDeploymentAddress,
+} from '../src/deploy-utils'
+
 
 const deployFn: DeployFunction = async (hre) => {
-  const addressManager = await getDeploymentAddress(hre, 'Lib_AddressManager')
+  const { deployer } = await hre.getNamedAccounts()
 
   await deploy({
     hre,
-    name: 'Proxy__OVM_L1CrossDomainMessenger',
-    contract: 'ResolvedDelegateProxy',
-    args: [addressManager, 'OVM_L1CrossDomainMessenger'],
+    name: 'L1CrossDomainMessengerProxy',
+    contract: 'Proxy',
+    args: [deployer],
+    postDeployAction: async (contract) => {
+      await assertContractVariable(contract, 'admin', deployer)
+    },
   })
 }
+
 
 deployFn.tags = ['L1CrossDomainMessengerProxy', 'setup', 'l1']
 

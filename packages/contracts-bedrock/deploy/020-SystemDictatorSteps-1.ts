@@ -25,11 +25,12 @@ const deployFn: DeployFunction = async (hre) => {
   const [
     SystemDictator,
     ProxyAdmin,
-    AddressManager,
     L1StandardBridgeProxy,
     L1StandardBridgeProxyWithSigner,
     L1ERC721BridgeProxy,
     L1ERC721BridgeProxyWithSigner,
+    L1CrossDomainMessengerProxy,
+    L1CrossDomainMessengerProxyWithSigner,
     SystemConfigProxy,
   ] = await getContractsFromArtifacts(hre, [
     {
@@ -42,14 +43,10 @@ const deployFn: DeployFunction = async (hre) => {
       signerOrProvider: deployer,
     },
     {
-      name: 'Lib_AddressManager',
-      signerOrProvider: deployer,
+      name: 'L1StandardBridgeProxy',
     },
     {
-      name: 'Proxy__OVM_L1StandardBridge',
-    },
-    {
-      name: 'Proxy__OVM_L1StandardBridge',
+      name: 'L1StandardBridgeProxy',
       signerOrProvider: deployer,
     },
     {
@@ -57,6 +54,13 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'L1ERC721BridgeProxy',
+      signerOrProvider: deployer,
+    },
+    {
+      name: 'L1CrossDomainMessengerProxy',
+    },
+    {
+      name: 'L1CrossDomainMessengerProxy',
       signerOrProvider: deployer,
     },
     {
@@ -89,22 +93,6 @@ const deployFn: DeployFunction = async (hre) => {
   const needsProxyTransfer =
     (await SystemDictator.currentStep()) <=
     (await SystemDictator.PROXY_TRANSFER_STEP())
-
-  // Transfer ownership of the AddressManager to SystemDictator.
-  if (
-    needsProxyTransfer &&
-    (await AddressManager.owner()) !== SystemDictator.address
-  ) {
-    await doOwnershipTransfer({
-      isLiveDeployer,
-      proxy: AddressManager,
-      name: 'AddressManager',
-      transferFunc: 'transferOwnership',
-      dictator: SystemDictator,
-    })
-  } else {
-    console.log(`AddressManager already owned by the SystemDictator`)
-  }
 
   // Transfer ownership of the L1StandardBridge (proxy) to SystemDictator.
   if (
@@ -141,12 +129,28 @@ const deployFn: DeployFunction = async (hre) => {
   } else {
     console.log(`L1ERC721Bridge already owned by MSD`)
   }
+  // Transfer ownership of the L1CrossDomainMessengerProxy (proxy) to SystemDictator.
+  if (
+    needsProxyTransfer &&
+    (await L1CrossDomainMessengerProxy.callStatic.admin({
+      from: ethers.constants.AddressZero,
+    })) !== SystemDictator.address
+  ) {
+    await doOwnershipTransfer({
+      isLiveDeployer,
+      proxy: L1CrossDomainMessengerProxyWithSigner,
+      name: 'L1CrossDomainMessengerProxy',
+      transferFunc: 'changeAdmin',
+      dictator: SystemDictator,
+    })
+  } else {
+    console.log(`L1CrossDomainMessenger already owned by MSD`)
+  }
 
   // Wait for the ownership transfers to complete before continuing.
   await awaitCondition(
     async (): Promise<boolean> => {
       const proxyAdminOwner = await ProxyAdmin.owner()
-      const addressManagerOwner = await AddressManager.owner()
       const l1StandardBridgeOwner =
         await L1StandardBridgeProxy.callStatic.getOwner({
           from: ethers.constants.AddressZero,
@@ -154,12 +158,14 @@ const deployFn: DeployFunction = async (hre) => {
       const l1Erc721BridgeOwner = await L1ERC721BridgeProxy.callStatic.admin({
         from: ethers.constants.AddressZero,
       })
-
+      const l1CrossDomainMessenger = await L1CrossDomainMessengerProxy.callStatic.admin({
+        from: ethers.constants.AddressZero,
+      })
       return (
         proxyAdminOwner === SystemDictator.address &&
-        addressManagerOwner === SystemDictator.address &&
         l1StandardBridgeOwner === SystemDictator.address &&
-        l1Erc721BridgeOwner === SystemDictator.address
+        l1Erc721BridgeOwner === SystemDictator.address &&
+        l1CrossDomainMessenger === SystemDictator.address
       )
     },
     5000,
@@ -183,27 +189,21 @@ const deployFn: DeployFunction = async (hre) => {
     `,
     checks: async () => {
       // Step 1 checks
-      await assertContractVariable(
-        ProxyAdmin,
-        'addressManager',
-        AddressManager.address
-      )
-      assert(
-        (await ProxyAdmin.implementationName(
-          getDeploymentAddress(hre, 'Proxy__OVM_L1CrossDomainMessenger')
-        )) === 'OVM_L1CrossDomainMessenger'
-      )
       assert(
         (await ProxyAdmin.proxyType(
-          getDeploymentAddress(hre, 'Proxy__OVM_L1CrossDomainMessenger')
-        )) === 2
-      )
-      assert(
-        (await ProxyAdmin.proxyType(
-          getDeploymentAddress(hre, 'Proxy__OVM_L1StandardBridge')
+          getDeploymentAddress(hre, 'L1StandardBridgeProxy')
         )) === 1
       )
-
+      assert(
+        (await ProxyAdmin.proxyType(
+          getDeploymentAddress(hre, 'L1CrossDomainMessengerProxy')
+        )) === 0
+      )
+      assert(
+        (await ProxyAdmin.proxyType(
+          getDeploymentAddress(hre, 'L1ERC721BridgeProxy')
+        )) === 0
+      )
       // Check the SystemConfig was initialized properly.
       await assertContractVariable(
         SystemConfigProxy,
@@ -242,11 +242,6 @@ const deployFn: DeployFunction = async (hre) => {
       assert(ethers.utils.parseUnits('1', 'gwei').eq(config.minimumBaseFee))
       assert(config.maximumBaseFee.eq(uint128Max))
 
-      // Step 2 checks
-      const messenger = await AddressManager.getAddress(
-        'OVM_L1CrossDomainMessenger'
-      )
-      assert(messenger === ethers.constants.AddressZero)
     },
   })
 }
