@@ -51,7 +51,7 @@ contract PostSherlockL1 is SafeBuilder {
      * @notice The expected versions for the contracts to be upgraded to.
      */
     string constant internal L1CrossDomainMessenger_Version = "1.4.0";
-    string constant internal L1StandardBridge_Version = "1.1.1";
+    string constant internal L1StandardBridge_Version = "1.1.0";
     string constant internal L2OutputOracle_Version = "1.3.0";
     string constant internal OptimismMintableERC20Factory_Version = "1.1.0";
     string constant internal OptimismPortal_Version = "1.6.0";
@@ -83,23 +83,23 @@ contract PostSherlockL1 is SafeBuilder {
         });
 
         implementations[MAINNET] = ContractSet({
-            L1CrossDomainMessenger: 0x29412Dd5fCB62D33135C444ae2b52815607c7504,
-            L1StandardBridge: 0x0A4f334087Ce64c5215876416c2510B3A5cC224F,
-            L2OutputOracle: 0x7D13c17B94fa4316b4950DAc9fae93746CAe2433,
-            OptimismMintableERC20Factory: 0x6FEa6eC5B1084d0Dc08dD5173B8bc07CF083b310,
-            OptimismPortal: 0x50639e69BE7BF18e348C1CE956650E9713f61c8B,
-            SystemConfig: 0x7397d962B45140b7Dd75bC3fAB1F9CeEf4079d8b,
-            L1ERC721Bridge: 0x77357AFfED40390532f8593BA2171B556e35e50e
+            L1CrossDomainMessenger: 0x190DaC800F0030715Bc409145E805bA1e36549d6,
+            L1StandardBridge: 0xF8c84292fe2A4DCBB18a67c7283089A58234E294,
+            L2OutputOracle: 0x8fcF3BE634f67E6382fa355Af12e76B83A54C214,
+            OptimismMintableERC20Factory: 0x4b277426aC1C5e22d2DD5f0568a570E2F75a73B5,
+            OptimismPortal: 0xA4F27Ac3829a35775746D3162a4a443907695a14,
+            SystemConfig: 0x111c417059b498DE2536A71f12F30cfaC9443261,
+            L1ERC721Bridge: 0x617413Fad9c4bC9049c99AbE82882038Cd4f8642
         });
 
         proxies[MAINNET] = ContractSet({
-            L1CrossDomainMessenger: 0xc78AB290181C375711E1E819b7Fa04CcE17623a8,
-            L1StandardBridge: 0xfAF8A7CdcC38C1360D158732F914962612E614FD,
-            L2OutputOracle: 0x74A6fe1C15Cc7f6E7C8D38d1d3260D769c783b18,
-            OptimismMintableERC20Factory: 0x97d61719894FC02c81f2acBE2C9acdfF05cAA03C,
-            OptimismPortal: 0xb9d19741cc7bC72ee31e11CE7d2F4a0Ad55F1c17,
-            SystemConfig: 0xdEAC0042ec397D8e30B226B0543bFc6011093fd7,
-            L1ERC721Bridge: 0x25d6662A67de9C574F12bc6f42F67198Eae1A8Fe
+            L1CrossDomainMessenger: 0xae5Ded57631D96E2ff785AAE467B5C9a755E3615,
+            L1StandardBridge: 0x0607872176EC70aDc69356Cf5708678482aA94C7,
+            L2OutputOracle: 0x9Abe7dcFb6dEAA502cf2096f9C713062200f31f3,
+            OptimismMintableERC20Factory: 0x38A5b48B99715B060e7B0f5A6317F331B16348FF,
+            OptimismPortal: 0xc7bf3d2bb45bdeAb452480e30c3847311970F921,
+            SystemConfig: 0x0929BFAB9e838B1F3e057eF701b42D9f4b09a1D3,
+            L1ERC721Bridge: 0x0f0b7E082013c9D1062f3d00BCd75499687388d5
         });
     }
 
