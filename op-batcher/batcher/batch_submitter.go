@@ -20,7 +20,7 @@ import (
 
 const (
 	// SYSCOIN
-	appendSequencerBatchMethodName = "appendSequencerBatch()"
+	appendSequencerBatchMethodName = "appendSequencerBatch"
 )
 
 // Main is the entrypoint into the Batch Submitter. This method returns a

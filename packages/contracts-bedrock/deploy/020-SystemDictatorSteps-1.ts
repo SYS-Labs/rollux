@@ -31,6 +31,8 @@ const deployFn: DeployFunction = async (hre) => {
     L1ERC721BridgeProxyWithSigner,
     L1CrossDomainMessengerProxy,
     L1CrossDomainMessengerProxyWithSigner,
+    BatchInboxProxy,
+    BatchInboxProxyWithSigner,
     SystemConfigProxy,
   ] = await getContractsFromArtifacts(hre, [
     {
@@ -61,6 +63,13 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'L1CrossDomainMessengerProxy',
+      signerOrProvider: deployer,
+    },
+    {
+      name: 'BatchInboxProxy',
+    },
+    {
+      name: 'BatchInboxProxy',
       signerOrProvider: deployer,
     },
     {
@@ -146,7 +155,23 @@ const deployFn: DeployFunction = async (hre) => {
   } else {
     console.log(`L1CrossDomainMessenger already owned by MSD`)
   }
-
+  // Transfer ownership of the BatchInboxProxy (proxy) to SystemDictator.
+  if (
+    needsProxyTransfer &&
+    (await BatchInboxProxy.callStatic.admin({
+      from: ethers.constants.AddressZero,
+    })) !== SystemDictator.address
+  ) {
+    await doOwnershipTransfer({
+      isLiveDeployer,
+      proxy: BatchInboxProxyWithSigner,
+      name: 'BatchInboxProxy',
+      transferFunc: 'changeAdmin',
+      dictator: SystemDictator,
+    })
+  } else {
+    console.log(`BatchInbox already owned by MSD`)
+  }
   // Wait for the ownership transfers to complete before continuing.
   await awaitCondition(
     async (): Promise<boolean> => {
@@ -161,11 +186,15 @@ const deployFn: DeployFunction = async (hre) => {
       const l1CrossDomainMessenger = await L1CrossDomainMessengerProxy.callStatic.admin({
         from: ethers.constants.AddressZero,
       })
+      const batchInbox = await BatchInboxProxy.callStatic.admin({
+        from: ethers.constants.AddressZero,
+      })
       return (
         proxyAdminOwner === SystemDictator.address &&
         l1StandardBridgeOwner === SystemDictator.address &&
         l1Erc721BridgeOwner === SystemDictator.address &&
-        l1CrossDomainMessenger === SystemDictator.address
+        l1CrossDomainMessenger === SystemDictator.address &&
+        batchInbox === SystemDictator.address
       )
     },
     5000,
@@ -202,6 +231,11 @@ const deployFn: DeployFunction = async (hre) => {
       assert(
         (await ProxyAdmin.proxyType(
           getDeploymentAddress(hre, 'L1ERC721BridgeProxy')
+        )) === 0
+      )
+      assert(
+        (await ProxyAdmin.proxyType(
+          getDeploymentAddress(hre, 'BatchInboxProxy')
         )) === 0
       )
       // Check the SystemConfig was initialized properly.

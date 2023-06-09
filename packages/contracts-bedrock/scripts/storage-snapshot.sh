@@ -13,6 +13,7 @@ contracts=(
   contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger
   contracts/L1/L1StandardBridge.sol:L1StandardBridge
   contracts/L1/L2OutputOracle.sol:L2OutputOracle
+  contracts/L1/BatchInbox.sol:BatchInbox
   contracts/L1/OptimismPortal.sol:OptimismPortal
   contracts/L1/SystemConfig.sol:SystemConfig
   contracts/legacy/DeployerWhitelist.sol:DeployerWhitelist
@@ -25,6 +26,7 @@ contracts=(
   contracts/L2/SequencerFeeVault.sol:SequencerFeeVault
   contracts/L2/BaseFeeVault.sol:BaseFeeVault
   contracts/L2/L1FeeVault.sol:L1FeeVault
+  contracts/L2/L2BatchInbox.sol:L2BatchInbox
   contracts/vendor/WETH9.sol:WETH9
   contracts/universal/ProxyAdmin.sol:ProxyAdmin
   contracts/universal/Proxy.sol:Proxy

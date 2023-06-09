@@ -290,7 +290,11 @@ func (d *DeployConfig) GetDeployedAddresses(hh *hardhat.Hardhat) error {
 		d.OptimismPortalProxy = optimismPortalProxyDeployment.Address
 	}
 	// SYSCOIN
-	d.BatchInboxAddress = d.L1StandardBridgeProxy
+	BatchInboxDeployment, err := hh.GetDeployment("BatchInboxProxy")
+	if err != nil {
+		return err
+	}
+	d.BatchInboxAddress = BatchInboxDeployment.Address
 	if d.L2OutputOracleProxy == (common.Address{}) {
 		L2OutputOracleProxyDeployment, err := hh.GetDeployment("L2OutputOracleProxy")
 		if err != nil {

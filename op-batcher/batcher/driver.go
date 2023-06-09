@@ -9,6 +9,7 @@ import (
 	_ "net/http/pprof"
 	"sync"
 	"time"
+	"strings"
 
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
 	"github.com/ethereum-optimism/optimism/op-node/eth"
@@ -17,10 +18,10 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 	_ "github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
+	// SYSCOIN
+	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 )
-
 // BatchSubmitter encapsulates a service responsible for submitting L2 tx
 // batches to L1 for availability.
 type BatchSubmitter struct {
@@ -383,6 +384,12 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 		l.log.Error("unable to get tx data", "err", err)
 		return err
 	}
+	// Function name and parameter types
+	parsedABI, err := bindings.BatchInboxMetaData.GetAbi()
+	if err != nil {
+		l.log.Error("Failed to parse contract ABI: %v", err)
+		return err
+	}
 
 	// SYSCOIN Record TX Status
 	if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
@@ -390,11 +397,14 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	} else {
 		l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
 		// Create the transaction
-		// call the appendSequencerBatch in the batch inbox contract, append the function sig infront of array of VH 32 byte array
-		sig := crypto.Keccak256([]byte(appendSequencerBatchMethodName))[:4]
 		// we avoid changing Receipt object and just reuse TxHash for VH
-		calldata := append(sig, receipt.TxHash.Bytes()...)
-		txdata.frame.data = calldata
+
+		packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, receipt.TxHash.Bytes())
+		if err != nil {
+			l.log.Error("Failed to pack data for function call: %v", err)
+			return err
+		}
+		txdata.frame.data = packedData
 		l.sendTransaction(txdata, queue, receiptsCh)
 	}
 	return nil

@@ -19,8 +19,6 @@ import { OptimismMintableERC20 } from "../universal/OptimismMintableERC20.sol";
  */
 contract L2StandardBridge is StandardBridge, Semver {
 
-    mapping(bytes32 => bool) public podaMap;
-
     /**
      * @custom:legacy
      * @notice Emitted whenever a withdrawal from L2 to L1 is initiated.
@@ -193,23 +191,6 @@ contract L2StandardBridge is StandardBridge, Semver {
         } else {
             address l1Token = OptimismMintableERC20(_l2Token).l1Token();
             _initiateBridgeERC20(_l2Token, l1Token, _from, _to, _amount, _minGasLimit, _extraData);
-        }
-    }
-
-    /**
-     * @notice appends an array of valid version hashes to the chain through calldata, each VH is checked via the VH precompile.
-     * the calldata should be contingious set of 32 byte version hashes to check via precompile. Will consume memory for 1 hash and check that the a hash value was parrtoed back to indicate validity.
-     *
-     */
-    function appendSequencerBatchToL2(bytes calldata _extraData) external onlyOtherBridge {
-        // Revert if the provided calldata does not consist of the 4 byte selector and segments of 32 bytes.
-        require((_extraData.length - 4)%32 == 0);
-        // Start reading calldata after the function selector.
-        uint256 cursorPosition = 4;
-        // Start loop. End once there is not sufficient remaining calldata to contain a 32 byte hash.
-        while(cursorPosition <= (_extraData.length - 32)) {
-            podaMap[bytes32(_extraData[cursorPosition])] = true;
-            cursorPosition += 32;
         }
     }
 

@@ -5,7 +5,7 @@
       "number": 310357
     },
     "l2": {
-      "hash": "0x37fdca18f34b63a787cd7667bf2de54ed30a4c78b6e53885d82e5726a6c2699a",
+      "hash": "0xeca28656adf79e9a8c5cd2333bdc961303c68f22e64eb687fea9df2a18711913",
       "number": 0
     },
     "l2_time": 1685990150,
@@ -23,8 +23,8 @@
   "l1_chain_id": 57,
   "l2_chain_id": 570,
   "regolith_time": 0,
-  "batch_inbox_address": "0x0607872176ec70adc69356cf5708678482aa94c7",
-  "output_oracle_address": "0x9abe7dcfb6deaa502cf2096f9c713062200f31f3",
-  "deposit_contract_address": "0xc7bf3d2bb45bdeab452480e30c3847311970f921",
-  "l1_system_config_address": "0x0929bfab9e838b1f3e057ef701b42d9f4b09a1d3"
+  "batch_inbox_address": "0x32880c00ead3979de1039a57a11da00d8231fbcd",
+  "output_oracle_address": "0xf1162a0b4ed6a980d63d59ee4d8506cd5bdd43fe",
+  "deposit_contract_address": "0xe4fbe4674610d4c201a037c032eb0b703d9d9377",
+  "l1_system_config_address": "0x489f4830f6a7c37d1f30e0491aaab57dde922f73"
 }

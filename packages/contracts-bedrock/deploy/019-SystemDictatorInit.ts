@@ -72,6 +72,7 @@ const deployFn: DeployFunction = async (hre) => {
         'L1ERC721BridgeProxy'
       ),
       systemConfigProxy: await getDeploymentAddress(hre, 'SystemConfigProxy'),
+      batchInboxProxy: await getDeploymentAddress(hre, 'BatchInboxProxy'),
     },
     implementationAddressConfig: {
       l2OutputOracleImpl: await getDeploymentAddress(hre, 'L2OutputOracle'),
@@ -88,6 +89,7 @@ const deployFn: DeployFunction = async (hre) => {
       l1ERC721BridgeImpl: await getDeploymentAddress(hre, 'L1ERC721Bridge'),
       portalSenderImpl: await getDeploymentAddress(hre, 'PortalSender'),
       systemConfigImpl: await getDeploymentAddress(hre, 'SystemConfig'),
+      batchInboxImpl: await getDeploymentAddress(hre, 'BatchInbox'),
     },
     systemConfigConfig: {
       owner: hre.deployConfig.finalSystemOwner,

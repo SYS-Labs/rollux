@@ -31,7 +31,8 @@ bindings: l1block-bindings \
 	l1-fee-vault-bindings \
 	basefee-vault-bindings \
 	legacy-erc20-eth-bindings \
-	dispute-game-factory-bindings
+	dispute-game-factory-bindings \
+	batch-inbox-bindings \
 
 version:
 	forge --version
@@ -125,6 +126,11 @@ l1-blocknumber-bindings: compile
 
 dispute-game-factory-bindings: compile
 	./gen_bindings.sh contracts/dispute/DisputeGameFactory.sol:DisputeGameFactory $(pkg)
+
+
+batch-inbox-bindings: compile
+	./gen_bindings.sh contracts/L1/BatchInbox.sol:BatchInbox $(pkg)
+
 
 more:
 	go run ./gen/main.go \

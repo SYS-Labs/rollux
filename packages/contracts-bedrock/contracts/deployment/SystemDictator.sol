@@ -16,6 +16,7 @@ import { OptimismMintableERC20Factory } from "../universal/OptimismMintableERC20
 import { PortalSender } from "./PortalSender.sol";
 import { SystemConfig } from "../L1/SystemConfig.sol";
 import { ResourceMetering } from "../L1/ResourceMetering.sol";
+import { BatchInbox } from "../L1/BatchInbox.sol";
 import { Constants } from "../libraries/Constants.sol";
 
 /**
@@ -45,6 +46,7 @@ contract SystemDictator is OwnableUpgradeable {
         address optimismMintableERC20FactoryProxy;
         address l1ERC721BridgeProxy;
         address systemConfigProxy;
+        address batchInboxProxy;
     }
 
     /**
@@ -59,6 +61,7 @@ contract SystemDictator is OwnableUpgradeable {
         L1ERC721Bridge l1ERC721BridgeImpl;
         PortalSender portalSenderImpl;
         SystemConfig systemConfigImpl;
+        BatchInbox batchInboxImpl;
     }
 
     /**
@@ -169,7 +172,7 @@ contract SystemDictator is OwnableUpgradeable {
         initialize(
             DeployConfig(
                 GlobalConfig(ProxyAdmin(zero), zero, zero),
-                ProxyAddressConfig(zero, zero, zero, zero, zero, zero, zero),
+                ProxyAddressConfig(zero, zero, zero, zero, zero, zero, zero, zero),
                 ImplementationAddressConfig(
                     L2OutputOracle(zero),
                     OptimismPortal(payable(zero)),
@@ -178,7 +181,8 @@ contract SystemDictator is OwnableUpgradeable {
                     OptimismMintableERC20Factory(zero),
                     L1ERC721Bridge(zero),
                     PortalSender(zero),
-                    SystemConfig(zero)
+                    SystemConfig(zero),
+                    BatchInbox(zero)
                 ),
                 SystemConfigConfig(zero, 0, 0, bytes32(0), 0, zero, rcfg)
             )
@@ -274,6 +278,11 @@ contract SystemDictator is OwnableUpgradeable {
         Proxy(payable(config.proxyAddressConfig.l1CrossDomainMessengerProxy)).changeAdmin(
             address(config.globalConfig.proxyAdmin)
         );
+
+        // Transfer ownership of the BatchInbox to the ProxyAdmin.
+        Proxy(payable(config.proxyAddressConfig.batchInboxProxy)).changeAdmin(
+            address(config.globalConfig.proxyAdmin)
+        );
     }
 
     /**
@@ -327,6 +336,11 @@ contract SystemDictator is OwnableUpgradeable {
         } catch {
             revert("SystemDictator: unexpected error initializing L1XDM (no reason)");
         }
+        // Upgrade the BatchInbox.
+        config.globalConfig.proxyAdmin.upgrade(
+            payable(config.proxyAddressConfig.batchInboxProxy),
+            address(config.implementationAddressConfig.batchInboxImpl)
+        );
 
         // Transfer ETH from the L1StandardBridge to the OptimismPortal.
         config.globalConfig.proxyAdmin.upgradeAndCall(
@@ -394,6 +408,11 @@ contract SystemDictator is OwnableUpgradeable {
 
             // Transfer ownership of the L1CrossDomainMessenger to the final owner.
             Proxy(payable(config.proxyAddressConfig.l1CrossDomainMessengerProxy)).changeAdmin(
+                address(config.globalConfig.finalOwner)
+            );
+
+            // Transfer ownership of the BatchInbox to the final owner.
+            Proxy(payable(config.proxyAddressConfig.batchInboxProxy)).changeAdmin(
                 address(config.globalConfig.finalOwner)
             );
         }

@@ -3,7 +3,6 @@ import { DeployFunction } from 'hardhat-deploy/dist/types'
 import {
   assertContractVariable,
   deploy,
-  getDeploymentAddress,
 } from '../src/deploy-utils'
 
 

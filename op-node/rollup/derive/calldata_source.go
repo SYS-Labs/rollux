@@ -18,8 +18,9 @@ import (
 )
 const (
 	// SYSCOIN
-	appendSequencerBatchMethodName = "appendSequencerBatch()"
+	appendSequencerBatchMethodFunction = "appendSequencerBatch(bytes)"
 )
+
 type DataIter interface {
 	Next(ctx context.Context) (eth.Data, error)
 }
@@ -153,7 +154,7 @@ func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, 
 		}
 		calldata := txs[receipt.TransactionIndex].Data()
 		// remove function hash
-		sig := crypto.Keccak256([]byte(appendSequencerBatchMethodName))[:4]
+		sig := crypto.Keccak256([]byte(appendSequencerBatchMethodFunction))[:4]
 		sigToCheck := calldata[:4]
 		if (!reflect.DeepEqual(sig, sigToCheck)) {
 			log.Warn("DataFromEVMTransactions", "append function not found as method signature")

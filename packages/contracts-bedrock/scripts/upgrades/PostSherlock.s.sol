@@ -57,6 +57,7 @@ contract PostSherlockL1 is SafeBuilder {
     string constant internal OptimismPortal_Version = "1.6.0";
     string constant internal SystemConfig_Version = "1.3.0";
     string constant internal L1ERC721Bridge_Version = "1.1.1";
+    string constant internal BatchInbox_Version = "1.0.0";
 
     /**
      * @notice Place the contract addresses in storage so they can be used when building calldata.
@@ -69,7 +70,8 @@ contract PostSherlockL1 is SafeBuilder {
             OptimismMintableERC20Factory: 0xbd0046FC69f969810267aC53f979b9325A6196f3,
             OptimismPortal: 0x6e8fd67c9E74918be4A6A983a8DD5aa82D775EDe,
             SystemConfig: 0x73703c5027FAA45fd66d592C61d22268B9730540,
-            L1ERC721Bridge: 0xf7Fda8917c6B5589a514177F1878cc8ffE66f04a
+            L1ERC721Bridge: 0xf7Fda8917c6B5589a514177F1878cc8ffE66f04a,
+            BatchInbox: 0xf7Fda8917c6B5589a514177F1878cc8ffE66f04a
         });
 
         proxies[GOERLI] = ContractSet({
@@ -79,7 +81,8 @@ contract PostSherlockL1 is SafeBuilder {
             OptimismMintableERC20Factory: 0xc538309F438d52653A8f38290fB1da1e5f490395,
             OptimismPortal: 0xD251398404fD73E9f023dcfb66F913eecA4859F1,
             SystemConfig: 0x19CeD9B883cC0420F170DC0D1B270295699A5e8A,
-            L1ERC721Bridge: 0x9365574Ee984442894a00aE25dFb72e68A567987
+            L1ERC721Bridge: 0x9365574Ee984442894a00aE25dFb72e68A567987,
+            BatchInbox: 0x9365574Ee984442894a00aE25dFb72e68A567987
         });
 
         implementations[MAINNET] = ContractSet({
@@ -89,7 +92,8 @@ contract PostSherlockL1 is SafeBuilder {
             OptimismMintableERC20Factory: 0x4b277426aC1C5e22d2DD5f0568a570E2F75a73B5,
             OptimismPortal: 0xA4F27Ac3829a35775746D3162a4a443907695a14,
             SystemConfig: 0x111c417059b498DE2536A71f12F30cfaC9443261,
-            L1ERC721Bridge: 0x617413Fad9c4bC9049c99AbE82882038Cd4f8642
+            L1ERC721Bridge: 0x617413Fad9c4bC9049c99AbE82882038Cd4f8642,
+            BatchInbox: 0xbB5714CEeEe1bD7785FD183198f36Bbd135Ab9c4
         });
 
         proxies[MAINNET] = ContractSet({
@@ -99,7 +103,8 @@ contract PostSherlockL1 is SafeBuilder {
             OptimismMintableERC20Factory: 0x38A5b48B99715B060e7B0f5A6317F331B16348FF,
             OptimismPortal: 0xc7bf3d2bb45bdeAb452480e30c3847311970F921,
             SystemConfig: 0x0929BFAB9e838B1F3e057eF701b42D9f4b09a1D3,
-            L1ERC721Bridge: 0x0f0b7E082013c9D1062f3d00BCd75499687388d5
+            L1ERC721Bridge: 0x0f0b7E082013c9D1062f3d00BCd75499687388d5,
+            BatchInbox: 0x32880C00EAD3979De1039A57A11Da00D8231FBcd
         });
     }
 
@@ -115,6 +120,7 @@ contract PostSherlockL1 is SafeBuilder {
         require(_versionHash(prox.OptimismPortal) == keccak256(bytes(OptimismPortal_Version)), "OptimismPortal");
         require(_versionHash(prox.SystemConfig) == keccak256(bytes(SystemConfig_Version)), "SystemConfig");
         require(_versionHash(prox.L1ERC721Bridge) == keccak256(bytes(L1ERC721Bridge_Version)), "L1ERC721Bridge");
+        require(_versionHash(prox.BatchInbox) == keccak256(bytes(BatchInbox_Version)), "BatchInbox");
 
         ResourceMetering.ResourceConfig memory rcfg = SystemConfig(prox.SystemConfig).resourceConfig();
         ResourceMetering.ResourceConfig memory dflt = Constants.DEFAULT_RESOURCE_CONFIG();
@@ -129,6 +135,7 @@ contract PostSherlockL1 is SafeBuilder {
         require(_proxyAdmin.getProxyImplementation(prox.OptimismPortal).codehash == impl.OptimismPortal.codehash, "OptimismPortal codehash");
         require(_proxyAdmin.getProxyImplementation(prox.SystemConfig).codehash == impl.SystemConfig.codehash, "SystemConfig codehash");
         require(_proxyAdmin.getProxyImplementation(prox.L1ERC721Bridge).codehash == impl.L1ERC721Bridge.codehash, "L1ERC721Bridge codehash");
+        require(_proxyAdmin.getProxyImplementation(prox.BatchInbox).codehash == impl.BatchInbox.codehash, "BatchInbox codehash");
     }
 
     /**
@@ -169,7 +176,7 @@ contract PostSherlockL1 is SafeBuilder {
      *         config to the default value in the SystemConfig contract.
      */
     function buildCalldata(address _proxyAdmin) internal override view returns (bytes memory) {
-        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](8);
+        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](9);
 
         ContractSet memory impl = getImplementations();
         ContractSet memory prox = getProxies();
@@ -244,9 +251,19 @@ contract PostSherlockL1 is SafeBuilder {
             )
         });
 
+        // Upgrade the BatchInbox
+        calls[7] = IMulticall3.Call3({
+            target: _proxyAdmin,
+            allowFailure: false,
+            callData: abi.encodeCall(
+                ProxyAdmin.upgrade,
+                (payable(prox.BatchInbox), impl.BatchInbox)
+            )
+        });
+
         // Set the default resource config
         ResourceMetering.ResourceConfig memory rcfg = Constants.DEFAULT_RESOURCE_CONFIG();
-        calls[7] = IMulticall3.Call3({
+        calls[8] = IMulticall3.Call3({
             target: prox.SystemConfig,
             allowFailure: false,
             callData: abi.encodeCall(SystemConfig.setResourceConfig, (rcfg))
