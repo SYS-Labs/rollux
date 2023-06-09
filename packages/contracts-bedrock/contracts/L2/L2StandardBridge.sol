@@ -201,14 +201,14 @@ contract L2StandardBridge is StandardBridge, Semver {
      * the calldata should be contingious set of 32 byte version hashes to check via precompile. Will consume memory for 1 hash and check that the a hash value was parrtoed back to indicate validity.
      *
      */
-    function appendSequencerBatch() external onlyOtherBridge {
+    function appendSequencerBatchToL2(bytes calldata _extraData) external onlyOtherBridge {
         // Revert if the provided calldata does not consist of the 4 byte selector and segments of 32 bytes.
-        require((msg.data.length - 4)%32 == 0);
+        require((_extraData.length - 4)%32 == 0);
         // Start reading calldata after the function selector.
         uint256 cursorPosition = 4;
         // Start loop. End once there is not sufficient remaining calldata to contain a 32 byte hash.
-        while(cursorPosition <= (msg.data.length - 32)) {
-            podaMap[bytes32(msg.data[cursorPosition])] = true;
+        while(cursorPosition <= (_extraData.length - 32)) {
+            podaMap[bytes32(_extraData[cursorPosition])] = true;
             cursorPosition += 32;
         }
     }

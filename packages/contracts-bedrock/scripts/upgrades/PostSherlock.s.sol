@@ -84,7 +84,7 @@ contract PostSherlockL1 is SafeBuilder {
 
         implementations[MAINNET] = ContractSet({
             L1CrossDomainMessenger: 0x190DaC800F0030715Bc409145E805bA1e36549d6,
-            L1StandardBridge: 0xF8c84292fe2A4DCBB18a67c7283089A58234E294,
+            L1StandardBridge: 0x6F02FdF10888aaD198ca66Dd41cE16EC16Fe58D4,
             L2OutputOracle: 0x8fcF3BE634f67E6382fa355Af12e76B83A54C214,
             OptimismMintableERC20Factory: 0x4b277426aC1C5e22d2DD5f0568a570E2F75a73B5,
             OptimismPortal: 0xA4F27Ac3829a35775746D3162a4a443907695a14,

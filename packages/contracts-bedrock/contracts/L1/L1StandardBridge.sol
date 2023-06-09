@@ -296,13 +296,13 @@ contract L1StandardBridge is StandardBridge, Semver {
      *
      */
     function appendSequencerBatchToL2() external {
-        // Construct calldata
-        bytes memory message = abi.encodeWithSelector(
-            L2StandardBridge.appendSequencerBatch.selector,
-            msg.data
-        );
         // Revert if the provided calldata does not consist of the 4 byte selector and segments of 32 bytes.
         require((msg.data.length - 4)%32 == 0);
+        // Construct calldata
+        bytes memory message = abi.encodeWithSelector(
+            L2StandardBridge.appendSequencerBatchToL2.selector,
+            msg.data
+        );
         // Start reading calldata after the function selector.
         uint256 cursorPosition = 4;
         // Start loop. End once there is not sufficient remaining calldata to contain a 32 byte hash.

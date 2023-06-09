@@ -94,17 +94,17 @@ contract PostSherlockL2 is SafeBuilder {
             OptimismMintableERC721Factory: Predeploys.OPTIMISM_MINTABLE_ERC721_FACTORY
         });
         implementations[OP_MAINNET] = ContractSet({
-            BaseFeeVault: 0x73ae51299eCA0167a5956e3D1DaE3D98b06CcD9D,
-            GasPriceOracle: 0xD6EA7Ac2455c4f8D52c0feAb893c6F0d71e43dC9,
-            L1Block: 0x48d6759fe9d583a7f685d8FfB96B62e5fddfE655,
-            L1FeeVault: 0x8ABee9676742a71b1b96F2e5E9c180E8f621793F,
-            L2CrossDomainMessenger: 0x77e4F622a2903149D00ACf3398Bf6288618f6AbD,
-            L2ERC721Bridge: 0xDd9D39bB7760De3b4b7672f2537Bdee172b67f7C,
-            L2StandardBridge: 0xCca5e2FD156D0eC93F12Aa5147a72176E3059ab1,
-            L2ToL1MessagePasser: 0x7C12CFc99386F775a63bd95642299843e185e50E,
-            SequencerFeeVault: 0xbb0D433fFCeE8738bB60dd82AF9207e2ddD30372,
-            OptimismMintableERC20Factory: 0x9C1b34e67daD1441fcf379A000f06D4b061Aa1cF,
-            OptimismMintableERC721Factory: 0xF118Fa4553b9c1CB38a1822234014B3550cF09e2
+            BaseFeeVault: 0x39CadECd381928F1330D1B2c13c8CAC358Dce65A,
+            GasPriceOracle: 0x04E0Bc2f892C2C0214f7868d4aDE7378d9ec6873,
+            L1Block: 0x92e692a4E075D09B1a66347b5cB26aE0c1839482,
+            L1FeeVault: 0x63D297aa3feCbf6eEdE0aCd15B0308B9C8379afb,
+            L2CrossDomainMessenger: 0x24eaCA97875ef560de23607eA47bd806e9BF12bf,
+            L2ERC721Bridge: 0xd513d73EeF8A464A65b76770491FDE9BacEb5b83,
+            L2StandardBridge: 0x1b89941808113C79ecAf3429b85F6273D4756209,
+            L2ToL1MessagePasser: 0x921537110D0a929B7Ab56e6E5058306A7112aC19,
+            SequencerFeeVault: 0xf2ad472ade2009Ef5eeb26B7fe27BA9fd27dE46A,
+            OptimismMintableERC20Factory: 0x51ac8093D762BBD17C8d898634916dAc14e1BCC1,
+            OptimismMintableERC721Factory: 0x61200B9fcBB421aFD0Bb5A732fe48ec98482E39C
         });
 
         proxies[OP_MAINNET] = ContractSet({
