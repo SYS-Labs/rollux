@@ -86,6 +86,7 @@ const deployFn: DeployFunction = async (hre) => {
     },
     {
       name: 'BatchInboxProxy',
+    },
   ])
 
   // If we have the key for the controller then we don't need to wait for external txns.
