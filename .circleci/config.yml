@@ -84,16 +84,13 @@ jobs:
             - "packages/balance-monitor/node_modules"
             - "packages/chain-mon/node_modules"
             - "packages/common-ts/node_modules"
-            - "packages/contracts/node_modules"
             - "packages/contracts-bedrock/node_modules"
             - "packages/contracts-governance/node_modules"
             - "packages/contracts-periphery/node_modules"
             - "packages/core-utils/node_modules"
-            - "packages/data-transport-layer/node_modules"
             - "packages/drippie-mon/node_modules"
             - "packages/fault-detector/node_modules"
             - "packages/hardhat-deploy-config/node_modules"
-            - "packages/integration-tests-bedrock/node_modules"
             - "packages/message-relayer/node_modules"
             - "packages/migration-data/node_modules"
             - "packages/replica-healthcheck/node_modules"
@@ -109,13 +106,6 @@ jobs:
           paths:
             - "packages/*/dist"
             - "packages/*/artifacts"
-            - "packages/contracts/src/contract-artifacts.ts"
-            - "packages/contracts/src/contract-deployed-artifacts.ts"
-            - "packages/contracts/chugsplash"
-            - "packages/contracts/L1"
-            - "packages/contracts/L2"
-            - "packages/contracts/libraries"
-            - "packages/contracts/standards"
 
   docker-build:
     environment:
@@ -674,10 +664,6 @@ jobs:
           command: npx depcheck
           working_directory: packages/common-ts
       - run:
-          name: Check contracts
-          command: npx depcheck
-          working_directory: packages/contracts
-      - run:
           name: Check contracts-periphery
           command: npx depcheck
           working_directory: packages/contracts-periphery
@@ -686,17 +672,9 @@ jobs:
           command: npx depcheck
           working_directory: packages/core-utils
       - run:
-          name: Check data-transport-layer
-          command: npx depcheck
-          working_directory: packages/data-transport-layer
-      - run:
           name: Check sdk
           command: npx depcheck
           working_directory: packages/sdk
-      - run:
-          name: Check integration-tests
-          command: npx depcheck
-          working_directory: integration-tests
 
   atst-tests:
     docker:
@@ -878,7 +856,7 @@ jobs:
     steps:
       - checkout
       - check-changed:
-          patterns: op-(.+),packages,integration-tests
+          patterns: op-(.+),packages
       - run:
           name: Install latest golang
           command: |
@@ -1004,35 +982,6 @@ jobs:
                 command: |
                   docker logs ops-bedrock-op-proposer-1 || echo "No logs."
                 when: on_fail
-
-  integration-tests:
-    machine:
-      image: ubuntu-2204:2022.07.1
-    environment:
-      DOCKER_BUILDKIT: 1
-    parallelism: 3
-    steps:
-      - checkout
-      - check-changed:
-          patterns: l2geth,common-ts,contracts,core-utils,message-relayer,data-transport-layer,replica-healthcheck,sdk,batch-submitter,gas-oracle,bss-core,integration-tests
-      - run:
-          name: Bring up the stack
-          command: |
-            docker-compose build --progress=plain
-            docker-compose up -d --scale replica_healthcheck=1
-          working_directory: ops
-      - run:
-          name: Wait for sequencer
-          command: bash scripts/wait-for-sequencer.sh
-          working_directory: ops
-      - run:
-          name: Run integration tests
-          command: |
-            circleci tests glob "../integration-tests/test/*.spec.ts" | circleci tests split | tee splits.txt
-            docker-compose run integration_tests $(cat splits.txt)
-          working_directory: ops
-      - run:
-          command: echo "Done."
 
   semgrep-scan:
     parameters:
@@ -1227,13 +1176,6 @@ workflows:
           requires:
             - yarn-monorepo
       - js-lint-test:
-          name: dtl-tests
-          coverage_flag: dtl-tests
-          package_name: data-transport-layer
-          dependencies: "(common-ts|contracts|core-utils)"
-          requires:
-            - yarn-monorepo
-      - js-lint-test:
           name: chain-mon-tests
           coverage_flag: chain-mon-tests
           package_name: chain-mon
@@ -1288,34 +1230,19 @@ workflows:
           name: devnet (with genesis contracts)
           deploy: false
       - go-lint-test-build:
-          name: batch-submitter-tests
-          binary_name: batch-submitter
-          working_directory: batch-submitter
-          dependencies: bss-core
-      - go-lint-test-build:
           name: proxyd-tests
           binary_name: proxyd
           working_directory: proxyd
-      - go-lint-test-build:
-          name: gas-oracle-tests
-          binary_name: gas-oracle
-          working_directory: gas-oracle
       - go-lint-test-build:
           name: indexer-tests
           binary_name: indexer
           working_directory: indexer
           dependencies: op-bindings
       - go-lint-test-build:
-          name: bss-core-tests
-          binary_name: bss-core
-          working_directory: bss-core
-          build: false
-      - go-lint-test-build:
           name: op-heartbeat tests
           binary_name: op-heartbeat
           working_directory: op-heartbeat
       - geth-tests
-      - integration-tests
       - semgrep-scan
       - go-mod-tidy
       - fuzz-op-node
