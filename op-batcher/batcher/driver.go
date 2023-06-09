@@ -7,9 +7,9 @@ import (
 	"io"
 	"math/big"
 	_ "net/http/pprof"
+	_ "strings"
 	"sync"
 	"time"
-	"strings"
 
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
 	"github.com/ethereum-optimism/optimism/op-node/eth"
@@ -22,6 +22,7 @@ import (
 	// SYSCOIN
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 )
+
 // BatchSubmitter encapsulates a service responsible for submitting L2 tx
 // batches to L1 for availability.
 type BatchSubmitter struct {
