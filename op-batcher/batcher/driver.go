@@ -405,6 +405,7 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 			l.log.Error("Failed to pack data for function call: %v", err)
 			return err
 		}
+		l.log.Info("packedData", "packed data", packedData)
 		txdata.frame.data = packedData
 		l.sendTransaction(txdata, queue, receiptsCh)
 	}
