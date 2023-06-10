@@ -179,22 +179,21 @@ func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, 
 			log.Warn("DataFromEVMTransactions: append function not found as method signature", "index", i)
 			continue
 		}
-		// remove sig
-		batchData, err := batchInboxABI.Unpack(appendSequencerBatchMethodName, calldata[4:])
+		batchData, err := batchInboxABI.Methods[appendSequencerBatchMethodName].Inputs.Unpack(calldata[4:])
 		if err != nil {
 			log.Warn("DataFromEVMTransactions: Failed to unpack data for function call", "index", i, "err", err)
 			continue
 		}
-		numVHs := len(batchData)
-		for j := 0; j < numVHs; i++ {
-			byteArray, ok := batchData[j].([32]byte)
-			if !ok {
-				log.Warn("DataFromEVMTransactions: Invalid item, expected [32]byte", "receipt index", i, "batch index", j)
-				return nil
-			}
+		batchDataParam, ok := batchData[0].([][32]byte)
+		if !ok {
+			log.Warn("DataFromEVMTransactions: Invalid item, expected [][32]byte", "batchData[0]", batchData[0], "len", len(batchDataParam), "receipt index", i)
+			return nil
+		}
+		numVHs := len(batchDataParam)
+		for j := 0; j < numVHs; j++ {
 			// get version hash from calldata and lookup data via syscoinclient
 			// 1. get data from syscoin rpc
-			vh := common.BytesToHash(byteArray[:])
+			vh := common.BytesToHash(batchDataParam[j][:])
 			data, err := fetcher.GetBlobFromRPC(vh)
 			if err != nil {
 				// 2. if not get it from archiving service
