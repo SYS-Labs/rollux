@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -20,6 +21,7 @@ import (
 )
 const (
 	// SYSCOIN
+	appendSequencerBatchMethodFunction = "appendSequencerBatch(bytes32[])"
 	appendSequencerBatchMethodName = "appendSequencerBatch"
 )
 
@@ -43,6 +45,7 @@ type DataSourceFactory struct {
 	fetcher L1TransactionFetcher
 	// SYSCOIN
 	batchInboxABI* abi.ABI
+	appendSequencerFunctionSig []byte
 }
 
 func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher) *DataSourceFactory {
@@ -52,12 +55,13 @@ func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1Transact
 		log.Error("Failed to parse contract ABI: %v", err)
 		return nil
 	}
-	return &DataSourceFactory{log: log, cfg: cfg, fetcher: fetcher, batchInboxABI: batchInboxABI}
+	appendSequencerFunctionSig := crypto.Keccak256([]byte(appendSequencerBatchMethodFunction))[:4]
+	return &DataSourceFactory{log: log, cfg: cfg, fetcher: fetcher, batchInboxABI: batchInboxABI, appendSequencerFunctionSig: appendSequencerFunctionSig}
 }
 
 // OpenData returns a DataIter. This struct implements the `Next` function.
 func (ds *DataSourceFactory) OpenData(ctx context.Context, id eth.BlockID, batcherAddr common.Address) DataIter {
-	return NewDataSource(ctx, ds.log, ds.cfg, ds.fetcher, id, batcherAddr, ds.batchInboxABI)
+	return NewDataSource(ctx, ds.log, ds.cfg, ds.fetcher, id, batcherAddr, ds.batchInboxABI, ds.appendSequencerFunctionSig)
 }
 
 // DataSource is a fault tolerant approach to fetching data.
@@ -76,11 +80,12 @@ type DataSource struct {
 	batcherAddr common.Address
 	// SYSCOIN
 	batchInboxABI* abi.ABI
+	appendSequencerFunctionSig []byte
 }
 
 // NewDataSource creates a new calldata source. It suppresses errors in fetching the L1 block if they occur.
 // If there is an error, it will attempt to fetch the result on the next call to `Next`.
-func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, block eth.BlockID, batcherAddr common.Address, batchInboxABI* abi.ABI) DataIter {
+func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, block eth.BlockID, batcherAddr common.Address, batchInboxABI* abi.ABI, appendSequencerFunctionSig []byte) DataIter {
 	// SYSCOIN info
 	_, receipts, txs, err := fetcher.FetchReceipts(ctx, block.Hash)
 	if err != nil {
@@ -92,10 +97,11 @@ func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetc
 			log:         log,
 			batcherAddr: batcherAddr,
 			batchInboxABI: batchInboxABI,
+			appendSequencerFunctionSig: appendSequencerFunctionSig,
 		}
 	} else {
 		// SYSCOIN
-		dataSrc := DataFromEVMTransactions(ctx, fetcher, cfg, batcherAddr, receipts, txs, log.New("origin", block), batchInboxABI)
+		dataSrc := DataFromEVMTransactions(ctx, fetcher, cfg, batcherAddr, receipts, txs, log.New("origin", block), batchInboxABI, appendSequencerFunctionSig)
 		if dataSrc == nil {
 			return &DataSource{
 				open:        false,
@@ -105,6 +111,7 @@ func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetc
 				log:         log,
 				batcherAddr: batcherAddr,
 				batchInboxABI: batchInboxABI,
+				appendSequencerFunctionSig: appendSequencerFunctionSig,
 			}
 		}
 		return &DataSource{
@@ -121,7 +128,7 @@ func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
 	if !ds.open {
 		// SYSCOIN
 		if _, receipts, txs, err := ds.fetcher.FetchReceipts(ctx, ds.id.Hash); err == nil {
-			ds.data = DataFromEVMTransactions(ctx, ds.fetcher, ds.cfg, ds.batcherAddr, receipts, txs, log.New("origin", ds.id), ds.batchInboxABI)
+			ds.data = DataFromEVMTransactions(ctx, ds.fetcher, ds.cfg, ds.batcherAddr, receipts, txs, log.New("origin", ds.id), ds.batchInboxABI, ds.appendSequencerFunctionSig)
 			// SYSCOIN
 			if ds.data == nil {
 				return nil, NewTemporaryError(fmt.Errorf("failed to open calldata cloud source"))
@@ -145,7 +152,7 @@ func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
 // SYSCOIN DataFromEVMTransactions filters all of the transactions and returns the calldata from transactions
 // that are sent to the batch inbox address from the batch sender address.
 // This will return an empty array if no valid transactions are found.
-func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, config *rollup.Config, batcherAddr common.Address, receipts types.Receipts, txs types.Transactions, log log.Logger, batchInboxABI* abi.ABI) []eth.Data {
+func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, config *rollup.Config, batcherAddr common.Address, receipts types.Receipts, txs types.Transactions, log log.Logger, batchInboxABI* abi.ABI, appendSequencerFunctionSig []byte) []eth.Data {
 	out := make([]eth.Data, 0)
 	l1Signer := config.L1Signer()
 	for i, receipt := range receipts {
@@ -166,17 +173,23 @@ func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, 
 			log.Warn("tx in inbox with unauthorized submitter", "index", i, "err", err)
 			continue // not an authorized batch submitter, ignore
 		}
-		// remove function hash
-		batchData, err := batchInboxABI.Unpack(appendSequencerBatchMethodName, txs[receipt.TransactionIndex].Data())
+		calldata := txs[receipt.TransactionIndex].Data()
+		// check sig
+		if (!reflect.DeepEqual(appendSequencerFunctionSig, calldata[:4])) {
+			log.Warn("DataFromEVMTransactions: append function not found as method signature", "index", i)
+			continue
+		}
+		// remove sig
+		batchData, err := batchInboxABI.Unpack(appendSequencerBatchMethodName, calldata[4:])
 		if err != nil {
-			log.Error("DataFromEVMTransactions: Failed to pack data for function call: %v", err)
+			log.Warn("DataFromEVMTransactions: Failed to unpack data for function call", "index", i, "err", err)
 			continue
 		}
 		numVHs := len(batchData)
-		for i := 0; i < numVHs; i++ {
-			byteArray, ok := batchData[i].([32]byte)
+		for j := 0; j < numVHs; i++ {
+			byteArray, ok := batchData[j].([32]byte)
 			if !ok {
-				log.Error("DataFromEVMTransactions: Invalid item, expected [32]byte")
+				log.Warn("DataFromEVMTransactions: Invalid item, expected [32]byte", "receipt index", i, "batch index", j)
 				return nil
 			}
 			// get version hash from calldata and lookup data via syscoinclient
