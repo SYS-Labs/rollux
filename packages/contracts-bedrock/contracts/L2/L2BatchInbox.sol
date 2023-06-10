@@ -49,18 +49,13 @@ contract L2BatchInbox is Semver {
     }
 
     /**
-     * @notice appends an array of valid version hashes to the chain through calldata, each VH is checked via the VH precompile.
-     * the calldata should be contingious set of 32 byte version hashes to check via precompile. Will consume memory for 1 hash and check that the a hash value was parrtoed back to indicate validity.
+     * @notice appends an array of valid version hashes to the chain, each VH is checked via the VH precompile.
      *
      */
-    function appendSequencerBatchFromL1(bytes calldata _extraData) external onlyOtherBridge {
-        // Revert if the provided calldata does not consist of segments of 32 bytes.
-        require((_extraData.length)%32 == 0);
-        uint256 cursorPosition = 0;
-        // Start loop. End once there is not sufficient remaining calldata to contain a 32 byte hash.
-        while(cursorPosition <= (_extraData.length - 32)) {
-            podaMap[bytes32(_extraData[cursorPosition])] = true;
-            cursorPosition += 32;
+    function appendSequencerBatchFromL1(bytes32[] calldata _versionHashes) external onlyOtherBridge {
+        require(_versionHashes.length > 0);
+        for (uint256 i = 0; i < _versionHashes.length; i++) {
+            podaMap[_versionHashes[i]] = true;
         }
     }
 }

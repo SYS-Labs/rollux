@@ -35,6 +35,8 @@ contract BedrockMigrationChecker is Script, StdAssertions {
         address SystemConfigProxy;
         address SystemDictatorImpl;
         address SystemDictatorProxy;
+        address BatchInboxImpl;
+        address BatchInboxProxy;
     }
 
     /**
@@ -62,8 +64,18 @@ contract BedrockMigrationChecker is Script, StdAssertions {
         checkSystemConfigProxy(contracts);
         checkSystemDictatorImpl(contracts);
         checkSystemDictatorProxy(contracts);
+        checkBatchInboxImpl(contracts);
+        checkBatchInboxProxy(contracts);
+    }
+    function checkBatchInboxImpl(ContractSet memory contracts) internal {
+        console2.log("Checking BatchInbox %s", contracts.BatchInboxImpl);
+        checkAddressIsExpected(contracts.L1CrossDomainMessengerProxy, contracts.BatchInboxImpl, "MESSENGER()");
     }
 
+    function checkBatchInboxProxy(ContractSet memory contracts) internal {
+        console2.log("Checking BatchInboxProxy %s", contracts.BatchInboxProxy);
+        checkAddressIsExpected(contracts.L1ProxyAdmin, contracts.BatchInboxProxy, "admin()");
+    }
 
     function checkL1CrossDomainMessengerImpl(ContractSet memory contracts) internal {
         console2.log("Checking L1CrossDomainMessenger %s", contracts.L1CrossDomainMessengerImpl);
@@ -201,7 +213,9 @@ contract BedrockMigrationChecker is Script, StdAssertions {
                 PortalSender: getAddressFromJson(string.concat(bedrockJsonDir, "/PortalSender.json")),
                 SystemConfigProxy: getAddressFromJson(string.concat(bedrockJsonDir, "/SystemConfigProxy.json")),
                 SystemDictatorImpl: getAddressFromJson(string.concat(bedrockJsonDir, "/SystemDictator.json")),
-                SystemDictatorProxy: getAddressFromJson(string.concat(bedrockJsonDir, "/SystemDictatorProxy.json"))
+                SystemDictatorProxy: getAddressFromJson(string.concat(bedrockJsonDir, "/SystemDictatorProxy.json")),
+                BatchInboxImpl: getAddressFromJson(string.concat(bedrockJsonDir, "/BatchInbox.json")),
+                BatchInboxProxy: getAddressFromJson(string.concat(bedrockJsonDir, "/BatchInboxProxy.json"))
             });
     }
 
