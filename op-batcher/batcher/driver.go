@@ -399,13 +399,16 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 		l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
 		// Create the transaction
 		// we avoid changing Receipt object and just reuse TxHash for VH
-
-		packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, receipt.TxHash.Bytes())
+		var arrayOfVHs [][32]byte
+		var array [32]byte
+		copy(array[:], receipt.TxHash.Bytes())
+		arrayOfVHs = append(arrayOfVHs, array)
+		packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, arrayOfVHs)
 		if err != nil {
 			l.log.Error("Failed to pack data for function call: %v", err)
+			l.recordFailedTx(txdata.ID(), err)
 			return err
 		}
-		l.log.Info("packedData", "packed data", packedData)
 		txdata.frame.data = packedData
 		l.sendTransaction(txdata, queue, receiptsCh)
 	}
