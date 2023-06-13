@@ -1,18 +1,28 @@
-name: Sync Fork
+name: Sync with upstream
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # every 30 minutes
-  workflow_dispatch: # on button click
+    - cron:  '0 0 * * *' # Runs every day at 00:00 UTC
 
 jobs:
   sync:
-
     runs-on: ubuntu-latest
-
     steps:
-      - uses: tgymnich/fork-sync@v1.8
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
-          owner: llvm
-          base: develop
-          head: develop
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Merge upstream
+        run: |
+          git remote add upstream https://github.com/ethereum-optimism/optimism.git
+          git fetch upstream develop
+          git checkout develop
+          git merge upstream/develop
+          git push origin develop
+
