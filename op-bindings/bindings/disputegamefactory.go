@@ -202,6 +202,68 @@ func (_DisputeGameFactory *DisputeGameFactoryTransactorRaw) Transact(opts *bind.
 	return _DisputeGameFactory.Contract.contract.Transact(opts, method, params...)
 }
 
+// DisputeGameList is a free data retrieval call binding the contract method 0x763014a6.
+//
+// Solidity: function disputeGameList(uint256 ) view returns(address)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) DisputeGameList(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
+	var out []interface{}
+	err := _DisputeGameFactory.contract.Call(opts, &out, "disputeGameList", arg0)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// DisputeGameList is a free data retrieval call binding the contract method 0x763014a6.
+//
+// Solidity: function disputeGameList(uint256 ) view returns(address)
+func (_DisputeGameFactory *DisputeGameFactorySession) DisputeGameList(arg0 *big.Int) (common.Address, error) {
+	return _DisputeGameFactory.Contract.DisputeGameList(&_DisputeGameFactory.CallOpts, arg0)
+}
+
+// DisputeGameList is a free data retrieval call binding the contract method 0x763014a6.
+//
+// Solidity: function disputeGameList(uint256 ) view returns(address)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) DisputeGameList(arg0 *big.Int) (common.Address, error) {
+	return _DisputeGameFactory.Contract.DisputeGameList(&_DisputeGameFactory.CallOpts, arg0)
+}
+
+// GameCount is a free data retrieval call binding the contract method 0x4d1975b4.
+//
+// Solidity: function gameCount() view returns(uint256 _gameCount)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) GameCount(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _DisputeGameFactory.contract.Call(opts, &out, "gameCount")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GameCount is a free data retrieval call binding the contract method 0x4d1975b4.
+//
+// Solidity: function gameCount() view returns(uint256 _gameCount)
+func (_DisputeGameFactory *DisputeGameFactorySession) GameCount() (*big.Int, error) {
+	return _DisputeGameFactory.Contract.GameCount(&_DisputeGameFactory.CallOpts)
+}
+
+// GameCount is a free data retrieval call binding the contract method 0x4d1975b4.
+//
+// Solidity: function gameCount() view returns(uint256 _gameCount)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameCount() (*big.Int, error) {
+	return _DisputeGameFactory.Contract.GameCount(&_DisputeGameFactory.CallOpts)
+}
+
 // GameImpls is a free data retrieval call binding the contract method 0xdfa162d3.
 //
 // Solidity: function gameImpls(uint8 ) view returns(address)
