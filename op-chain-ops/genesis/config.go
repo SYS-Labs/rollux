@@ -115,6 +115,8 @@ type DeployConfig struct {
 	GasPriceOracleOverhead uint64 `json:"gasPriceOracleOverhead"`
 	// The initial value of the gas scalar
 	GasPriceOracleScalar uint64 `json:"gasPriceOracleScalar"`
+	// Whether or not include governance token predeploy
+	EnableGovernance bool `json:"enableGovernance"`
 	// The ERC20 symbol of the GovernanceToken
 	GovernanceTokenSymbol string `json:"governanceTokenSymbol"`
 	// The ERC20 name of the GovernanceToken
@@ -246,14 +248,16 @@ func (d *DeployConfig) Check() error {
 	if d.L2GenesisBlockBaseFeePerGas == nil {
 		return fmt.Errorf("%w: L2 genesis block base fee per gas cannot be nil", ErrInvalidDeployConfig)
 	}
-	if d.GovernanceTokenName == "" {
-		return fmt.Errorf("%w: GovernanceToken.name cannot be empty", ErrInvalidDeployConfig)
-	}
-	if d.GovernanceTokenSymbol == "" {
-		return fmt.Errorf("%w: GovernanceToken.symbol cannot be empty", ErrInvalidDeployConfig)
-	}
-	if d.GovernanceTokenOwner == (common.Address{}) {
-		return fmt.Errorf("%w: GovernanceToken owner cannot be address(0)", ErrInvalidDeployConfig)
+	if d.EnableGovernance {
+		if d.GovernanceTokenName == "" {
+			return fmt.Errorf("%w: GovernanceToken.name cannot be empty", ErrInvalidDeployConfig)
+		}
+		if d.GovernanceTokenSymbol == "" {
+			return fmt.Errorf("%w: GovernanceToken.symbol cannot be empty", ErrInvalidDeployConfig)
+		}
+		if d.GovernanceTokenOwner == (common.Address{}) {
+			return fmt.Errorf("%w: GovernanceToken owner cannot be address(0)", ErrInvalidDeployConfig)
+		}
 	}
 	return nil
 }
@@ -512,10 +516,12 @@ func NewL2StorageConfig(config *DeployConfig, block *types.Block) (state.Storage
 		"symbol":   "WSYS",
 		"decimals": 18,
 	}
-	storage["GovernanceToken"] = state.StorageValues{
-		"_name":   config.GovernanceTokenName,
-		"_symbol": config.GovernanceTokenSymbol,
-		"_owner":  config.GovernanceTokenOwner,
+	if config.EnableGovernance {
+		storage["GovernanceToken"] = state.StorageValues{
+			"_name":   config.GovernanceTokenName,
+			"_symbol": config.GovernanceTokenSymbol,
+			"_owner":  config.GovernanceTokenOwner,
+		}
 	}
 	storage["ProxyAdmin"] = state.StorageValues{
 		"_owner": config.ProxyAdminOwner,
