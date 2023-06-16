@@ -17,7 +17,8 @@ and ip address information
 ## Step 2: Add sequencer rpc and disable miner
 You'll need to set the sequencer rpc which will be provided by SYS team by adding it into `ops-bedrock/envs/p2p-node.env`
 as the variable `SEQUENCER_RELAY_RPC` . This is important if you want your node to broadcast transactions to the network,
-this part can be skipped if you will not be broadcasting transactions.
+this part can be skipped if you will not be broadcasting transactions. Then also make sure mine flag `--mine` is set to
+false in entrypoint.sh or take out flag completely to default to false
 
 
 ## Step 3: Generate a 32-byte hexadecimal string
