@@ -13,7 +13,7 @@ const deployFn: DeployFunction = async (hre) => {
         signerOrProvider: deployer,
       },
       {
-        name: 'Proxy__OVM_L1CrossDomainMessenger',
+        name: 'L1CrossDomainMessengerProxy',
         iface: 'L1CrossDomainMessenger',
         signerOrProvider: deployer,
       },

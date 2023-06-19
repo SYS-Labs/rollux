@@ -13,7 +13,7 @@ const deployFn: DeployFunction = async (hre) => {
         signerOrProvider: deployer,
       },
       {
-        name: 'Proxy__OVM_L1StandardBridge',
+        name: 'L1StandardBridgeProxy',
         iface: 'L1StandardBridge',
         signerOrProvider: deployer,
       },
