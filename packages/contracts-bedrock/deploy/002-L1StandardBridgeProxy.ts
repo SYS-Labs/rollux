@@ -11,7 +11,7 @@ const deployFn: DeployFunction = async (hre) => {
 
   await deploy({
     hre,
-    name: 'L1StandardBridgeProxy',
+    name: 'Proxy__OVM_L1StandardBridge',
     contract: 'L1ChugSplashProxy',
     args: [proxyAdmin],
     postDeployAction: async (contract) => {

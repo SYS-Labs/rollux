@@ -9,7 +9,7 @@ import {
 const deployFn: DeployFunction = async (hre) => {
   const L1CrossDomainMessengerProxy = await getContractFromArtifact(
     hre,
-    'L1CrossDomainMessengerProxy'
+    'Proxy__OVM_L1CrossDomainMessenger'
   )
 
   await deploy({
