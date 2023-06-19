@@ -33,6 +33,8 @@ bindings: l1block-bindings \
 	legacy-erc20-eth-bindings \
 	dispute-game-factory-bindings \
 	batch-inbox-bindings \
+	standard-bridge-bindings \
+	cross-domain-messenger-bindings
 
 version:
 	forge --version
@@ -131,6 +133,11 @@ dispute-game-factory-bindings: compile
 batch-inbox-bindings: compile
 	./gen_bindings.sh contracts/L1/BatchInbox.sol:BatchInbox $(pkg)
 
+standard-bridge-bindings: compile
+	./gen_bindings.sh contracts/universal/StandardBridge.sol:StandardBridge $(pkg)
+
+cross-domain-messenger-bindings: compile
+	./gen_bindings.sh contracts/universal/CrossDomainMessenger.sol:CrossDomainMessenger $(pkg)
 
 more:
 	go run ./gen/main.go \

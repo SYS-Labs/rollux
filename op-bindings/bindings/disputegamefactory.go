@@ -202,40 +202,54 @@ func (_DisputeGameFactory *DisputeGameFactoryTransactorRaw) Transact(opts *bind.
 	return _DisputeGameFactory.Contract.contract.Transact(opts, method, params...)
 }
 
-// DisputeGameList is a free data retrieval call binding the contract method 0x763014a6.
+// GameAtIndex is a free data retrieval call binding the contract method 0xbb8aa1fc.
 //
-// Solidity: function disputeGameList(uint256 ) view returns(address)
-func (_DisputeGameFactory *DisputeGameFactoryCaller) DisputeGameList(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
+// Solidity: function gameAtIndex(uint256 _index) view returns(address proxy_, uint256 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) GameAtIndex(opts *bind.CallOpts, _index *big.Int) (struct {
+	Proxy     common.Address
+	Timestamp *big.Int
+}, error) {
 	var out []interface{}
-	err := _DisputeGameFactory.contract.Call(opts, &out, "disputeGameList", arg0)
+	err := _DisputeGameFactory.contract.Call(opts, &out, "gameAtIndex", _index)
 
+	outstruct := new(struct {
+		Proxy     common.Address
+		Timestamp *big.Int
+	})
 	if err != nil {
-		return *new(common.Address), err
+		return *outstruct, err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	outstruct.Proxy = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	outstruct.Timestamp = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
 
-	return out0, err
+	return *outstruct, err
 
 }
 
-// DisputeGameList is a free data retrieval call binding the contract method 0x763014a6.
+// GameAtIndex is a free data retrieval call binding the contract method 0xbb8aa1fc.
 //
-// Solidity: function disputeGameList(uint256 ) view returns(address)
-func (_DisputeGameFactory *DisputeGameFactorySession) DisputeGameList(arg0 *big.Int) (common.Address, error) {
-	return _DisputeGameFactory.Contract.DisputeGameList(&_DisputeGameFactory.CallOpts, arg0)
+// Solidity: function gameAtIndex(uint256 _index) view returns(address proxy_, uint256 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactorySession) GameAtIndex(_index *big.Int) (struct {
+	Proxy     common.Address
+	Timestamp *big.Int
+}, error) {
+	return _DisputeGameFactory.Contract.GameAtIndex(&_DisputeGameFactory.CallOpts, _index)
 }
 
-// DisputeGameList is a free data retrieval call binding the contract method 0x763014a6.
+// GameAtIndex is a free data retrieval call binding the contract method 0xbb8aa1fc.
 //
-// Solidity: function disputeGameList(uint256 ) view returns(address)
-func (_DisputeGameFactory *DisputeGameFactoryCallerSession) DisputeGameList(arg0 *big.Int) (common.Address, error) {
-	return _DisputeGameFactory.Contract.DisputeGameList(&_DisputeGameFactory.CallOpts, arg0)
+// Solidity: function gameAtIndex(uint256 _index) view returns(address proxy_, uint256 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameAtIndex(_index *big.Int) (struct {
+	Proxy     common.Address
+	Timestamp *big.Int
+}, error) {
+	return _DisputeGameFactory.Contract.GameAtIndex(&_DisputeGameFactory.CallOpts, _index)
 }
 
 // GameCount is a free data retrieval call binding the contract method 0x4d1975b4.
 //
-// Solidity: function gameCount() view returns(uint256 _gameCount)
+// Solidity: function gameCount() view returns(uint256 gameCount_)
 func (_DisputeGameFactory *DisputeGameFactoryCaller) GameCount(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
 	err := _DisputeGameFactory.contract.Call(opts, &out, "gameCount")
@@ -252,14 +266,14 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) GameCount(opts *bind.CallOp
 
 // GameCount is a free data retrieval call binding the contract method 0x4d1975b4.
 //
-// Solidity: function gameCount() view returns(uint256 _gameCount)
+// Solidity: function gameCount() view returns(uint256 gameCount_)
 func (_DisputeGameFactory *DisputeGameFactorySession) GameCount() (*big.Int, error) {
 	return _DisputeGameFactory.Contract.GameCount(&_DisputeGameFactory.CallOpts)
 }
 
 // GameCount is a free data retrieval call binding the contract method 0x4d1975b4.
 //
-// Solidity: function gameCount() view returns(uint256 _gameCount)
+// Solidity: function gameCount() view returns(uint256 gameCount_)
 func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameCount() (*big.Int, error) {
 	return _DisputeGameFactory.Contract.GameCount(&_DisputeGameFactory.CallOpts)
 }
@@ -297,33 +311,47 @@ func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameImpls(arg0 uint8
 
 // Games is a free data retrieval call binding the contract method 0xc49d5271.
 //
-// Solidity: function games(uint8 gameType, bytes32 rootClaim, bytes extraData) view returns(address _proxy)
-func (_DisputeGameFactory *DisputeGameFactoryCaller) Games(opts *bind.CallOpts, gameType uint8, rootClaim [32]byte, extraData []byte) (common.Address, error) {
+// Solidity: function games(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint256 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) Games(opts *bind.CallOpts, _gameType uint8, _rootClaim [32]byte, _extraData []byte) (struct {
+	Proxy     common.Address
+	Timestamp *big.Int
+}, error) {
 	var out []interface{}
-	err := _DisputeGameFactory.contract.Call(opts, &out, "games", gameType, rootClaim, extraData)
+	err := _DisputeGameFactory.contract.Call(opts, &out, "games", _gameType, _rootClaim, _extraData)
 
+	outstruct := new(struct {
+		Proxy     common.Address
+		Timestamp *big.Int
+	})
 	if err != nil {
-		return *new(common.Address), err
+		return *outstruct, err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	outstruct.Proxy = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	outstruct.Timestamp = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
 
-	return out0, err
+	return *outstruct, err
 
 }
 
 // Games is a free data retrieval call binding the contract method 0xc49d5271.
 //
-// Solidity: function games(uint8 gameType, bytes32 rootClaim, bytes extraData) view returns(address _proxy)
-func (_DisputeGameFactory *DisputeGameFactorySession) Games(gameType uint8, rootClaim [32]byte, extraData []byte) (common.Address, error) {
-	return _DisputeGameFactory.Contract.Games(&_DisputeGameFactory.CallOpts, gameType, rootClaim, extraData)
+// Solidity: function games(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint256 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactorySession) Games(_gameType uint8, _rootClaim [32]byte, _extraData []byte) (struct {
+	Proxy     common.Address
+	Timestamp *big.Int
+}, error) {
+	return _DisputeGameFactory.Contract.Games(&_DisputeGameFactory.CallOpts, _gameType, _rootClaim, _extraData)
 }
 
 // Games is a free data retrieval call binding the contract method 0xc49d5271.
 //
-// Solidity: function games(uint8 gameType, bytes32 rootClaim, bytes extraData) view returns(address _proxy)
-func (_DisputeGameFactory *DisputeGameFactoryCallerSession) Games(gameType uint8, rootClaim [32]byte, extraData []byte) (common.Address, error) {
-	return _DisputeGameFactory.Contract.Games(&_DisputeGameFactory.CallOpts, gameType, rootClaim, extraData)
+// Solidity: function games(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint256 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) Games(_gameType uint8, _rootClaim [32]byte, _extraData []byte) (struct {
+	Proxy     common.Address
+	Timestamp *big.Int
+}, error) {
+	return _DisputeGameFactory.Contract.Games(&_DisputeGameFactory.CallOpts, _gameType, _rootClaim, _extraData)
 }
 
 // GetGameUUID is a free data retrieval call binding the contract method 0x26daafbe.
