@@ -69,8 +69,7 @@ exec geth \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
-	--nodiscover \
-	--maxpeers=0 \
+	--maxpeers=1 \
 	--networkid=$CHAIN_ID \
 	--unlock=$BLOCK_SIGNER_ADDRESS \
 	--mine=$MINING_ENABLED \
