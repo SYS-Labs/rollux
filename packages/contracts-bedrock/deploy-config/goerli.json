@@ -22,7 +22,6 @@
   "l2OutputOracleStartingTimestamp": -1,
   "l2OutputOracleProposer": "0x21821Dc24dd29D2D23fE7223dB2BB8D2a72cC95F",
   "l2OutputOracleChallenger": "0xEF64E089f2e018C2d71213d6bB402EC14ce2c189",
-
   "governanceTokenName": "Optimism",
   "governanceTokenSymbol": "OP",
   "governanceTokenOwner": "0xe7C107c8C05438A9E1809E447263b1d4b14AED37",

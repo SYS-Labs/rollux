@@ -1,3 +1,5 @@
+import assert from 'assert'
+
 import { DeployFunction } from 'hardhat-deploy/dist/types'
 
 import {
@@ -19,8 +21,6 @@ const deployFn: DeployFunction = async (hre) => {
     },
   })
 }
-
-
 deployFn.tags = ['L1CrossDomainMessengerProxy', 'setup', 'l1']
 
 export default deployFn
