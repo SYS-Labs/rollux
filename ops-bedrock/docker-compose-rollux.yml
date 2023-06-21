@@ -42,6 +42,7 @@ services:
       - "9545:8545"
       - "9546:8546"
       - "8060:6060"
+      - "30303:30303"
     volumes:
       - "l2_data:/db"
       - "${PWD}/../.rollux/genesis-l2.json:/genesis.json"
@@ -77,8 +78,6 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
-      --p2p.scoring.peers=light
-      --p2p.ban.peers=true
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
@@ -119,7 +118,7 @@ services:
       - "6062:6060"
       - "7302:7300"
     environment:
-      OP_PROPOSER_L1_ETH_RPC: https://rpc.syscoin.org
+      OP_PROPOSER_L1_ETH_RPC: https://rpc.ankr.com/syscoin
       OP_PROPOSER_ROLLUP_RPC: http://op-node:8545
       OP_PROPOSER_POLL_INTERVAL: 10s
       OP_PROPOSER_NUM_CONFIRMATIONS: 1
