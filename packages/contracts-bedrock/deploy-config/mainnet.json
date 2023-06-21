@@ -2,7 +2,7 @@
     "finalSystemOwner": "0x1343EB8992175a722943b18B61784c97edAb8077",
     "controller": "0xbcCC3Ba5e2F84A88d66f62A9fE260A7C303cf440",
     "portalGuardian": "0x1343EB8992175a722943b18B61784c97edAb8077",
-    "l1StartingBlockTag": "0x7d6e9f1a45c1221679402b78f6bb67bc768a32e7911e83d5de89827d5ad9e2b4",
+    "l1StartingBlockTag": "0x47ac31005a8c86e4fc6bdbbf4b74ebe578bd8660b3ce44ea2e04f362a5918ca8",
     "l1ChainID": 57,
     "l2ChainID": 570,
     "l2BlockTime": 2,
