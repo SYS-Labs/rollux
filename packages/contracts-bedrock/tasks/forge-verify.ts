@@ -33,6 +33,8 @@ const verifyArgs = (opts: ForgeVerifyArgs): string[] => {
     allArgs.push('--num-of-optimizations', opts.optimizerRuns.toString())
   }
   allArgs.push('--watch')
+  allArgs.push('--verifier', 'sourcify')
+
 
   if (!opts.contractAddress) {
     throw new Error('No contract address provided')
@@ -42,10 +44,7 @@ const verifyArgs = (opts: ForgeVerifyArgs): string[] => {
     throw new Error('No contract name provided')
   }
   allArgs.push(opts.contractName)
-  if (!opts.etherscanApiKey) {
-    throw new Error('No Etherscan API key provided')
-  }
-  allArgs.push(opts.etherscanApiKey)
+
   return allArgs
 }
 
