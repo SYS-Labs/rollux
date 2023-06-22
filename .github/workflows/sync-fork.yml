@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
         run: |
@@ -26,4 +27,5 @@ jobs:
           git checkout develop
           git merge upstream/develop
           git push origin develop
+
 
