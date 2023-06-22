@@ -501,11 +501,11 @@ const check = {
     )
 
     const name = await GovernanceToken.name()
-    assert(name === 'Optimism')
+    assert(name === 'Rollux')
     console.log(`  - name: ${name}`)
 
     const symbol = await GovernanceToken.symbol()
-    assert(symbol === 'OP')
+    assert(symbol === 'RLX')
     console.log(`  - symbol: ${symbol}`)
 
     const owner = await GovernanceToken.owner()
