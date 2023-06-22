@@ -13,7 +13,7 @@ const deployFn: DeployFunction = async (hre) => {
         signerOrProvider: deployer,
       },
       {
-        name: 'batchInboxProxy',
+        name: 'BatchInboxProxy',
         iface: 'BatchInbox',
         signerOrProvider: deployer,
       },

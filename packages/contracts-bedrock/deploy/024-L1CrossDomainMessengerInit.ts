@@ -21,13 +21,13 @@ const deployFn: DeployFunction = async (hre) => {
         name: 'L1CrossDomainMessenger',
       },
     ])
-
+/*
   const proxyType = await proxyAdmin.callStatic.proxyType(
     l1CrossDomainMessengerProxy.address
   )
-  if (proxyType !== 2) {
+  if (proxyType !== 1) {
     console.log(
-      `ProxyAdmin(${proxyAdmin.address}).setProxyType(${l1CrossDomainMessengerProxy.address}, 2)`
+      `ProxyAdmin(${proxyAdmin.address}).setProxyType(${l1CrossDomainMessengerProxy.address}, 1)`
     )
     // Set the L1CrossDomainMessenger to the RESOLVED proxy type.
     const tx = await proxyAdmin.setProxyType(
@@ -52,7 +52,7 @@ const deployFn: DeployFunction = async (hre) => {
     )
     await tx.wait()
   }
-
+*/
   try {
     const tx = await proxyAdmin.upgradeAndCall(
       l1CrossDomainMessengerProxy.address,
