@@ -102,7 +102,7 @@ func NewL1EndpointConfig(ctx *cli.Context) *node.L1EndpointConfig {
 		BatchSize:        ctx.Int(flags.L1RPCMaxBatchSize.Name),
 		HttpPollInterval: ctx.Duration(flags.L1HTTPPollInterval.Name),
 		// SYSCOIN
-		SysPODAURL: 	  ctx.GlobalString(flags.SysPODAURLFlag.Name),
+		SysPODAURL: ctx.String(flags.SysPODAURLFlag.Name),
 	}
 }
 
