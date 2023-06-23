@@ -32,8 +32,8 @@ General dev discussion happens most frequently on the [Rollux discord](https://d
 ## Contributing
 
 Read through [CONTRIBUTING.md](./CONTRIBUTING.md) for a general overview of the contributing process for this repository.
-Use the [Developer Quick Start](./CONTRIBUTING.md#development-quick-start) to get your development environment set up to start working on the Optimism Monorepo.
-Then check out the list of [Good First Issues](https://github.com/ethereum-optimism/optimism/contribute) to find something fun to work on!
+Use the [Developer Quick Start](./CONTRIBUTING.md#development-quick-start) to get your development environment set up to start working on the Rollux Monorepo.
+Then check out the list of [Good First Issues](https://github.com/sys-labs/rollux/contribute) to find something fun to work on!
 
 ## Security Policy and Vulnerability Reporting
 
