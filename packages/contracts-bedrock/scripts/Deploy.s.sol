@@ -10,7 +10,6 @@ import { Deployer } from "./Deployer.sol";
 import { DeployConfig } from "./DeployConfig.s.sol";
 
 import { ProxyAdmin } from "../contracts/universal/ProxyAdmin.sol";
-import { AddressManager } from "../contracts/legacy/AddressManager.sol";
 import { Proxy } from "../contracts/universal/Proxy.sol";
 import { L1StandardBridge } from "../contracts/L1/L1StandardBridge.sol";
 import { OptimismPortal } from "../contracts/L1/OptimismPortal.sol";
@@ -25,6 +24,7 @@ import { Constants } from "../contracts/libraries/Constants.sol";
 import { DisputeGameFactory } from "../contracts/dispute/DisputeGameFactory.sol";
 import { L1ERC721Bridge } from "../contracts/L1/L1ERC721Bridge.sol";
 import { Predeploys } from "../contracts/libraries/Predeploys.sol";
+import { BatchInbox } from "../contracts/L1/BatchInbox.sol";
 
 /// @title Deploy
 /// @notice Script used to deploy a bedrock system. The entire system is deployed within the `run` function.
@@ -54,7 +54,6 @@ contract Deploy is Deployer {
     function run() public {
         console.log("Deploying L1 system");
 
-        deployAddressManager();
         deployProxyAdmin();
 
         deployOptimismPortalProxy();
@@ -65,6 +64,7 @@ contract Deploy is Deployer {
         deployOptimismMintableERC20FactoryProxy();
         deployL1ERC721BridgeProxy();
         deployDisputeGameFactoryProxy();
+        deployBatchInboxProxy();
 
         deployOptimismPortal();
         deployL1CrossDomainMessenger();
@@ -74,8 +74,8 @@ contract Deploy is Deployer {
         deployL1StandardBridge();
         deployL1ERC721Bridge();
         deployDisputeGameFactory();
+        deployBatchInbox();
 
-        transferAddressManagerOwnership();
 
         initializeDisputeGameFactory();
         initializeSystemConfig();
@@ -85,6 +85,7 @@ contract Deploy is Deployer {
         initializeL1CrossDomainMessenger();
         initializeL2OutputOracle();
         initializeOptimismPortal();
+        initializeBatchInbox();
 
         transferProxyAdminOwnership();
     }
@@ -96,15 +97,6 @@ contract Deploy is Deployer {
         vm.stopBroadcast();
     }
 
-    /// @notice Deploy the AddressManager
-    function deployAddressManager() broadcast() public returns (address) {
-        AddressManager manager = new AddressManager();
-        require(manager.owner() == msg.sender);
-
-        save("AddressManager", address(manager));
-        console.log("AddressManager deployed at %s", address(manager));
-        return address(manager);
-    }
 
     /// @notice Deploy the ProxyAdmin
     function deployProxyAdmin() broadcast() public returns (address) {
@@ -112,13 +104,6 @@ contract Deploy is Deployer {
             _owner: msg.sender
         });
         require(admin.owner() == msg.sender);
-
-        AddressManager addressManager = AddressManager(mustGetAddress("AddressManager"));
-        if (admin.addressManager() != addressManager) {
-            admin.setAddressManager(addressManager);
-        }
-
-        require(admin.addressManager() == addressManager);
 
         save("ProxyAdmin", address(admin));
         console.log("ProxyAdmin deployed at %s", address(admin));
@@ -155,19 +140,16 @@ contract Deploy is Deployer {
 
     /// @notice Deploy the L1CrossDomainMessengerProxy
     function deployL1CrossDomainMessengerProxy() broadcast() public returns (address) {
-        AddressManager addressManager = AddressManager(mustGetAddress("AddressManager"));
-        string memory contractName = "OVM_L1CrossDomainMessenger";
-        ResolvedDelegateProxy proxy = new ResolvedDelegateProxy(addressManager, contractName);
+        address proxyAdmin = mustGetAddress("ProxyAdmin");
+        Proxy proxy = new Proxy({
+            _admin: proxyAdmin
+        });
+
+        address admin = address(uint160(uint256(vm.load(address(proxy), OWNER_KEY))));
+        require(admin == proxyAdmin);
 
         save("L1CrossDomainMessengerProxy", address(proxy));
         console.log("L1CrossDomainMessengerProxy deployed at %s", address(proxy));
-
-        address addr = addressManager.getAddress(contractName);
-        if (addr != address(proxy)) {
-            addressManager.setAddress(contractName, address(proxy));
-        }
-
-        require(addressManager.getAddress(contractName) == address(proxy));
 
         return address(proxy);
     }
@@ -253,6 +235,22 @@ contract Deploy is Deployer {
             return address(proxy);
         }
         return address(0);
+    }
+
+    /// @notice Deploy the BatchInboxProxy
+    function deployBatchInboxProxy() broadcast() public returns (address) {
+        address proxyAdmin = mustGetAddress("ProxyAdmin");
+        Proxy proxy = new Proxy({
+            _admin: proxyAdmin
+        });
+
+        address admin = address(uint160(uint256(vm.load(address(proxy), OWNER_KEY))));
+        require(admin == proxyAdmin);
+
+        save("BatchInboxProxy", address(proxy));
+        console.log("BatchInboxProxy deployed at %s", address(proxy));
+
+        return address(proxy);
     }
 
     /// @notice Deploy the L1CrossDomainMessenger
@@ -419,17 +417,20 @@ contract Deploy is Deployer {
         return address(bridge);
     }
 
-    /// @notice Transfer ownership of the address manager to the ProxyAdmin
-    function transferAddressManagerOwnership() broadcast() public {
-        AddressManager addressManager = AddressManager(mustGetAddress("AddressManager"));
-        address owner = addressManager.owner();
-        address proxyAdmin = mustGetAddress("ProxyAdmin");
-        if (owner != proxyAdmin) {
-            addressManager.transferOwnership(proxyAdmin);
-            console.log("AddressManager ownership transferred to %s", proxyAdmin);
-        }
+    /// @notice Deploy the BatchInbox
+    function deployBatchInbox() broadcast() public returns (address) {
+        address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
 
-        require(addressManager.owner() == proxyAdmin);
+        BatchInbox inbox = new BatchInbox({
+            _messenger: l1CrossDomainMessengerProxy,
+        });
+
+        require(address(inbox.MESSENGER()) == l1CrossDomainMessengerProxy);
+
+        save("BatchInbox", address(inbox));
+        console.log("BatchInbox deployed at %s", address(inbox));
+
+        return address(inbox);
     }
 
     /// @notice Initialize the DisputeGameFactory
@@ -572,21 +573,6 @@ contract Deploy is Deployer {
         address l1CrossDomainMessenger = mustGetAddress("L1CrossDomainMessenger");
         address optimismPortalProxy = mustGetAddress("OptimismPortalProxy");
 
-        uint256 proxyType = uint256(proxyAdmin.proxyType(l1CrossDomainMessengerProxy));
-        if (proxyType != uint256(ProxyAdmin.ProxyType.RESOLVED)) {
-            proxyAdmin.setProxyType(l1CrossDomainMessengerProxy, ProxyAdmin.ProxyType.RESOLVED);
-        }
-        require(uint256(proxyAdmin.proxyType(l1CrossDomainMessengerProxy)) == uint256(ProxyAdmin.ProxyType.RESOLVED));
-
-        string memory contractName = "OVM_L1CrossDomainMessenger";
-        string memory implName = proxyAdmin.implementationName(l1CrossDomainMessenger);
-        if (keccak256(bytes(contractName)) != keccak256(bytes(implName))) {
-            proxyAdmin.setImplementationName(l1CrossDomainMessengerProxy, contractName);
-        }
-        require(
-            keccak256(bytes(proxyAdmin.implementationName(l1CrossDomainMessengerProxy))) == keccak256(bytes(contractName))
-        );
-
         proxyAdmin.upgradeAndCall({
             _proxy: payable(l1CrossDomainMessengerProxy),
             _implementation: l1CrossDomainMessenger,
@@ -653,6 +639,17 @@ contract Deploy is Deployer {
         require(portal.GUARDIAN() == cfg.portalGuardian());
         require(address(portal.SYSTEM_CONFIG()) == systemConfigProxy);
         require(portal.paused() == false);
+    }
+
+    /// @notice Initialize the BatchInbox
+    function initializeBatchInbox() broadcast() public {
+        ProxyAdmin proxyAdmin = ProxyAdmin(mustGetAddress("ProxyAdmin"));
+        address batchInboxProxy = mustGetAddress("BatchInboxProxy");
+        address batchInbox = mustGetAddress("BatchInbox");
+        proxyAdmin.upgrade({
+            _proxy: payable(BatchInboxProxy),
+            _implementation: batchInbox
+        });
     }
 
     /// @notice Transfer ownership of the ProxyAdmin contract to the final system owner
