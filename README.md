@@ -2,48 +2,52 @@
 <div align="center">
   <br />
   <br />
-  <a href="https://optimism.io"><img alt="Optimism" src="https://raw.githubusercontent.com/ethereum-optimism/brand-kit/main/assets/svg/OPTIMISM-R.svg" width=600></a>
+  <a href="https://rollux.com"><img alt="Rollux" src="https://raw.githubusercontent.com/SYS-Labs/brand-kits/main/rollux/SVG/rollux_logo.svg" width=300></a>
   <br />
-  <h3><a href="https://optimism.io">Optimism</a> is Ethereum, scaled.</h3>
+  <h3><a href="https://rollux.com">Rollux.com</a></h3>
   <br />
 </div>
 
-## What is Optimism?
+## What is Rollux?
 
-[Optimism](https://www.optimism.io/) is a project dedicated to scaling Ethereum's technology and expanding its ability to coordinate people from across the world to build effective decentralized economies and governance systems. The [Optimism Collective](https://app.optimism.io/announcement) builds open-source software for running L2 blockchains and aims to address key governance and economic challenges in the wider cryptocurrency ecosystem. Optimism operates on the principle of **impact=profit**, the idea that individuals who positively impact the Collective should be proportionally rewarded with profit. **Change the incentives and you change the world.**
+[Rollux](https://rollux.com), built by [SYS Labs](https://syslabs.com), is a project dedicated to scaling blockchain technology and expanding its ability to coordinate people from across the world to build effective decentralized economies and governance systems. More specifically, Rollux is the EVM-equivalent Layer 2 optimistic rollup that introduces some key scaling technologies and security characteristics to Optimism's [OP Stack](https://stack.optimism.io). Built on [Syscoin's](https://syscoin.org) holistically modular Layer 1, Rollux inherits the security of Bitcoin’s mining network through merged-mining, combined with decentralized multi-quorum finality. Rollux fully factors Syscoin's efficient data availability (Proof of Data Availability - PoDA) and data fee market rather than relying on EVM calldata or danksharding. Rollux is secure, scalable, and offers very low fees. Additionally, Rollux provides native Layer 2 data availability which makes it ideal for supporting Layer 3 and fractal scaling.
 
-In this repository, you'll find numerous core components of the OP Stack, the decentralized software stack maintained by the Optimism Collective that powers Optimism and forms the backbone of blockchains like [OP Mainnet](https://explorer.optimism.io/) and [Base](https://base.org). Designed to be "aggressively open source," the OP Stack encourages you to explore, modify, extend, and test the code as needed. Although not all elements of the OP Stack are contained here, many of its essential components can be found within this repository. By collaborating on free, open software and shared standards, the Optimism Collective aims to prevent siloed software development and rapidly accelerate the development of the Ethereum ecosystem. Come contribute, build the future, and redefine power, together.
+In all, Rollux is a unique and powerful alternative to other rollup-based stacks and blockchain scaling technologies in general.
+
+In this repository, you'll find numerous core components of Rollux, the decentralized software stack maintained by SYS Labs, and much of the upstream [OP Stack](https://stack.optimism.io) which is maintained by the Optimism Collective. We encourage you to explore, modify, extend, and test the code as needed. By collaborating on free, open software and shared standards, SYS Labs, Syscoin Foundation and the Optimism Collective aim to prevent siloed software development and rapidly accelerate the development of blockchain ecosystems. Come contribute, build the future, and redefine power, together.
+
+**NOTE: It is important to understand that this repository became public relatively recently. As such, some READMEs might be incomplete. We appreciate your patience while we work quickly to expand technical information about Rollux and refactor existing content! Should you have questions about this repo, feel free to chat with the Rollux community at the links below!**
 
 ## Documentation
 
-- If you want to build on top of OP Mainnet, refer to the [Optimism Community Hub](https://community.optimism.io)
+- If you want to build on top of Rollux Mainnet, refer to the [Rollux Developers Docs](https://rollux.com/developers)
+- If you want to contribute to Rollux, check out the [Protocol Specs](./specs)
 - If you want to build your own OP Stack based blockchain, refer to the [OP Stack docs](https://stack.optimism.io)
-- If you want to contribute to the OP Stack, check out the [Protocol Specs](./specs)
 
 ## Community
 
-General discussion happens most frequently on the [Optimism discord](https://discord.gg/optimism).
-Governance discussion can also be found on the [Optimism Governance Forum](https://gov.optimism.io/).
+General dev discussion happens most frequently on the [Rollux discord](https://discord.gg/rollux) in the `#🔨│builder-general` channel.
+<!--- Governance discussion can also be found on the [Optimism Governance Forum](https://gov.optimism.io/). --->
 
 ## Contributing
 
 Read through [CONTRIBUTING.md](./CONTRIBUTING.md) for a general overview of the contributing process for this repository.
-Use the [Developer Quick Start](./CONTRIBUTING.md#development-quick-start) to get your development environment set up to start working on the Optimism Monorepo.
-Then check out the list of [Good First Issues](https://github.com/ethereum-optimism/optimism/contribute) to find something fun to work on!
+Use the [Developer Quick Start](./CONTRIBUTING.md#development-quick-start) to get your development environment set up to start working on the Rollux Monorepo.
+Then check out the list of [Good First Issues](https://github.com/sys-labs/rollux/contribute) to find something fun to work on!
 
 ## Security Policy and Vulnerability Reporting
 
-Please refer to the canonical [Security Policy](https://github.com/ethereum-optimism/.github/blob/master/SECURITY.md) document for detailed information about how to report vulnerabilities in this codebase.
+If you are reporting any vulnerabilites exclusive to the Rollux codebase, you should follow the common sense "How to" guidelines echoed in Optimism's canonical [Security Policy](https://github.com/ethereum-optimism/.github/blob/master/SECURITY.md).
 Bounty hunters are encouraged to check out [the Optimism Immunefi bug bounty program](https://immunefi.com/bounty/optimism/).
-The Optimism Immunefi program offers up to $2,000,042 for in-scope critical vulnerabilities.
+While this does not apply to any Rollux-specific discoveries, the Optimism Immunefi program offers up to $2,000,042 for in-scope critical vulnerabilities in the Optimism codebase.
+For vulnerabilities in any Rollux or SYS Labs websites, email servers or other non-critical infrastructure, please email SYS Labs at contact@syslabs.com. We appreciate detailed instructions for confirming the vulnerability.
 
-## The Bedrock Upgrade
 
-OP Mainnet is currently preparing for [its next major upgrade, Bedrock](https://dev.optimism.io/introducing-optimism-bedrock/).
+
+## Bedrock-based
+
+Rollux is based upon Optimism Bedrock!
 You can find detailed specifications for the Bedrock upgrade within the [specs folder](./specs) in this repository.
-
-Please note that a significant number of packages and folders within this repository are part of the Bedrock upgrade and are NOT currently running in production.
-Refer to the Directory Structure section below to understand which packages are currently running in production and which are intended for use as part of the Bedrock upgrade.
 
 ## Directory Structure
 
@@ -51,13 +55,13 @@ Refer to the Directory Structure section below to understand which packages are 
 ~~ Production ~~
 ├── <a href="./packages">packages</a>
 │   ├── <a href="./packages/common-ts">common-ts</a>: Common tools for building apps in TypeScript
-│   ├── <a href="./packages/contracts-bedrock">contracts-bedrock</a>: Bedrock smart contracts.
-│   ├── <a href="./packages/contracts-periphery">contracts-periphery</a>: Peripheral contracts for Optimism
+│   ├── <a href="./packages/contracts-bedrock">contracts-bedrock</a>: Rollux Bedrock smart contracts.
+│   ├── <a href="./packages/contracts-periphery">contracts-periphery</a>: Peripheral contracts for Rollux
 │   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Optimism easier
 │   ├── <a href="./packages/chain-mon">chain-mon</a>: Chain monitoring services
 │   ├── <a href="./packages/fault-detector">fault-detector</a>: Service for detecting Sequencer faults
 │   ├── <a href="./packages/replica-healthcheck">replica-healthcheck</a>: Service for monitoring the health of a replica node
-│   └── <a href="./packages/sdk">sdk</a>: provides a set of tools for interacting with Optimism
+│   └── <a href="./packages/sdk">sdk</a>: provides a set of tools for interacting with Rollux
 ├── <a href="./op-bindings">op-bindings</a>: Go bindings for Bedrock smart contracts.
 ├── <a href="./op-batcher">op-batcher</a>: L2-Batch Submitter, submits bundles of batches to L1
 ├── <a href="./op-bootnode">op-bootnode</a>: Standalone op-node discovery bootnode
@@ -79,14 +83,14 @@ Refer to the Directory Structure section below to understand which packages are 
 ~~ Pre-BEDROCK ~~
 ├── <a href="./packages">packages</a>
 │   ├── <a href="./packages/common-ts">common-ts</a>: Common tools for building apps in TypeScript
-│   ├── <a href="./packages/contracts-periphery">contracts-periphery</a>: Peripheral contracts for Optimism
-│   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Optimism easier
+│   ├── <a href="./packages/contracts-periphery">contracts-periphery</a>: Peripheral contracts for Rollux
+│   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Rollux easier
 │   ├── <a href="./packages/chain-mon">chain-mon</a>: Chain monitoring services
 │   ├── <a href="./packages/fault-detector">fault-detector</a>: Service for detecting Sequencer faults
 │   ├── <a href="./packages/replica-healthcheck">replica-healthcheck</a>: Service for monitoring the health of a replica node
 │   └── <a href="./packages/sdk">sdk</a>: provides a set of tools for interacting with Optimism
 ├── <a href="./indexer">indexer</a>: indexes and syncs transactions
-├── <a href="./op-exporter">op-exporter</a>: A prometheus exporter to collect/serve metrics from an Optimism node
+├── <a href="./op-exporter">op-exporter</a>: A prometheus exporter to collect/serve metrics from a Rollux node
 ├── <a href="./proxyd">proxyd</a>: Configurable RPC request router and proxy
 └── <a href="./technical-documents">technical-documents</a>: audits and post-mortem documents
 </pre>
@@ -97,8 +101,8 @@ Refer to the Directory Structure section below to understand which packages are 
 
 | Branch          | Status                                                                           |
 | --------------- | -------------------------------------------------------------------------------- |
-| [master](https://github.com/ethereum-optimism/optimism/tree/master/)                   | Accepts PRs from `develop` when intending to deploy to production.                  |
-| [develop](https://github.com/ethereum-optimism/optimism/tree/develop/)                 | Accepts PRs that are compatible with `master` OR from `release/X.X.X` branches.                    |
+| [master](https://github.com/sys-labs/rollux/tree/master/)                   | Accepts PRs from `develop` when intending to deploy to production.                  |
+| [develop](https://github.com/sys-labs/rollux/tree/develop/)                 | Accepts PRs that are compatible with `master` OR from `release/X.X.X` branches.                    |
 | release/X.X.X                                                                          | Accepts PRs for all changes, particularly those not backwards compatible with `develop` and `master`. |
 
 ### Overview
@@ -114,8 +118,8 @@ Updates from `master` **always** come from the `develop` branch.
 
 ### Development branch
 
-The primary development branch is [`develop`](https://github.com/ethereum-optimism/optimism/tree/develop/).
-`develop` contains the most up-to-date software that remains backwards compatible with the latest experimental [network deployments](https://community.optimism.io/docs/useful-tools/networks/).
+The primary development branch is [`develop`](https://github.com/sys-labs/rollux/tree/develop/).
+`develop` contains the most up-to-date software that remains backwards compatible with the latest testnet [network deployments](https://rollux.com/developers/docs/useful-tools/networks/).
 If you're making a backwards compatible change, please direct your pull request towards `develop`.
 
 **Changes to contracts within `packages/contracts-bedrock/contracts` are usually NOT considered backwards compatible and SHOULD be made against a release candidate branch**.
@@ -159,4 +163,4 @@ It's strongly recommended to avoid merging PRs into develop during an active rel
 
 ## License
 
-All other files within this repository are licensed under the [MIT License](https://github.com/ethereum-optimism/optimism/blob/master/LICENSE) unless stated otherwise.
+All other files within this repository are licensed under the [MIT License](https://github.com/sys-labs/rollux/blob/master/LICENSE) unless stated otherwise.
