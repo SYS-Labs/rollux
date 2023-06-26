@@ -32,7 +32,7 @@ bindings: l1block-bindings \
 	basefee-vault-bindings \
 	legacy-erc20-eth-bindings \
 	dispute-game-factory-bindings \
-	batch-inbox-bindings \
+	fault-dispute-game-bindings \
 	standard-bridge-bindings \
 	cross-domain-messenger-bindings \
 	cannon-mips \
@@ -131,9 +131,8 @@ l1-blocknumber-bindings: compile
 dispute-game-factory-bindings: compile
 	./gen_bindings.sh contracts/dispute/DisputeGameFactory.sol:DisputeGameFactory $(pkg)
 
-
-batch-inbox-bindings: compile
-	./gen_bindings.sh contracts/L1/BatchInbox.sol:BatchInbox $(pkg)
+fault-dispute-game-bindings: compile
+	./gen_bindings.sh contracts/dispute/FaultDisputeGame.sol:FaultDisputeGame $(pkg)
 
 standard-bridge-bindings: compile
 	./gen_bindings.sh contracts/universal/StandardBridge.sol:StandardBridge $(pkg)
