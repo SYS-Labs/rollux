@@ -187,7 +187,7 @@ services:
     ports:
       - "9090:8080"
     volumes:
-      - op_log:/op_log:ro
+      - "${HOME}/${COMPOSE_PROJECT_NAME}-data/op_log:/op_log"
 
 networks:
   default:
