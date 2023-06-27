@@ -40,14 +40,14 @@ services:
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
-      - "9545:8545"
-      - "9546:8546"
-      - "8060:6060"
+      - "127.0.0.1:9545:8545"   # local, rpc L2
+      - "127.0.0.1:9546:8546"   # local, wss L2
+      #      - "8060:6060"            # ?
     volumes:
-      - "l2_data:/db"
+      - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l2_data:/db"
       - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
-    entrypoint:  # pass the L2 specific flags by overriding the entry-point and adding extra arguments
+    entrypoint: # pass the L2 specific flags by overriding the entry-point and adding extra arguments
       - "/bin/sh"
       - "/entrypoint.sh"
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
@@ -87,15 +87,15 @@ services:
       --rpc.enable-admin
       --sys-poda-url=http://poda.tanenbaum.io/vh/
     ports:
-      - "7545:8545"
-      - "9003:9003"
-      - "7300:7300"
-      - "6060:6060"
+      #      - "7545:8545"            # ? rpc ?
+      - "9003:9003"             # public, p2p
+      - "7300:7300"             # public, metrics ?
+      #      - "6060:6060"            # ?
     volumes:
       - "${PWD}/p2p-node-key.txt:/config/p2p-node-key.txt"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
       - "${PWD}/../.devnet/rollup.json:/rollup.json"
-      - op_log:/op_log
+      - "${HOME}/${COMPOSE_PROJECT_NAME}-data/op_log:/op_log"
     dns:
       - 8.8.8.8
       - 8.8.4.4
