@@ -31,6 +31,5 @@
   "StandardBridge",
   "CrossDomainMessenger",
   "MIPS",
-  "PreimageOracle",
-  "BatchInbox"
+  "PreimageOracle"
 ]
