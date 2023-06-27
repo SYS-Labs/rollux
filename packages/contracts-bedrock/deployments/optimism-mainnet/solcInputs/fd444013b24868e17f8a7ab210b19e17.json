@@ -1,0 +1,53 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/L2/L1Block.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.15;\n\nimport { Semver } from \"../universal/Semver.sol\";\n\n/**\n * @custom:proxied\n * @custom:predeploy 0x4200000000000000000000000000000000000015\n * @title L1Block\n * @notice The L1Block predeploy gives users access to information about the last known L1 block.\n *         Values within this contract are updated once per epoch (every L1 block) and can only be\n *         set by the \"depositor\" account, a special system address. Depositor account transactions\n *         are created by the protocol whenever we move to a new epoch.\n */\ncontract L1Block is Semver {\n    /**\n     * @notice Address of the special depositor account.\n     */\n    address public constant DEPOSITOR_ACCOUNT = 0xDeaDDEaDDeAdDeAdDEAdDEaddeAddEAdDEAd0001;\n\n    /**\n     * @notice The latest L1 block number known by the L2 system.\n     */\n    uint64 public number;\n\n    /**\n     * @notice The latest L1 timestamp known by the L2 system.\n     */\n    uint64 public timestamp;\n\n    /**\n     * @notice The latest L1 basefee.\n     */\n    uint256 public basefee;\n\n    /**\n     * @notice The latest L1 blockhash.\n     */\n    bytes32 public hash;\n\n    /**\n     * @notice The number of L2 blocks in the same epoch.\n     */\n    uint64 public sequenceNumber;\n\n    /**\n     * @notice The versioned hash to authenticate the batcher by.\n     */\n    bytes32 public batcherHash;\n\n    /**\n     * @notice The overhead value applied to the L1 portion of the transaction\n     *         fee.\n     */\n    uint256 public l1FeeOverhead;\n\n    /**\n     * @notice The scalar value applied to the L1 portion of the transaction fee.\n     */\n    uint256 public l1FeeScalar;\n\n    /**\n     * @custom:semver 1.0.0\n     */\n    constructor() Semver(1, 0, 0) {}\n\n    /**\n     * @notice Updates the L1 block values.\n     *\n     * @param _number         L1 blocknumber.\n     * @param _timestamp      L1 timestamp.\n     * @param _basefee        L1 basefee.\n     * @param _hash           L1 blockhash.\n     * @param _sequenceNumber Number of L2 blocks since epoch start.\n     * @param _batcherHash    Versioned hash to authenticate batcher by.\n     * @param _l1FeeOverhead  L1 fee overhead.\n     * @param _l1FeeScalar    L1 fee scalar.\n     */\n    function setL1BlockValues(\n        uint64 _number,\n        uint64 _timestamp,\n        uint256 _basefee,\n        bytes32 _hash,\n        uint64 _sequenceNumber,\n        bytes32 _batcherHash,\n        uint256 _l1FeeOverhead,\n        uint256 _l1FeeScalar\n    ) external {\n        require(\n            msg.sender == DEPOSITOR_ACCOUNT,\n            \"L1Block: only the depositor account can set L1 block values\"\n        );\n\n        number = _number;\n        timestamp = _timestamp;\n        basefee = _basefee;\n        hash = _hash;\n        sequenceNumber = _sequenceNumber;\n        batcherHash = _batcherHash;\n        l1FeeOverhead = _l1FeeOverhead;\n        l1FeeScalar = _l1FeeScalar;\n    }\n}\n"
+    },
+    "contracts/universal/Semver.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\nimport { Strings } from \"@openzeppelin/contracts/utils/Strings.sol\";\n\n/**\n * @title Semver\n * @notice Semver is a simple contract for managing contract versions.\n */\ncontract Semver {\n    /**\n     * @notice Contract version number (major).\n     */\n    uint256 private immutable MAJOR_VERSION;\n\n    /**\n     * @notice Contract version number (minor).\n     */\n    uint256 private immutable MINOR_VERSION;\n\n    /**\n     * @notice Contract version number (patch).\n     */\n    uint256 private immutable PATCH_VERSION;\n\n    /**\n     * @param _major Version number (major).\n     * @param _minor Version number (minor).\n     * @param _patch Version number (patch).\n     */\n    constructor(\n        uint256 _major,\n        uint256 _minor,\n        uint256 _patch\n    ) {\n        MAJOR_VERSION = _major;\n        MINOR_VERSION = _minor;\n        PATCH_VERSION = _patch;\n    }\n\n    /**\n     * @notice Returns the full semver contract version.\n     *\n     * @return Semver contract version as a string.\n     */\n    function version() public view returns (string memory) {\n        return\n            string(\n                abi.encodePacked(\n                    Strings.toString(MAJOR_VERSION),\n                    \".\",\n                    Strings.toString(MINOR_VERSION),\n                    \".\",\n                    Strings.toString(PATCH_VERSION)\n                )\n            );\n    }\n}\n"
+    },
+    "node_modules/@openzeppelin/contracts/utils/Strings.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v4.7.0) (utils/Strings.sol)\n\npragma solidity ^0.8.0;\n\n/**\n * @dev String operations.\n */\nlibrary Strings {\n    bytes16 private constant _HEX_SYMBOLS = \"0123456789abcdef\";\n    uint8 private constant _ADDRESS_LENGTH = 20;\n\n    /**\n     * @dev Converts a `uint256` to its ASCII `string` decimal representation.\n     */\n    function toString(uint256 value) internal pure returns (string memory) {\n        // Inspired by OraclizeAPI's implementation - MIT licence\n        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol\n\n        if (value == 0) {\n            return \"0\";\n        }\n        uint256 temp = value;\n        uint256 digits;\n        while (temp != 0) {\n            digits++;\n            temp /= 10;\n        }\n        bytes memory buffer = new bytes(digits);\n        while (value != 0) {\n            digits -= 1;\n            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));\n            value /= 10;\n        }\n        return string(buffer);\n    }\n\n    /**\n     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation.\n     */\n    function toHexString(uint256 value) internal pure returns (string memory) {\n        if (value == 0) {\n            return \"0x00\";\n        }\n        uint256 temp = value;\n        uint256 length = 0;\n        while (temp != 0) {\n            length++;\n            temp >>= 8;\n        }\n        return toHexString(value, length);\n    }\n\n    /**\n     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation with fixed length.\n     */\n    function toHexString(uint256 value, uint256 length) internal pure returns (string memory) {\n        bytes memory buffer = new bytes(2 * length + 2);\n        buffer[0] = \"0\";\n        buffer[1] = \"x\";\n        for (uint256 i = 2 * length + 1; i > 1; --i) {\n            buffer[i] = _HEX_SYMBOLS[value & 0xf];\n            value >>= 4;\n        }\n        require(value == 0, \"Strings: hex length insufficient\");\n        return string(buffer);\n    }\n\n    /**\n     * @dev Converts an `address` with fixed length of 20 bytes to its not checksummed ASCII `string` hexadecimal representation.\n     */\n    function toHexString(address addr) internal pure returns (string memory) {\n        return toHexString(uint256(uint160(addr)), _ADDRESS_LENGTH);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "remappings": [
+      "@cwia/=node_modules/clones-with-immutable-args/src/",
+      "@openzeppelin/=node_modules/@openzeppelin/",
+      "@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/",
+      "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+      "@rari-capital/=node_modules/@rari-capital/",
+      "@rari-capital/solmate/=node_modules/@rari-capital/solmate/",
+      "clones-with-immutable-args/=node_modules/clones-with-immutable-args/",
+      "ds-test/=node_modules/ds-test/src/",
+      "forge-std/=node_modules/forge-std/src/"
+    ],
+    "optimizer": {
+      "enabled": true,
+      "runs": 999999
+    },
+    "metadata": {
+      "bytecodeHash": "none"
+    },
+    "outputSelection": {
+      "*": {
+        "": [
+          "ast"
+        ],
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "storageLayout",
+          "devdoc",
+          "userdoc"
+        ]
+      }
+    },
+    "evmVersion": "london",
+    "libraries": {}
+  }
+}

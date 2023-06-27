@@ -1,0 +1,178 @@
+{
+  "address": "0x24eaCA97875ef560de23607eA47bd806e9BF12bf",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address payable",
+          "name": "_otherBridge",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "MESSENGER",
+      "outputs": [
+        {
+          "internalType": "contract CrossDomainMessenger",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "OTHER_BRIDGE",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "_versionHashes",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "appendSequencerBatchFromL1",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "podaMap",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "version",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xfdfc2b86a6ecfc4e3db79abc2992078c8cb5111908198b516bc71e0ae786deea",
+  "receipt": {
+    "to": null,
+    "from": "0xbcCC3Ba5e2F84A88d66f62A9fE260A7C303cf440",
+    "contractAddress": "0x24eaCA97875ef560de23607eA47bd806e9BF12bf",
+    "transactionIndex": 1,
+    "gasUsed": "513751",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xd9206043c063e1bba61ffd0dc12d82443a73a301acd9b1d076f8c7478a277d12",
+    "transactionHash": "0xfdfc2b86a6ecfc4e3db79abc2992078c8cb5111908198b516bc71e0ae786deea",
+    "logs": [],
+    "blockNumber": 41416,
+    "cumulativeGasUsed": "560592",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x9A79018d3A5df42D32b790c0093702D4ba87984D"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "91898a4f0064c2156e3ea11e13d195e5",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.15+commit.e14f2714\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address payable\",\"name\":\"_otherBridge\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"MESSENGER\",\"outputs\":[{\"internalType\":\"contract CrossDomainMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OTHER_BRIDGE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"_versionHashes\",\"type\":\"bytes32[]\"}],\"name\":\"appendSequencerBatchFromL1\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"podaMap\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"custom:proxied\":\"@custom:predeploy 0x4200000000000000000000000000000000000010\",\"kind\":\"dev\",\"methods\":{\"constructor\":{\"custom:semver\":\"1.0.0\",\"params\":{\"_otherBridge\":\"Address of the BatchInbox.\"}},\"version()\":{\"returns\":{\"_0\":\"Semver contract version as a string.\"}}},\"title\":\"L2BatchInbox\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"MESSENGER()\":{\"notice\":\"Messenger contract on this domain.\"},\"OTHER_BRIDGE()\":{\"notice\":\"BatchInbox on L1 is the only one who can call this through CrossDomainMessenger\"},\"appendSequencerBatchFromL1(bytes32[])\":{\"notice\":\"appends an array of valid version hashes to the chain, each VH is checked via the VH precompile.\"},\"version()\":{\"notice\":\"Returns the full semver contract version.\"}},\"notice\":\"The L2BatchInbox receives L1 PoDA messages and stores them in podaMap, useful for L3's which need DA from L1\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/L2/L2BatchInbox.sol\":\"L2BatchInbox\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\"},\"optimizer\":{\"enabled\":true,\"runs\":999999},\"remappings\":[\":@cwia/=node_modules/clones-with-immutable-args/src/\",\":@openzeppelin/=node_modules/@openzeppelin/\",\":@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/\",\":@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/\",\":@rari-capital/=node_modules/@rari-capital/\",\":@rari-capital/solmate/=node_modules/@rari-capital/solmate/\",\":clones-with-immutable-args/=node_modules/clones-with-immutable-args/\",\":ds-test/=node_modules/ds-test/src/\",\":forge-std/=node_modules/forge-std/src/\"]},\"sources\":{\"contracts/L1/ResourceMetering.sol\":{\"keccak256\":\"0xbd7b9532a70d8c842bfce0ea971be50d02fbbf0227c9ad55c71ac68d438010f4\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://4969f478dd54e89392cda2ea0c5edcf1be55a5dee43a0e410527b6e3bcb85c88\",\"dweb:/ipfs/QmU2crAojw8DRDsz7PAPrereazjFsKh9wtfTpTDVh6NLfW\"]},\"contracts/L2/L2BatchInbox.sol\":{\"keccak256\":\"0xe27dba2088b1ccb7aa4afcd776b6b38f8a3d83eb9e467a82079ba9d44e47966f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3d36b9b168ebd97539257f9f706a2151f022b353dc377332c5de0aca60c10750\",\"dweb:/ipfs/QmbA1Paphe3Bx1sN94oj4wrVfqn3TRkEovWeDeBL55z298\"]},\"contracts/libraries/Arithmetic.sol\":{\"keccak256\":\"0xc8858039f87e48e6f18c1af8bc0b03e57cfef564acddfd06e4d91e3db7ac5ed6\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://2fc79af1e844aa6dc1c68067bfe1d359df8d4e9a3e8881afb3bcfcbf68071714\",\"dweb:/ipfs/QmcNC4k8zmvwj4kZizSenTiWbx2DJQPbwqXXLF4iMbkRVD\"]},\"contracts/libraries/Burn.sol\":{\"keccak256\":\"0x54233b226ba6919dc46d438bc790108d8f855001002a1b9c3c37aed7a83e5f3f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://4051a4baca357a9191a6c9e3aa1593a17b69dd7915966e23e4cb269e9c1d9ed4\",\"dweb:/ipfs/QmadKjGKvxm53abVHQdsxrXBc8e9jXywu6vvhkAgjsx59J\"]},\"contracts/libraries/Constants.sol\":{\"keccak256\":\"0x8c7be28a175eb732995a7f704560163c30261f9f70d377f865c5060882509f5d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://f72aba26553b10ca88708e05461691b36b0d2ec7a87f718022fe119ca9c70852\",\"dweb:/ipfs/QmQtDEB1F3D8RsgG63KSJ9t7ZyFLaXc2Av81vKD9y2TMn7\"]},\"contracts/libraries/Encoding.sol\":{\"keccak256\":\"0x170cd0821cec37976a6391da20f1dcdcb1ea9ffada96ccd3c57ff2e357589418\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://f18156216c1f9457c2e032a812ad70f2babbc5b89997554ff014d64c483fb2ff\",\"dweb:/ipfs/Qmc5rjMaBFn3jV7XqDrEvRbmatQvJxeVJYA5B5rdcKPkcJ\"]},\"contracts/libraries/Hashing.sol\":{\"keccak256\":\"0x5d4988987899306d2785b3de068194a39f8e829a7864762a07a0016db5189f5e\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6746ed0d26d603568818cc52a29d0209effd69f7e55bd0017a6b91bd6cf319fe\",\"dweb:/ipfs/QmPebCmCELMBRtDDxt5ziEPfRXUh6tfm2qJdwz3iyrDdWN\"]},\"contracts/libraries/Predeploys.sol\":{\"keccak256\":\"0xfc30fb239b5f00284f4b8f578a62f0882597e939335c91ea9bc4aab3070ddc43\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://fa132267b3a9d98568b4e02cbb68fe2d2c0ca630826242c1b2293a8fa35bd302\",\"dweb:/ipfs/QmdYvcGbaykP6wyBu5T2obXrWK56xGnfWqbYeeWpTChq3w\"]},\"contracts/libraries/SafeCall.sol\":{\"keccak256\":\"0x3deedbfc0a57228366531a4f09c94d174f0bb4ea49476a92226d471f3abb349b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e8091b178f6710cb7738f07b1706fe18c241b6275b6641b32724d4ecf5a087dd\",\"dweb:/ipfs/Qmd5kchcZhHepJ3boHRTVDJUr9jsuweWEyoUmNmMFJB6vp\"]},\"contracts/libraries/Types.sol\":{\"keccak256\":\"0x4fe8ec920798661a828430bd30dc2715eeb40534ec01c0a7bf41cb4ab422e134\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://74c8471869900bd459358cd990bda1c8d234c06b788804c7049cf465ae1e299f\",\"dweb:/ipfs/QmakcfP6NmbVUQsKqH7rEyJsbiqckigLahw9g74oencEJ7\"]},\"contracts/libraries/rlp/RLPWriter.sol\":{\"keccak256\":\"0x5aa9d21c5b41c9786f23153f819d561ae809a1d55c7b0d423dfeafdfbacedc78\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://921c44e6a0982b9a4011900fda1bda2c06b7a85894967de98b407a83fe9f90c0\",\"dweb:/ipfs/QmSsHLKDUQ82kpKdqB6VntVGKuPDb4W9VdotsubuqWBzio\"]},\"contracts/universal/CrossDomainMessenger.sol\":{\"keccak256\":\"0x3c99b1e768cc4c1e064ccc137b1b4d5961bf4edf071be84cc216c5b20f1c00da\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e36b2a6325c2f804d769271575669b62ab2da2df3c81921ac7487399fe02af07\",\"dweb:/ipfs/QmTCmcEKwvD8Xvjyev268Bkz27FC7TJpUbw1nADcsThnUr\"]},\"contracts/universal/Semver.sol\":{\"keccak256\":\"0x400059d3edb9efc9c23e6fbc18de6710f9235a4ffba4ab23bdb9f825273f093b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9baf7797439c0ae6512f4639dfc6a1934dbd4e4d7cbb8e63e99264ff47682c9e\",\"dweb:/ipfs/QmawAuhppPyeoZH3rC1uh87xDELa9Lyfw5pYsBqE8myE1m\"]},\"node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol\":{\"keccak256\":\"0x0203dcadc5737d9ef2c211d6fa15d18ebc3b30dfa51903b64870b01a062b0b4e\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6eb2fd1e9894dbe778f4b8131adecebe570689e63cf892f4e21257bfe1252497\",\"dweb:/ipfs/QmXgUGNfZvrn6N2miv3nooSs7Jm34A41qz94fu2GtDFcx8\"]},\"node_modules/@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol\":{\"keccak256\":\"0x611aa3f23e59cfdd1863c536776407b3e33d695152a266fa7cfb34440a29a8a3\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9b4b2110b7f2b3eb32951bc08046fa90feccffa594e1176cb91cdfb0e94726b4\",\"dweb:/ipfs/QmSxLwYjicf9zWFuieRc8WQwE4FisA1Um5jp1iSa731TGt\"]},\"node_modules/@openzeppelin/contracts/proxy/utils/Initializable.sol\":{\"keccak256\":\"0x2a21b14ff90012878752f230d3ffd5c3405e5938d06c97a7d89c0a64561d0d66\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3313a8f9bb1f9476857c9050067b31982bf2140b83d84f3bc0cec1f62bbe947f\",\"dweb:/ipfs/Qma17Pk8NRe7aB4UD3jjVxk7nSFaov3eQyv86hcyqkwJRV\"]},\"node_modules/@openzeppelin/contracts/utils/Address.sol\":{\"keccak256\":\"0xd6153ce99bcdcce22b124f755e72553295be6abcd63804cfdffceb188b8bef10\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://35c47bece3c03caaa07fab37dd2bb3413bfbca20db7bd9895024390e0a469487\",\"dweb:/ipfs/QmPGWT2x3QHcKxqe6gRmAkdakhbaRgx3DLzcakHz5M4eXG\"]},\"node_modules/@openzeppelin/contracts/utils/Strings.sol\":{\"keccak256\":\"0xaf159a8b1923ad2a26d516089bceca9bdeaeacd04be50983ea00ba63070f08a3\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6f2cf1c531122bc7ca96b8c8db6a60deae60441e5223065e792553d4849b5638\",\"dweb:/ipfs/QmPBdJmBBABMDCfyDjCbdxgiqRavgiSL88SYPGibgbPas9\"]},\"node_modules/@openzeppelin/contracts/utils/math/Math.sol\":{\"keccak256\":\"0xd15c3e400531f00203839159b2b8e7209c5158b35618f570c695b7e47f12e9f0\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://b600b852e0597aa69989cc263111f02097e2827edc1bdc70306303e3af5e9929\",\"dweb:/ipfs/QmU4WfM28A1nDqghuuGeFmN3CnVrk6opWtiF65K4vhFPeC\"]},\"node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol\":{\"keccak256\":\"0xb3ebde1c8d27576db912d87c3560dab14adfb9cd001be95890ec4ba035e652e7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://a709421c4f5d4677db8216055d2d4dac96a613efdb08178a9f7041f0c5cef689\",\"dweb:/ipfs/QmYs2rStvVLDnSJs8HgaMD1ABwoKKWdiVbQyNfLfFWTjTy\"]},\"node_modules/@rari-capital/solmate/src/utils/FixedPointMathLib.sol\":{\"keccak256\":\"0x622fcd8a49e132df5ec7651cc6ae3aaf0cf59bdcd67a9a804a1b9e2485113b7d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://af77088eb606427d4c55e578984a615779c86bc30646a20f7bb27299ba390f7c\",\"dweb:/ipfs/QmZGQdhdQDtHc7gZXWrKXgA3govc74X8U63BiWhPQK3mK8\"]}},\"version\":1}",
+  "bytecode": "0x61012060405234801561001157600080fd5b5060405161094e38038061094e83398101604081905261003091610069565b6001608052600060a081905260c05273420000000000000000000000000000000000000760e0526001600160a01b031661010052610099565b60006020828403121561007b57600080fd5b81516001600160a01b038116811461009257600080fd5b9392505050565b60805160a05160c05160e0516101005161085d6100f16000396000818160d701526101870152600081816101230152818161015d01526101be015260006103bc015260006103930152600061036a015261085d6000f3fe608060405234801561001057600080fd5b50600436106100675760003560e01c806366c0a4b41161005057806366c0a4b41461009f5780637f46ddb2146100d2578063927ede2d1461011e57600080fd5b80631daf41b01461006c57806354fd4d5014610081575b600080fd5b61007f61007a366004610543565b610145565b005b610089610363565b60405161009691906105e8565b60405180910390f35b6100c26100ad366004610639565b60006020819052908152604090205460ff1681565b6040519015158152602001610096565b6100f97f000000000000000000000000000000000000000000000000000000000000000081565b60405173ffffffffffffffffffffffffffffffffffffffff9091168152602001610096565b6100f97f000000000000000000000000000000000000000000000000000000000000000081565b3373ffffffffffffffffffffffffffffffffffffffff7f00000000000000000000000000000000000000000000000000000000000000001614801561026357507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff16636e296e456040518163ffffffff1660e01b8152600401602060405180830381865afa158015610227573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061024b9190610652565b73ffffffffffffffffffffffffffffffffffffffff16145b6102f3576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603f60248201527f4c324261746368496e626f783a2066756e6374696f6e2063616e206f6e6c792060448201527f62652063616c6c65642066726f6d20746865206f746865722062726964676500606482015260840160405180910390fd5b806102fd57600080fd5b60005b8181101561035e57600160008085858581811061031f5761031f61068f565b90506020020135815260200190815260200160002060006101000a81548160ff0219169083151502179055508080610356906106ed565b915050610300565b505050565b606061038e7f0000000000000000000000000000000000000000000000000000000000000000610406565b6103b77f0000000000000000000000000000000000000000000000000000000000000000610406565b6103e07f0000000000000000000000000000000000000000000000000000000000000000610406565b6040516020016103f293929190610725565b604051602081830303815290604052905090565b60608160000361044957505060408051808201909152600181527f3000000000000000000000000000000000000000000000000000000000000000602082015290565b8160005b8115610473578061045d816106ed565b915061046c9050600a836107ca565b915061044d565b60008167ffffffffffffffff81111561048e5761048e6107de565b6040519080825280601f01601f1916602001820160405280156104b8576020820181803683370190505b5090505b841561053b576104cd60018361080d565b91506104da600a86610824565b6104e5906030610838565b60f81b8183815181106104fa576104fa61068f565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916908160001a905350610534600a866107ca565b94506104bc565b949350505050565b6000806020838503121561055657600080fd5b823567ffffffffffffffff8082111561056e57600080fd5b818501915085601f83011261058257600080fd5b81358181111561059157600080fd5b8660208260051b85010111156105a657600080fd5b60209290920196919550909350505050565b60005b838110156105d35781810151838201526020016105bb565b838111156105e2576000848401525b50505050565b60208152600082518060208401526106078160408501602087016105b8565b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0169190910160400192915050565b60006020828403121561064b57600080fd5b5035919050565b60006020828403121561066457600080fd5b815173ffffffffffffffffffffffffffffffffffffffff8116811461068857600080fd5b9392505050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff820361071e5761071e6106be565b5060010190565b600084516107378184602089016105b8565b80830190507f2e000000000000000000000000000000000000000000000000000000000000008082528551610773816001850160208a016105b8565b6001920191820152835161078e8160028401602088016105b8565b0160020195945050505050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b6000826107d9576107d961079b565b500490565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b60008282101561081f5761081f6106be565b500390565b6000826108335761083361079b565b500690565b6000821982111561084b5761084b6106be565b50019056fea164736f6c634300080f000a",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100675760003560e01c806366c0a4b41161005057806366c0a4b41461009f5780637f46ddb2146100d2578063927ede2d1461011e57600080fd5b80631daf41b01461006c57806354fd4d5014610081575b600080fd5b61007f61007a366004610543565b610145565b005b610089610363565b60405161009691906105e8565b60405180910390f35b6100c26100ad366004610639565b60006020819052908152604090205460ff1681565b6040519015158152602001610096565b6100f97f000000000000000000000000000000000000000000000000000000000000000081565b60405173ffffffffffffffffffffffffffffffffffffffff9091168152602001610096565b6100f97f000000000000000000000000000000000000000000000000000000000000000081565b3373ffffffffffffffffffffffffffffffffffffffff7f00000000000000000000000000000000000000000000000000000000000000001614801561026357507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff167f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff16636e296e456040518163ffffffff1660e01b8152600401602060405180830381865afa158015610227573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061024b9190610652565b73ffffffffffffffffffffffffffffffffffffffff16145b6102f3576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603f60248201527f4c324261746368496e626f783a2066756e6374696f6e2063616e206f6e6c792060448201527f62652063616c6c65642066726f6d20746865206f746865722062726964676500606482015260840160405180910390fd5b806102fd57600080fd5b60005b8181101561035e57600160008085858581811061031f5761031f61068f565b90506020020135815260200190815260200160002060006101000a81548160ff0219169083151502179055508080610356906106ed565b915050610300565b505050565b606061038e7f0000000000000000000000000000000000000000000000000000000000000000610406565b6103b77f0000000000000000000000000000000000000000000000000000000000000000610406565b6103e07f0000000000000000000000000000000000000000000000000000000000000000610406565b6040516020016103f293929190610725565b604051602081830303815290604052905090565b60608160000361044957505060408051808201909152600181527f3000000000000000000000000000000000000000000000000000000000000000602082015290565b8160005b8115610473578061045d816106ed565b915061046c9050600a836107ca565b915061044d565b60008167ffffffffffffffff81111561048e5761048e6107de565b6040519080825280601f01601f1916602001820160405280156104b8576020820181803683370190505b5090505b841561053b576104cd60018361080d565b91506104da600a86610824565b6104e5906030610838565b60f81b8183815181106104fa576104fa61068f565b60200101907effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916908160001a905350610534600a866107ca565b94506104bc565b949350505050565b6000806020838503121561055657600080fd5b823567ffffffffffffffff8082111561056e57600080fd5b818501915085601f83011261058257600080fd5b81358181111561059157600080fd5b8660208260051b85010111156105a657600080fd5b60209290920196919550909350505050565b60005b838110156105d35781810151838201526020016105bb565b838111156105e2576000848401525b50505050565b60208152600082518060208401526106078160408501602087016105b8565b601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0169190910160400192915050565b60006020828403121561064b57600080fd5b5035919050565b60006020828403121561066457600080fd5b815173ffffffffffffffffffffffffffffffffffffffff8116811461068857600080fd5b9392505050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff820361071e5761071e6106be565b5060010190565b600084516107378184602089016105b8565b80830190507f2e000000000000000000000000000000000000000000000000000000000000008082528551610773816001850160208a016105b8565b6001920191820152835161078e8160028401602088016105b8565b0160020195945050505050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b6000826107d9576107d961079b565b500490565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b60008282101561081f5761081f6106be565b500390565b6000826108335761083361079b565b500690565b6000821982111561084b5761084b6106be565b50019056fea164736f6c634300080f000a",
+  "devdoc": {
+    "version": 1,
+    "kind": "dev",
+    "methods": {
+      "constructor": {
+        "params": {
+          "_otherBridge": "Address of the BatchInbox."
+        }
+      },
+      "version()": {
+        "returns": {
+          "_0": "Semver contract version as a string."
+        }
+      }
+    },
+    "title": "L2BatchInbox"
+  },
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "MESSENGER()": {
+        "notice": "Messenger contract on this domain."
+      },
+      "OTHER_BRIDGE()": {
+        "notice": "BatchInbox on L1 is the only one who can call this through CrossDomainMessenger"
+      },
+      "appendSequencerBatchFromL1(bytes32[])": {
+        "notice": "appends an array of valid version hashes to the chain, each VH is checked via the VH precompile."
+      },
+      "version()": {
+        "notice": "Returns the full semver contract version."
+      }
+    },
+    "notice": "The L2BatchInbox receives L1 PoDA messages and stores them in podaMap, useful for L3's which need DA from L1"
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3389,
+        "contract": "contracts/L2/L2BatchInbox.sol:L2BatchInbox",
+        "label": "podaMap",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_bytes32,t_bool)"
+      }
+    ],
+    "types": {
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_mapping(t_bytes32,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      }
+    }
+  }
+}
