@@ -37,17 +37,18 @@ contract PostSherlockL2 is SafeBuilder {
     mapping(uint256 => ContractSet) internal proxies;
 
     /// @notice The expected versions for the contracts to be upgraded to.
-    string constant internal BaseFeeVault_Version = "1.1.0";
+    string constant internal BaseFeeVault_Version = "1.2.0";
     string constant internal GasPriceOracle_Version = "1.0.0";
     string constant internal L1Block_Version = "1.0.0";
-    string constant internal L1FeeVault_Version = "1.1.0";
+    string constant internal L1FeeVault_Version = "1.2.0";
     string constant internal L2CrossDomainMessenger_Version = "1.4.0";
     string constant internal L2ERC721Bridge_Version = "1.1.0";
     string constant internal L2StandardBridge_Version = "1.1.0";
     string constant internal L2ToL1MessagePasser_Version = "1.0.0";
-    string constant internal SequencerFeeVault_Version = "1.1.0";
+    string constant internal SequencerFeeVault_Version = "1.2.0";
     string constant internal OptimismMintableERC20Factory_Version = "1.1.0";
     string constant internal OptimismMintableERC721Factory_Version = "1.2.0";
+
 
     /// @notice Place the contract addresses in storage so they can be used when building calldata.
     function setUp() external {
@@ -79,17 +80,17 @@ contract PostSherlockL2 is SafeBuilder {
             OptimismMintableERC721Factory: Predeploys.OPTIMISM_MINTABLE_ERC721_FACTORY
         });
         implementations[OP_MAINNET] = ContractSet({
-            BaseFeeVault: 0x39CadECd381928F1330D1B2c13c8CAC358Dce65A,
-            GasPriceOracle: 0x04E0Bc2f892C2C0214f7868d4aDE7378d9ec6873,
+            BaseFeeVault: 0x63D297aa3feCbf6eEdE0aCd15B0308B9C8379afb,
+            GasPriceOracle: 0xf2ad472ade2009Ef5eeb26B7fe27BA9fd27dE46A,
             L1Block: 0x92e692a4E075D09B1a66347b5cB26aE0c1839482,
-            L1FeeVault: 0x63D297aa3feCbf6eEdE0aCd15B0308B9C8379afb,
-            L2CrossDomainMessenger: 0x24eaCA97875ef560de23607eA47bd806e9BF12bf,
-            L2ERC721Bridge: 0xd513d73EeF8A464A65b76770491FDE9BacEb5b83,
-            L2StandardBridge: 0x1b89941808113C79ecAf3429b85F6273D4756209,
-            L2ToL1MessagePasser: 0x921537110D0a929B7Ab56e6E5058306A7112aC19,
-            SequencerFeeVault: 0xf2ad472ade2009Ef5eeb26B7fe27BA9fd27dE46A,
-            OptimismMintableERC20Factory: 0x51ac8093D762BBD17C8d898634916dAc14e1BCC1,
-            OptimismMintableERC721Factory: 0x61200B9fcBB421aFD0Bb5A732fe48ec98482E39C
+            L1FeeVault: 0x51ac8093D762BBD17C8d898634916dAc14e1BCC1,
+            L2CrossDomainMessenger: 0x2b76AaE10952527b8b34Ead1C1703F53fCfC8B27,
+            L2ERC721Bridge: 0x04E0Bc2f892C2C0214f7868d4aDE7378d9ec6873,
+            L2StandardBridge: 0x921537110D0a929B7Ab56e6E5058306A7112aC19,
+            L2ToL1MessagePasser: 0xd513d73EeF8A464A65b76770491FDE9BacEb5b83,
+            SequencerFeeVault: 0x39CadECd381928F1330D1B2c13c8CAC358Dce65A,
+            OptimismMintableERC20Factory: 0x61200B9fcBB421aFD0Bb5A732fe48ec98482E39C,
+            OptimismMintableERC721Factory: 0x1a196196C3afD9f702cA722095904Fc97812Ee02
         });
 
         proxies[OP_MAINNET] = ContractSet({
