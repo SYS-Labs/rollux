@@ -29,7 +29,7 @@ def check_contract_called_in_past_hour():
 
     # Iterate back through blocks to find the one that is approximately two hours ago
     two_hours_ago_block_number = current_block_number
-    one_hour_ago_timestamp = current_timestamp - 7200
+    one_hour_ago_timestamp = current_timestamp - 3600
 
     while True:
         logging.info(f"Entering while loop for checking all blocks in the past 2hrs")
@@ -49,7 +49,7 @@ def update_metrics():
     while True:
         contract_called = check_contract_called_in_past_hour()
         contract_health_metric.set(int(contract_called))
-        time.sleep(7200)
+        time.sleep(3600)
 
 
 def get_contract_transactions(contract_address, from_block, to_block):
