@@ -4,12 +4,8 @@ import portalArtifactsMainnet from '@eth-optimism/contracts-bedrock/deployments/
 import portalArtifactsGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/OptimismPortalProxy.json'
 import l2OutputOracleArtifactsMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/L2OutputOracleProxy.json'
 import l2OutputOracleArtifactsGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/L2OutputOracleProxy.json'
-import addressManagerArtifactMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/AddressManager.json'
-import addressManagerArtifactGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/AddressManager.json'
 import l1StandardBridgeArtifactMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/L1StandardBridgeProxy.json'
-import l1StandardBridgeArtifactGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/L1StandardBridgeProxy.json'
 import l1CrossDomainMessengerArtifactMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/L1CrossDomainMessengerProxy.json'
-import l1CrossDomainMessengerArtifactGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/L1CrossDomainMessengerProxy.json'
 
 const portalAddresses = {
   mainnet: portalArtifactsMainnet.address,
@@ -21,19 +17,13 @@ const l2OutputOracleAddresses = {
   goerli: l2OutputOracleArtifactsGoerli.address,
 }
 
-const addressManagerAddresses = {
-  mainnet: addressManagerArtifactMainnet.address,
-  goerli: addressManagerArtifactGoerli.address,
-}
 
 const l1StandardBridgeAddresses = {
   mainnet: l1StandardBridgeArtifactMainnet.address,
-  goerli: l1StandardBridgeArtifactGoerli.address,
 }
 
 const l1CrossDomainMessengerAddresses = {
   mainnet: l1CrossDomainMessengerArtifactMainnet.address,
-  goerli: l1CrossDomainMessengerArtifactGoerli.address,
 }
 
 // legacy
@@ -110,7 +100,7 @@ export const DEFAULT_L2_CONTRACT_ADDRESSES: OEL2ContractsLike = {
  */
 const getL1ContractsByNetworkName = (network: string): OEL1ContractsLike => {
   return {
-    AddressManager: addressManagerAddresses[network],
+    AddressManager: '',
     L1CrossDomainMessenger: l1CrossDomainMessengerAddresses[network],
     L1StandardBridge: l1StandardBridgeAddresses[network],
     StateCommitmentChain: stateCommitmentChainAddresses[network],
