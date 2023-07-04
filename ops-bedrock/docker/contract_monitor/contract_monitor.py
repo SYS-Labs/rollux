@@ -29,7 +29,6 @@ def check_contract_called_in_last_50_blocks():
     fifty_blocks_ago_block_number = current_block_number - 50
 
     contract_call_events = get_contract_transactions(checksum_address, fifty_blocks_ago_block_number, current_block_number)
-    logging.info(f"contract call events: {contract_call_events}")
     logging.info(f"number of contract call events is {len(contract_call_events)}")
     return len(contract_call_events) > 0
 
@@ -39,7 +38,7 @@ def update_metrics():
     while True:
         contract_called = check_contract_called_in_last_50_blocks()
         contract_health_metric.set(int(contract_called))
-        time.sleep(3600)
+        time.sleep(1800)
 
 
 def get_contract_transactions(contract_address, from_block, to_block):
