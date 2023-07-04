@@ -22,24 +22,13 @@ checksum_address = w3.to_checksum_address(CONTRACT_ADDRESS)
 contract_health_metric = Gauge(METRIC_NAME, "Contract called in the past hour")
 
 
-def check_contract_called_in_past_hour():
+def check_contract_called_in_last_50_blocks():
     current_block_number = w3.eth.block_number
-    current_block = w3.eth.get_block(current_block_number)
-    current_timestamp = current_block['timestamp']
 
-    # Iterate back through blocks to find the one that is approximately two hours ago
-    two_hours_ago_block_number = current_block_number
-    one_hour_ago_timestamp = current_timestamp - 3600
+    # Determine the block number of the block that was 50 blocks ago
+    fifty_blocks_ago_block_number = current_block_number - 50
 
-    while True:
-        logging.info(f"Entering while loop for checking all blocks in the past 2hrs")
-        two_hours_ago_block_number -= 1
-        block = w3.eth.get_block(two_hours_ago_block_number)
-        if block['timestamp'] <= one_hour_ago_timestamp:
-            logging.info(f"Exiting while loop that checks all blocks in the past 2hrs")
-            break
-    contract_call_events = get_contract_transactions(checksum_address, two_hours_ago_block_number, current_block_number)
-    logging.info(f"contract call events: {contract_call_events}")
+    contract_call_events = get_contract_transactions(checksum_address, fifty_blocks_ago_block_number, current_block_number)
     logging.info(f"number of contract call events is {len(contract_call_events)}")
     return len(contract_call_events) > 0
 
@@ -47,9 +36,9 @@ def check_contract_called_in_past_hour():
 def update_metrics():
     logging.info("update_metrics called")
     while True:
-        contract_called = check_contract_called_in_past_hour()
+        contract_called = check_contract_called_in_last_50_blocks()
         contract_health_metric.set(int(contract_called))
-        time.sleep(3600)
+        time.sleep(1800)
 
 
 def get_contract_transactions(contract_address, from_block, to_block):
