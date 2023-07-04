@@ -1,6 +1,10 @@
 op-migrate:
 	go build -o ./bin/op-migrate ./cmd/op-migrate/main.go
 
+check-l2:
+	go build -o ./bin/check-l2 ./cmd/check-l2/main.go
+
+
 test:
 	go test ./...
 

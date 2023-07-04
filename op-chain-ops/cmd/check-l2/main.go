@@ -109,7 +109,7 @@ func checkPredeployConfig(client *ethclient.Client, name string) error {
 				return err
 			}
 			if impl != standardImpl {
-				log.Warn("%s does not have the standard implementation", name)
+				log.Warn("error", "%s does not have the standard implementation", name)
 			}
 			implCode, err := client.CodeAt(context.Background(), impl, nil)
 			if err != nil {
@@ -435,8 +435,8 @@ func checkWETH9(addr common.Address, client *ethclient.Client) error {
 		return err
 	}
 	log.Info("WETH9", "name", name)
-	if name != "Wrapped Ether" {
-		return fmt.Errorf("WETH9 name should be 'Wrapped Ether', got %s", name)
+	if name != "Wrapped Syscoin" {
+		return fmt.Errorf("WETH9 name should be 'Wrapped Syscoin', got %s", name)
 	}
 
 	symbol, err := contract.Symbol(&bind.CallOpts{})
@@ -444,8 +444,8 @@ func checkWETH9(addr common.Address, client *ethclient.Client) error {
 		return err
 	}
 	log.Info("WETH9", "symbol", symbol)
-	if symbol != "WETH" {
-		return fmt.Errorf("WETH9 symbol should be 'WETH', got %s", symbol)
+	if symbol != "WSYS" {
+		return fmt.Errorf("WETH9 symbol should be 'WSYS', got %s", symbol)
 	}
 
 	decimals, err := contract.Decimals(&bind.CallOpts{})
