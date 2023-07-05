@@ -151,16 +151,6 @@ services:
       - ./docker/prometheus:/etc/prometheus
       - prometheus_data:/prometheus
 
-  dashboard-sync:
-    image: python:3
-    env_file:
-      - ./envs/metrics.env
-    command:
-      - python
-      - /scripts/dashboard-sync.py
-    volumes:
-      - ./docker/scripts/:/scripts
-      - grafana_dashboards:/grafana-dashboards
   batcher-monitor:
     build:
       context: docker/contract_monitor/
@@ -169,6 +159,15 @@ services:
       L1_URL: http://l1:8545
       CONTRACT_ADDRESS: "${BATCH_INBOX_ADDRESS}"
       METRIC_NAME: "batcher_health"
+
+  blackbox_exporter:
+    image: prom/blackbox-exporter:latest
+    volumes:
+      - ./docker/blackbox.yml:/etc/blackbox_exporter/config.yml
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+    ports:
+      - "9115:9115"
 
   proposer-monitor:
     build:

@@ -26,3 +26,17 @@ scrape_configs:
     scrape_interval: 15s
     static_configs:
       - targets: [ 'proposer-monitor:8000' ]
+
+  - job_name: 'l1-monitor'
+    metrics_path: /probe
+    params:
+      module: [ http_2xx ]
+    static_configs:
+      - targets: ['https://rpc.syscoin.org']
+    relabel_configs:
+      - source_labels: [ __address__ ]
+        target_label: __param_target
+      - source_labels: [ __param_target ]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
