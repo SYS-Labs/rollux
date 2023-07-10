@@ -427,10 +427,10 @@ contract Deploy is Deployer {
 
     /// @notice Deploy the BatchInbox
     function deployBatchInbox() broadcast() public returns (address) {
-        address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
+        address payable l1CrossDomainMessengerProxy = payable(mustGetAddress("L1CrossDomainMessengerProxy"));
 
         BatchInbox inbox = new BatchInbox({
-            _messenger: l1CrossDomainMessengerProxy,
+            _messenger: l1CrossDomainMessengerProxy
         });
 
         require(address(inbox.MESSENGER()) == l1CrossDomainMessengerProxy);
@@ -655,7 +655,7 @@ contract Deploy is Deployer {
         address batchInboxProxy = mustGetAddress("BatchInboxProxy");
         address batchInbox = mustGetAddress("BatchInbox");
         proxyAdmin.upgrade({
-            _proxy: payable(BatchInboxProxy),
+            _proxy: payable(batchInboxProxy),
             _implementation: batchInbox
         });
     }
