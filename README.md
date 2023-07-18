@@ -55,14 +55,8 @@ You can find detailed specifications for the Bedrock upgrade within the [specs f
 ~~ Production ~~
 ├── <a href="./packages">packages</a>
 │   ├── <a href="./packages/common-ts">common-ts</a>: Common tools for building apps in TypeScript
-<<<<<<< HEAD
 │   ├── <a href="./packages/contracts-bedrock">contracts-bedrock</a>: Rollux Bedrock smart contracts.
-│   ├── <a href="./packages/contracts-periphery">contracts-periphery</a>: Peripheral contracts for Rollux
 │   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Rollux easier
-=======
-│   ├── <a href="./packages/contracts-bedrock">contracts-bedrock</a>: Bedrock smart contracts.
-│   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Optimism easier
->>>>>>> upstream/develop
 │   ├── <a href="./packages/chain-mon">chain-mon</a>: Chain monitoring services
 │   ├── <a href="./packages/fault-detector">fault-detector</a>: Service for detecting Sequencer faults
 │   ├── <a href="./packages/replica-healthcheck">replica-healthcheck</a>: Service for monitoring the health of a replica node
@@ -88,12 +82,7 @@ You can find detailed specifications for the Bedrock upgrade within the [specs f
 ~~ Pre-BEDROCK ~~
 ├── <a href="./packages">packages</a>
 │   ├── <a href="./packages/common-ts">common-ts</a>: Common tools for building apps in TypeScript
-<<<<<<< HEAD
-│   ├── <a href="./packages/contracts-periphery">contracts-periphery</a>: Peripheral contracts for Rollux
 │   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Rollux easier
-=======
-│   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Optimism easier
->>>>>>> upstream/develop
 │   ├── <a href="./packages/chain-mon">chain-mon</a>: Chain monitoring services
 │   ├── <a href="./packages/fault-detector">fault-detector</a>: Service for detecting Sequencer faults
 │   ├── <a href="./packages/replica-healthcheck">replica-healthcheck</a>: Service for monitoring the health of a replica node
