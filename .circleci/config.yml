@@ -77,7 +77,7 @@ jobs:
       - run:
           name: Cannon Go lint
           command: |
-            golangci-lint run -E goimports,sqlclosecheck,bodyclose,asciicheck,misspell,errorlint --timeout 5m -e "errors.As" -e "errors.Is" ./...
+            make lint
           working_directory: cannon
       - run:
           name: Cannon Go tests
@@ -123,7 +123,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -139,10 +139,8 @@ jobs:
             - "packages/chain-mon/node_modules"
             - "packages/common-ts/node_modules"
             - "packages/contracts-bedrock/node_modules"
-            - "packages/contracts-periphery/node_modules"
             - "packages/core-utils/node_modules"
             - "packages/fault-detector/node_modules"
-            - "packages/hardhat-deploy-config/node_modules"
             - "packages/replica-healthcheck/node_modules"
             - "packages/sdk/node_modules"
       - run:
@@ -343,7 +341,7 @@ jobs:
           keys:
             - pnpm-packages-v2-{{ checksum "pnpm-lock.yaml" }}
       - check-changed:
-          patterns: contracts-bedrock,hardhat-deploy-config
+          patterns: contracts-bedrock
       # TODO remove me after ci builder updated
       - run:
           name: Install pnpm package manager
@@ -352,7 +350,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -386,7 +384,7 @@ jobs:
           keys:
             - pnpm-packages-v2-{{ checksum "pnpm-lock.yaml" }}
       - check-changed:
-          patterns: contracts-bedrock,hardhat-deploy-config
+          patterns: contracts-bedrock
       # TODO remove me after ci builder updated
       - run:
           name: Install pnpm package manager
@@ -395,7 +393,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -422,7 +420,7 @@ jobs:
           keys:
             - pnpm-packages-v2-{{ checksum "pnpm-lock.yaml" }}
       - check-changed:
-          patterns: contracts-bedrock,hardhat-deploy-config
+          patterns: contracts-bedrock
       # TODO remove me after ci builder updated
       - run:
           name: Install pnpm package manager
@@ -431,7 +429,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -507,7 +505,7 @@ jobs:
           keys:
             - pnpm-packages-v2-{{ checksum "pnpm-lock.yaml" }}
       - check-changed:
-          patterns: contracts-bedrock,hardhat-deploy-config
+          patterns: contracts-bedrock
       # TODO remove me after ci builder updated
       - run:
           name: Install pnpm package manager
@@ -516,7 +514,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -541,7 +539,7 @@ jobs:
           keys:
             - pnpm-packages-v2-{{ checksum "pnpm-lock.yaml" }}
       - check-changed:
-          patterns: contracts-bedrock,hardhat-deploy-config
+          patterns: contracts-bedrock
       # TODO remove me after ci builder updated
       - run:
           name: Install pnpm package manager
@@ -550,7 +548,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -576,7 +574,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -620,7 +618,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -652,7 +650,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -694,7 +692,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -776,7 +774,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -862,7 +860,7 @@ jobs:
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install yarn package manager
           command: |
@@ -873,10 +871,6 @@ jobs:
           name: Check common-ts
           command: npx depcheck
           working_directory: packages/common-ts
-      - run:
-          name: Check contracts-periphery
-          command: npx depcheck
-          working_directory: packages/contracts-periphery
       - run:
           name: Check core-utils
           command: npx depcheck
@@ -1035,18 +1029,18 @@ jobs:
       - run:
           name: Install NVM
           command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash 
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
             source ~/.bashrc
-            nvm --version 
+            nvm --version
       - run:
           name: Install Node
           command: |
-            nvm install 
+            nvm install
             nvm use && node --version && npm --version
       # TODO remove me after ci builder updated
       # A github dep clones-with-immutable-args is installed via github
       # packages installed via npm via github automatically run postpack scripts
-      # their postpack script happens to use yarn so we need it here 
+      # their postpack script happens to use yarn so we need it here
       - run:
           name: Install Package managers
           command: |
@@ -1329,17 +1323,10 @@ workflows:
           requires:
             - pnpm-monorepo
       - js-lint-test:
-          name: contracts-periphery-tests
-          coverage_flag: contracts-periphery-tests
-          package_name: contracts-periphery
-          dependencies: "(contracts|contracts-bedrock|core-utils|hardhat-deploy-config)"
-          requires:
-            - pnpm-monorepo
-      - js-lint-test:
           name: chain-mon-tests
           coverage_flag: chain-mon-tests
           package_name: chain-mon
-          dependencies: "(common-ts|contracts-periphery|core-utils|sdk)"
+          dependencies: "(common-ts|contracts-bedrock|core-utils|sdk)"
           requires:
             - pnpm-monorepo
       - js-lint-test:
