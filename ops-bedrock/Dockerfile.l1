@@ -1,6 +1,5 @@
 FROM sidhujag/syscoin-core:latest as syscoin-alpine
 FROM alpine
-
 RUN apk add --no-cache jq
 ENV RPC_PORT="${RPC_PORT:-8545}"
 ENV WS_PORT="${WS_PORT:-8546}"
