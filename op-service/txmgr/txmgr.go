@@ -223,7 +223,7 @@ func (m *SimpleTxManager) craftTx(ctx context.Context, candidate TxCandidate) (*
 		Data:      candidate.TxData,
 	}
 
-	m.l.Info("creating tx", "to", rawTx.To, "from", m.cfg.From)
+	m.l.Info("Creating tx", "to", rawTx.To, "from", m.cfg.From)
 
 	// If the gas limit is set, we can use that as the gas
 	if candidate.GasLimit != 0 {
@@ -446,7 +446,7 @@ func (m *SimpleTxManager) SendBlob(ctx context.Context, data []byte) (*types.Rec
 // for the transaction.
 func (m *SimpleTxManager) publishAndWaitForTx(ctx context.Context, tx *types.Transaction, sendState *SendState, receiptChan chan *types.Receipt) {
 	log := m.l.New("hash", tx.Hash(), "nonce", tx.Nonce(), "gasTipCap", tx.GasTipCap(), "gasFeeCap", tx.GasFeeCap())
-	log.Info("publishing transaction")
+	log.Info("Publishing transaction")
 
 	cCtx, cancel := context.WithTimeout(ctx, m.cfg.NetworkTimeout)
 	defer cancel()
