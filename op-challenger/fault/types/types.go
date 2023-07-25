@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrIndexTooLarge = errors.New("index is larger than the maximum index")
+	ErrGameDepthReached = errors.New("game depth reached")
 )
 
 type GameStatus uint8
