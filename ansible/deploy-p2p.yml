@@ -1,0 +1,42 @@
+---
+- hosts: p2p
+  become: yes
+  vars:
+    repo_url: 'https://github.com/SYS-Labs/rollux.git'
+    repo_dest: '/home/ubuntu/optimism'
+    branch: 'develop'
+    docker_compose_file: 'docker-compose.yml'
+
+  tasks:
+    - name: Ensure git is installed
+      apt:
+        name: git
+        state: present
+
+    - name: Clone the repository
+      git:
+        repo: '{{ repo_url }}'
+        dest: '{{ repo_dest }}'
+        version: '{{ branch }}'
+        force: yes
+
+    - name: Ensure docker is installed
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Ensure docker-compose is installed
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Stop all Docker containers
+      command: docker stop $(docker ps -a -q)
+
+    - name: Remove certain Docker images
+      command: docker rmi $(docker images -q) --force  # Update command as needed
+
+    - name: Restart node
+      command: make p2p-rollux-up chdir="{{ repo_dest }}"
+      async: 3600
+      poll: 0
