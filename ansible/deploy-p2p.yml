@@ -20,11 +20,6 @@
         version: '{{ branch }}'
         force: yes
 
-    - name: Ensure docker is installed
-      apt:
-        name: docker.io
-        state: present
-
     - name: Ensure docker-compose is installed
       apt:
         name: docker-compose
