@@ -1,0 +1,44 @@
+name: Deploy P2P
+on:
+  workflow_dispatch:
+
+jobs:
+  check_actor:
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - name: Check if actor is allowed
+        id: check
+        run: |
+          ALLOWED_ACTORS=("sidhujag" "AbdulmalikGiwa")
+          if [[ " ${ALLOWED_ACTORS[@]} " =~ " ${GITHUB_ACTOR} " ]]; then
+            echo "::set-output name=allowed::true"
+          else
+            echo "::set-output name=allowed::false"
+          fi
+  deploy:
+    needs: check_actor
+    if: needs.check_actor.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+          uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Create SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Run Playbook
+        run: |
+          ansible-playbook ansible/deploy-p2p.yml -i ansible/inventory
