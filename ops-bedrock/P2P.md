@@ -2,7 +2,8 @@
 
 ## Step 1: Add P2P Flag to Docker Compose File
 
-First, you need to add the following flag to your `p2p-docker-compose.yml` as a flag of op-node service:
+First, you need to add the following flag to your `p2p-docker-compose.yml` as a flag of op-node service(for testnet),
+for mainnet it is `p2p-docker-compose-rollux.yml`:
 
 ``
 --p2p.static=/ip4/<ip>/tcp/9003/p2p/<peer_ids>
