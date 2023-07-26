@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-          uses: actions/checkout@v2
+        uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -39,6 +39,6 @@ jobs:
           echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Run Playbook
-        run: |
-          ansible-playbook ansible/deploy-p2p.yml -i ansible/inventory
+#      - name: Run Playbook
+#        run: |
+#          ansible-playbook ansible/deploy-p2p.yml -i ansible/inventory
