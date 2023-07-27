@@ -71,11 +71,7 @@ exec geth \
 	--syncmode=full \
 	--maxpeers=1 \
 	--networkid=$CHAIN_ID \
-	--unlock=$BLOCK_SIGNER_ADDRESS \
-	--mine=$MINING_ENABLED \
-	--miner.etherbase=$BLOCK_SIGNER_ADDRESS \
-	--password="$GETH_DATA_DIR"/password \
-	--allow-insecure-unlock \
+	--rpc.allow-unprotected-txs \
 	--authrpc.addr="0.0.0.0" \
 	--authrpc.port="9551" \
 	--authrpc.vhosts="*" \
