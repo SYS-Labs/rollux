@@ -36,7 +36,12 @@ func NewOracleL1Client(logger log.Logger, oracle Oracle, l1Head common.Hash) *Or
 		earliestIndexedBlock: head,
 	}
 }
-
+func (o *OracleL1Client) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
+	return []byte{}, nil
+}
+func (o *OracleL1Client) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
+	return []byte{}, nil
+}
 func (o *OracleL1Client) L1BlockRefByLabel(ctx context.Context, label eth.BlockLabel) (eth.L1BlockRef, error) {
 	if label != eth.Unsafe && label != eth.Safe && label != eth.Finalized {
 		return eth.L1BlockRef{}, fmt.Errorf("%w: %s", ErrUnknownLabel, label)
@@ -70,6 +75,7 @@ func (o *OracleL1Client) L1BlockRefByHash(ctx context.Context, hash common.Hash)
 func (o *OracleL1Client) InfoByHash(ctx context.Context, hash common.Hash) (eth.BlockInfo, error) {
 	return o.oracle.HeaderByBlockHash(hash), nil
 }
+
 // SYSCOIN
 func (o *OracleL1Client) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
 	info, rcpts := o.oracle.ReceiptsByBlockHash(blockHash)

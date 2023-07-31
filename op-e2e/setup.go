@@ -421,9 +421,9 @@ func (cfg SystemConfig) Start(_opts ...SystemConfigOption) (*System, error) {
 			BatchInboxAddress:      cfg.DeployConfig.BatchInboxAddress,
 			DepositContractAddress: predeploys.DevOptimismPortalAddr,
 			// SYSCOIN
-			L2OutputOracleAddress:  cfg.DeployConfig.L2OutputOracleProxy,
-			L1SystemConfigAddress:  predeploys.DevSystemConfigAddr,
-			RegolithTime:           cfg.DeployConfig.RegolithTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
+			L2OutputOracleAddress: cfg.DeployConfig.L2OutputOracleProxy,
+			L1SystemConfigAddress: predeploys.DevSystemConfigAddr,
+			RegolithTime:          cfg.DeployConfig.RegolithTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
 		}
 	}
 	defaultConfig := makeRollupConfig()
@@ -742,7 +742,7 @@ func configureL1(rollupNodeCfg *rollupNode.Config, l1Node *node.Node) {
 		BatchSize:        20,
 		HttpPollInterval: time.Millisecond * 100,
 		// SYSCOIN
-		SysPODAURL:		  rollupNodeCfg.SysPODAURL,
+		//SysPODAURL:		  rollupNodeCfg.SysPODAURL,
 	}
 }
 func configureL2(rollupNodeCfg *rollupNode.Config, l2Node *node.Node, jwtSecret [32]byte) {

@@ -29,6 +29,7 @@ type L2Source interface {
 	InfoAndTxsByHash(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Transactions, error)
 	NodeByHash(ctx context.Context, hash common.Hash) ([]byte, error)
 	CodeByHash(ctx context.Context, hash common.Hash) ([]byte, error)
+	FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error)
 }
 
 type Prefetcher struct {
@@ -48,6 +49,28 @@ func NewPrefetcher(logger log.Logger, l1Fetcher L1Source, l2Fetcher L2Source, kv
 	}
 }
 
+//	func (s *EthClient) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
+//		info, txs, err := s.InfoAndTxsByHash(ctx, blockHash)
+//		if err != nil {
+//			return nil, nil, nil, err
+//		}
+//		// Try to reuse the receipts fetcher because is caches the results of intermediate calls. This means
+//		// that if just one of many calls fail, we only retry the failed call rather than all of the calls.
+//		// The underlying fetcher uses the receipts hash to verify receipt integrity.
+//		var job *receiptsFetchingJob
+//		if v, ok := s.receiptsCache.Get(blockHash); ok {
+//			job = v.(*receiptsFetchingJob)
+//		} else {
+//			txHashes := eth.TransactionsToHashes(txs)
+//			job = NewReceiptsFetchingJob(s, s.client, s.maxBatchSize, eth.ToBlockID(info), info.ReceiptHash(), txHashes)
+//			s.receiptsCache.Add(blockHash, job)
+//		}
+//		receipts, err := job.Fetch(ctx)
+//		if err != nil {
+//			return nil, nil, nil, err
+//		}
+//
+//		return info, receipts, txs, nil
 func (p *Prefetcher) Hint(hint string) error {
 	p.logger.Trace("Received hint", "hint", hint)
 	p.lastHint = hint
@@ -93,7 +116,7 @@ func (p *Prefetcher) prefetch(ctx context.Context, hint string) error {
 		}
 		return p.storeTransactions(txs)
 	case l1.HintL1Receipts:
-		_, receipts, err := p.l1Fetcher.FetchReceipts(ctx, hash)
+		_, receipts, _, err := p.l1Fetcher.FetchReceipts(ctx, hash)
 		if err != nil {
 			return fmt.Errorf("failed to fetch L1 block %s receipts: %w", hash, err)
 		}

@@ -57,20 +57,22 @@ func (s *RetryingL1Source) InfoAndTxsByHash(ctx context.Context, blockHash commo
 	return info, txs, err
 }
 
-func (s *RetryingL1Source) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, error) {
+func (s *RetryingL1Source) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
 	var info eth.BlockInfo
 	var rcpts types.Receipts
+	var txs types.Transactions
 	err := backoff.DoCtx(ctx, maxAttempts, s.strategy, func() error {
-		i, r, err := s.source.FetchReceipts(ctx, blockHash)
+		i, r, t, err := s.source.FetchReceipts(ctx, blockHash)
 		if err != nil {
 			s.logger.Warn("Failed to fetch receipts", "hash", blockHash, "err", err)
 			return err
 		}
 		info = i
 		rcpts = r
+		txs = t
 		return nil
 	})
-	return info, rcpts, err
+	return info, rcpts, txs, err
 }
 
 var _ L1Source = (*RetryingL1Source)(nil)
@@ -124,7 +126,9 @@ func (s *RetryingL2Source) CodeByHash(ctx context.Context, hash common.Hash) ([]
 	})
 	return code, err
 }
-
+func (s *RetryingL2Source) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
+	return nil, types.Receipts{}, types.Transactions{}, nil
+}
 func NewRetryingL2Source(logger log.Logger, source L2Source) *RetryingL2Source {
 	return &RetryingL2Source{
 		logger:   logger,

@@ -3,6 +3,7 @@ package fault
 import (
 	"context"
 	"fmt"
+	opclient "github.com/ethereum-optimism/optimism/op-service/client"
 
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 	"github.com/ethereum-optimism/optimism/op-challenger/config"
@@ -32,11 +33,17 @@ type service struct {
 // NewService creates a new Service.
 func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*service, error) {
 	client, err := ethclient.Dial(cfg.L1EthRpc)
+	// SYSCOIN
+	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx)
+	if err != nil {
+		logger.Warn("dialSyscoinClientWithTimeout", "err", err)
+		return nil, err
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial L1: %w", err)
 	}
 
-	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &metrics.NoopTxMetrics{}, cfg.TxMgrConfig)
+	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &metrics.NoopTxMetrics{}, cfg.TxMgrConfig, syscoinClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the transaction manager: %w", err)
 	}
