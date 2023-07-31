@@ -1,5 +1,6 @@
 # How to Run a P2P Node
-
+Please make sure to only run the latest release rather than directly from develop branch. You can do that with
+`git fetch --tags` and `git checkout tags/<tag-name>`. Latest release as at today is `rollux-1.0` tag
 ## Step 1: Add P2P Flag to Docker Compose File
 
 First, you need to add the following flag to your `p2p-docker-compose.yml` as a flag of op-node service(for testnet),
