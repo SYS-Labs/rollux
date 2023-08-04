@@ -44,6 +44,12 @@ type StepCallData struct {
 	Proof      []byte
 }
 
+// OracleUpdater is a generic interface for updating oracles.
+type OracleUpdater interface {
+	// UpdateOracle updates the oracle with the given data.
+	UpdateOracle(ctx context.Context, data PreimageOracleData) error
+}
+
 // TraceProvider is a generic way to get a claim value at a specific step in the trace.
 type TraceProvider interface {
 	// Get returns the claim value at the requested index.
@@ -60,7 +66,7 @@ type TraceProvider interface {
 	GetPreimage(ctx context.Context, i uint64) (preimage []byte, proofData []byte, err error)
 
 	// AbsolutePreState is the pre-image value of the trace that transitions to the trace value at index 0
-	AbsolutePreState(ctx context.Context) []byte
+	AbsolutePreState(ctx context.Context) ([]byte, error)
 }
 
 // ClaimData is the core of a claim. It must be unique inside a specific game.
