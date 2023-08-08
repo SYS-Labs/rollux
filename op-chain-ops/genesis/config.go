@@ -711,6 +711,11 @@ func NewL2StorageConfig(config *DeployConfig, block *types.Block) (state.Storage
 	storage["ProxyAdmin"] = state.StorageValues{
 		"_owner": config.ProxyAdminOwner,
 	}
+	storage["L2ERC721Bridge"] = state.StorageValues{
+		"messenger":     predeploys.L2CrossDomainMessengerAddr,
+		"_initialized":  2,
+		"_initializing": false,
+	}
 	return storage, nil
 }
 
