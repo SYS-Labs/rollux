@@ -1,9 +1,9 @@
 package op_heartbeat
 
 var AllowedChainIDs = map[uint64]bool{
-	420: true,
-	902: true,
-	10:  true,
+	57000: true,
+	902:   true,
+	570:   true,
 }
 
 var AllowedVersions = map[string]bool{
