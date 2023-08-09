@@ -33,6 +33,9 @@ type service struct {
 // NewService creates a new Service.
 func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*service, error) {
 	client, err := ethclient.Dial(cfg.L1EthRpc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial L1: %w", err)
+	}
 	// SYSCOIN
 	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx)
 	if err != nil {
@@ -40,14 +43,35 @@ func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*se
 		return nil, err
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial L1: %w", err)
-	}
-
-	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &metrics.NoopTxMetrics{}, cfg.TxMgrConfig, syscoinClient)
-	if err != nil {
 		return nil, fmt.Errorf("failed to create the transaction manager: %w", err)
 	}
 
+	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &metrics.NoopTxMetrics{}, cfg.TxMgrConfig, syscoinClient)
+
+	var trace types.TraceProvider
+	var updater types.OracleUpdater
+	switch cfg.TraceType {
+	case config.TraceTypeCannon:
+		trace, err = cannon.NewTraceProvider(ctx, logger, cfg, client)
+		if err != nil {
+			return nil, fmt.Errorf("create cannon trace provider: %w", err)
+		}
+		updater, err = cannon.NewOracleUpdater(ctx, logger, txMgr, cfg.GameAddress, client)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create the cannon updater: %w", err)
+		}
+	case config.TraceTypeAlphabet:
+		trace = alphabet.NewTraceProvider(cfg.AlphabetTrace, uint64(cfg.GameDepth))
+		updater = alphabet.NewOracleUpdater(logger)
+	default:
+		return nil, fmt.Errorf("unsupported trace type: %v", cfg.TraceType)
+	}
+
+	return newTypedService(ctx, logger, cfg, client, trace, updater, txMgr)
+}
+
+// newTypedService creates a new Service from a provided trace provider.
+func newTypedService(ctx context.Context, logger log.Logger, cfg *config.Config, client *ethclient.Client, provider types.TraceProvider, updater types.OracleUpdater, txMgr txmgr.TxManager) (*service, error) {
 	contract, err := bindings.NewFaultDisputeGameCaller(cfg.GameAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to bind the fault dispute game contract: %w", err)
@@ -60,22 +84,12 @@ func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*se
 		return nil, fmt.Errorf("failed to create the responder: %w", err)
 	}
 
-	var trace types.TraceProvider
-	switch cfg.TraceType {
-	case config.TraceTypeCannon:
-		trace = cannon.NewCannonTraceProvider(logger, cfg)
-	case config.TraceTypeAlphabet:
-		trace = alphabet.NewAlphabetProvider(cfg.AlphabetTrace, uint64(cfg.GameDepth))
-	default:
-		return nil, fmt.Errorf("unsupported trace type: %v", cfg.TraceType)
-	}
-
-	agent := NewAgent(loader, cfg.GameDepth, trace, responder, cfg.AgreeWithProposedOutput, gameLogger)
-
 	caller, err := NewFaultCallerFromBindings(cfg.GameAddress, client, gameLogger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to bind the fault contract: %w", err)
 	}
+
+	agent := NewAgent(loader, cfg.GameDepth, provider, responder, updater, cfg.AgreeWithProposedOutput, gameLogger)
 
 	return &service{
 		agent:                   agent,
