@@ -20,18 +20,18 @@
         version: '{{ branch }}'
         force: yes
 
-    - name: Ensure docker-compose is installed
-      apt:
-        name: docker-compose
-        state: present
-
-    - name: Stop all Docker containers
-      command: docker stop $(docker ps -a -q)
-
-    - name: Remove certain Docker images
-      command: docker rmi $(docker images -q) --force  # Update command as needed
-
-    - name: Restart node
-      command: make p2p-rollux-up chdir="{{ repo_dest }}"
-      async: 3600
-      poll: 0
+#    - name: Ensure docker-compose is installed
+#      apt:
+#        name: docker-compose
+#        state: present
+#
+#    - name: Stop all Docker containers
+#      command: docker stop $(docker ps -a -q)
+#
+#    - name: Remove certain Docker images
+#      command: docker rmi $(docker images -q) --force  # Update command as needed
+#
+#    - name: Restart node
+#      command: make p2p-rollux-up chdir="{{ repo_dest }}"
+#      async: 3600
+#      poll: 0
