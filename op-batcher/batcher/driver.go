@@ -53,19 +53,19 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 
 	// Connect to L1 and L2 providers. Perform these last since they are the
 	// most expensive.
-	l1Client, err := opclient.DialEthClientWithTimeout(ctx, cfg.L1EthRpc, opclient.DefaultDialTimeout)
+	l1Client, err := opclient.DialEthClientWithTimeout(opclient.DefaultDialTimeout, l, cfg.L1EthRpc)
 	if err != nil {
 		l.Warn("l1 dialEthClientWithTimeout", "err", err)
 		return nil, err
 	}
 
-	l2Client, err := opclient.DialEthClientWithTimeout(ctx, cfg.L2EthRpc, opclient.DefaultDialTimeout)
+	l2Client, err := opclient.DialEthClientWithTimeout(opclient.DefaultDialTimeout, l, cfg.L2EthRpc)
 	if err != nil {
 		l.Warn("l2 dialEthClientWithTimeout", "err", err)
 		return nil, err
 	}
 
-	rollupClient, err := opclient.DialRollupClientWithTimeout(ctx, cfg.RollupRpc, opclient.DefaultDialTimeout)
+	rollupClient, err := opclient.DialRollupClientWithTimeout(opclient.DefaultDialTimeout, l, cfg.RollupRpc)
 	if err != nil {
 		l.Warn("dialRollupClientWithTimeout", "err", err)
 		return nil, err
