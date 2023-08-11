@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-challenger/fault/alphabet"
 	"github.com/ethereum-optimism/optimism/op-challenger/fault/cannon"
 	"github.com/ethereum-optimism/optimism/op-challenger/fault/types"
+	"github.com/ethereum-optimism/optimism/op-service/client"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr/metrics"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -34,16 +35,13 @@ type service struct {
 
 // NewService creates a new Service.
 func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*service, error) {
-	client, err := ethclient.Dial(cfg.L1EthRpc)
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial L1: %w", err)
-	}
 	// SYSCOIN
 	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx)
 	if err != nil {
 		logger.Warn("dialSyscoinClientWithTimeout", "err", err)
 		return nil, err
 	}
+	client, err := client.DialEthClientWithTimeout(client.DefaultDialTimeout, logger, cfg.L1EthRpc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the transaction manager: %w", err)
 	}
