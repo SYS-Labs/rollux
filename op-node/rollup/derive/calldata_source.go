@@ -9,20 +9,21 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/ethereum-optimism/optimism/op-node/eth"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
+	"github.com/ethereum-optimism/optimism/op-service/eth"
 	// SYSCOIN
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
+
 const (
 	// SYSCOIN
 	appendSequencerBatchMethodFunction = "appendSequencerBatch(bytes32[])"
-	appendSequencerBatchMethodName = "appendSequencerBatch"
+	appendSequencerBatchMethodName     = "appendSequencerBatch"
 )
 
 type DataIter interface {
@@ -44,7 +45,7 @@ type DataSourceFactory struct {
 	cfg     *rollup.Config
 	fetcher L1TransactionFetcher
 	// SYSCOIN
-	batchInboxABI* abi.ABI
+	batchInboxABI              *abi.ABI
 	appendSequencerFunctionSig []byte
 }
 
@@ -79,24 +80,24 @@ type DataSource struct {
 
 	batcherAddr common.Address
 	// SYSCOIN
-	batchInboxABI* abi.ABI
+	batchInboxABI              *abi.ABI
 	appendSequencerFunctionSig []byte
 }
 
 // NewDataSource creates a new calldata source. It suppresses errors in fetching the L1 block if they occur.
 // If there is an error, it will attempt to fetch the result on the next call to `Next`.
-func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, block eth.BlockID, batcherAddr common.Address, batchInboxABI* abi.ABI, appendSequencerFunctionSig []byte) DataIter {
+func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, block eth.BlockID, batcherAddr common.Address, batchInboxABI *abi.ABI, appendSequencerFunctionSig []byte) DataIter {
 	// SYSCOIN info
 	_, receipts, txs, err := fetcher.FetchReceipts(ctx, block.Hash)
 	if err != nil {
 		return &DataSource{
-			open:        false,
-			id:          block,
-			cfg:         cfg,
-			fetcher:     fetcher,
-			log:         log,
-			batcherAddr: batcherAddr,
-			batchInboxABI: batchInboxABI,
+			open:                       false,
+			id:                         block,
+			cfg:                        cfg,
+			fetcher:                    fetcher,
+			log:                        log,
+			batcherAddr:                batcherAddr,
+			batchInboxABI:              batchInboxABI,
 			appendSequencerFunctionSig: appendSequencerFunctionSig,
 		}
 	} else {
@@ -104,13 +105,13 @@ func NewDataSource(ctx context.Context, log log.Logger, cfg *rollup.Config, fetc
 		dataSrc := DataFromEVMTransactions(ctx, fetcher, cfg, batcherAddr, receipts, txs, log.New("origin", block), batchInboxABI, appendSequencerFunctionSig)
 		if dataSrc == nil {
 			return &DataSource{
-				open:        false,
-				id:          block,
-				cfg:         cfg,
-				fetcher:     fetcher,
-				log:         log,
-				batcherAddr: batcherAddr,
-				batchInboxABI: batchInboxABI,
+				open:                       false,
+				id:                         block,
+				cfg:                        cfg,
+				fetcher:                    fetcher,
+				log:                        log,
+				batcherAddr:                batcherAddr,
+				batchInboxABI:              batchInboxABI,
 				appendSequencerFunctionSig: appendSequencerFunctionSig,
 			}
 		}
@@ -152,14 +153,14 @@ func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
 // SYSCOIN DataFromEVMTransactions filters all of the transactions and returns the calldata from transactions
 // that are sent to the batch inbox address from the batch sender address.
 // This will return an empty array if no valid transactions are found.
-func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, config *rollup.Config, batcherAddr common.Address, receipts types.Receipts, txs types.Transactions, log log.Logger, batchInboxABI* abi.ABI, appendSequencerFunctionSig []byte) []eth.Data {
+func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, config *rollup.Config, batcherAddr common.Address, receipts types.Receipts, txs types.Transactions, log log.Logger, batchInboxABI *abi.ABI, appendSequencerFunctionSig []byte) []eth.Data {
 	out := make([]eth.Data, 0)
 	l1Signer := config.L1Signer()
 	for i, receipt := range receipts {
 		if to := txs[i].To(); to == nil || *to != config.BatchInboxAddress {
 			continue
 		}
-		if(receipt.Status != types.ReceiptStatusSuccessful) {
+		if receipt.Status != types.ReceiptStatusSuccessful {
 			log.Warn("DataFromEVMTransactions: transaction was not successful", "index", i, "status", receipt.Status)
 			continue // reverted, ignore
 		}
@@ -175,7 +176,7 @@ func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, 
 		}
 		calldata := txs[receipt.TransactionIndex].Data()
 		// check sig
-		if (!reflect.DeepEqual(appendSequencerFunctionSig, calldata[:4])) {
+		if !reflect.DeepEqual(appendSequencerFunctionSig, calldata[:4]) {
 			log.Warn("DataFromEVMTransactions: append function not found as method signature", "index", i)
 			continue
 		}
