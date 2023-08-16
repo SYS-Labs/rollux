@@ -1,76 +1,9 @@
 {
+
   "address": "0x73703c5027FAA45fd66d592C61d22268B9730540",
   "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_owner",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_overhead",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_scalar",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_batcherHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint64",
-          "name": "_gasLimit",
-          "type": "uint64"
-        },
-        {
-          "internalType": "address",
-          "name": "_unsafeBlockSigner",
-          "type": "address"
-        },
-        {
-          "components": [
-            {
-              "internalType": "uint32",
-              "name": "maxResourceLimit",
-              "type": "uint32"
-            },
-            {
-              "internalType": "uint8",
-              "name": "elasticityMultiplier",
-              "type": "uint8"
-            },
-            {
-              "internalType": "uint8",
-              "name": "baseFeeMaxChangeDenominator",
-              "type": "uint8"
-            },
-            {
-              "internalType": "uint32",
-              "name": "minimumBaseFee",
-              "type": "uint32"
-            },
-            {
-              "internalType": "uint32",
-              "name": "systemTxMaxGas",
-              "type": "uint32"
-            },
-            {
-              "internalType": "uint128",
-              "name": "maximumBaseFee",
-              "type": "uint128"
-            }
-          ],
-          "internalType": "struct ResourceMetering.ResourceConfig",
-          "name": "_config",
-          "type": "tuple"
-        }
-      ],
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -133,6 +66,97 @@
     },
     {
       "inputs": [],
+      "name": "BATCH_INBOX_SLOT",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "L1_CROSS_DOMAIN_MESSENGER_SLOT",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "L1_ERC_721_BRIDGE_SLOT",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "L1_STANDARD_BRIDGE_SLOT",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "L2_OUTPUT_ORACLE_SLOT",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "OPTIMISM_MINTABLE_ERC20_FACTORY_SLOT",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "OPTIMISM_PORTAL_SLOT",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "UNSAFE_BLOCK_SIGNER_SLOT",
       "outputs": [
         {
@@ -152,6 +176,19 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "batchInbox",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -251,11 +288,110 @@
           "internalType": "struct ResourceMetering.ResourceConfig",
           "name": "_config",
           "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_startBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_batchInbox",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "l1CrossDomainMessenger",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "l1ERC721Bridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "l1StandardBridge",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "l2OutputOracle",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "optimismPortal",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "optimismMintableERC20Factory",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct SystemConfig.Addresses",
+          "name": "_addresses",
+          "type": "tuple"
         }
       ],
       "name": "initialize",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l1CrossDomainMessenger",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l1ERC721Bridge",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l1StandardBridge",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2OutputOracle",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -266,6 +402,32 @@
           "internalType": "uint64",
           "name": "",
           "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "optimismMintableERC20Factory",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "optimismPortal",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -465,6 +627,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "startBlock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -483,7 +658,7 @@
       "outputs": [
         {
           "internalType": "address",
-          "name": "",
+          "name": "addr_",
           "type": "address"
         }
       ],
@@ -586,31 +761,24 @@
     "version": 1,
     "kind": "dev",
     "methods": {
-      "constructor": {
+      "constructor": {},
+      "initialize(address,uint256,uint256,bytes32,uint64,address,(uint32,uint8,uint8,uint32,uint32,uint128),uint256,address,(address,address,address,address,address,address))": {
         "params": {
-          "_batcherHash": "Initial batcher hash.",
-          "_config": "Initial resource config.",
-          "_gasLimit": "Initial gas limit.",
-          "_overhead": "Initial overhead value.",
-          "_owner": "Initial owner of the contract.",
-          "_scalar": "Initial scalar value.",
-          "_unsafeBlockSigner": "Initial unsafe block signer address."
-        }
-      },
-      "initialize(address,uint256,uint256,bytes32,uint64,address,(uint32,uint8,uint8,uint32,uint32,uint128))": {
-        "params": {
+          "_addresses": "Set of L1 contract addresses. These should be the proxies.",
+          "_batchInbox": "Batch inbox address. An identifier for the op-node to find                           canonical data.",
           "_batcherHash": "Initial batcher hash.",
           "_config": "Initial ResourceConfig.",
           "_gasLimit": "Initial gas limit.",
           "_overhead": "Initial overhead value.",
           "_owner": "Initial owner of the contract.",
           "_scalar": "Initial scalar value.",
+          "_startBlock": "Starting block for the op-node to search for logs from.                           Contracts that were deployed before this field existed                           need to have this field set manually via an override.                           Newly deployed contracts should set this value to uint256(0).",
           "_unsafeBlockSigner": "Initial unsafe block signer address."
         }
       },
       "minimumGasLimit()": {
         "returns": {
-          "_0": "uint64"
+          "_0": "uint64 Minimum gas limit."
         }
       },
       "owner()": {
@@ -655,7 +823,7 @@
       },
       "unsafeBlockSigner()": {
         "returns": {
-          "_0": "Address of the unsafe block signer."
+          "addr_": "Address of the unsafe block signer."
         }
       },
       "version()": {
@@ -675,71 +843,11 @@
     },
     "title": "SystemConfig"
   },
-  "userdoc": {
-    "version": 1,
-    "kind": "user",
-    "methods": {
-      "UNSAFE_BLOCK_SIGNER_SLOT()": {
-        "notice": "Storage slot that the unsafe block signer is stored at. Storing it at this         deterministic storage slot allows for decoupling the storage layout from the way         that `solc` lays out storage. The `op-node` uses a storage proof to fetch this value."
-      },
-      "VERSION()": {
-        "notice": "Version identifier, used for upgrades."
-      },
-      "batcherHash()": {
-        "notice": "Identifier for the batcher. For version 1 of this configuration, this is represented         as an address left-padded with zeros to 32 bytes."
-      },
-      "gasLimit()": {
-        "notice": "L2 block gas limit."
-      },
-      "initialize(address,uint256,uint256,bytes32,uint64,address,(uint32,uint8,uint8,uint32,uint32,uint128))": {
-        "notice": "Initializer. The resource config must be set before the         require check."
-      },
-      "minimumGasLimit()": {
-        "notice": "Returns the minimum L2 gas limit that can be safely set for the system to         operate. The L2 gas limit must be larger than or equal to the amount of         gas that is allocated for deposits per block plus the amount of gas that         is allocated for the system transaction.         This function is used to determine if changes to parameters are safe."
-      },
-      "overhead()": {
-        "notice": "Fixed L2 gas overhead. Used as part of the L2 fee calculation."
-      },
-      "resourceConfig()": {
-        "notice": "A getter for the resource config. Ensures that the struct is         returned instead of a tuple."
-      },
-      "scalar()": {
-        "notice": "Dynamic L2 gas overhead. Used as part of the L2 fee calculation."
-      },
-      "setBatcherHash(bytes32)": {
-        "notice": "Updates the batcher hash."
-      },
-      "setGasConfig(uint256,uint256)": {
-        "notice": "Updates gas config."
-      },
-      "setGasLimit(uint64)": {
-        "notice": "Updates the L2 gas limit."
-      },
-      "setResourceConfig((uint32,uint8,uint8,uint32,uint32,uint128))": {
-        "notice": "An external setter for the resource config. In the future, this         method may emit an event that the `op-node` picks up for when the         resource config is changed."
-      },
-      "setUnsafeBlockSigner(address)": {
-        "notice": "Updates the unsafe block signer address."
-      },
-      "unsafeBlockSigner()": {
-        "notice": "High level getter for the unsafe block signer address. Unsafe blocks can be         propagated across the p2p network if they are signed by the key corresponding to         this address."
-      },
-      "version()": {
-        "notice": "Returns the full semver contract version."
-      }
-    },
-    "events": {
-      "ConfigUpdate(uint256,uint8,bytes)": {
-        "notice": "Emitted when configuration is updated"
-      }
-    },
-    "notice": "The SystemConfig contract is used to manage configuration of an Optimism network. All         configuration is stored on L1 and picked up by L2 as part of the derviation of the L2         chain."
-  },
   "storageLayout": {
     "storage": [
       {
         "astId": 48803,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "_initialized",
         "offset": 0,
         "slot": "0",
@@ -747,7 +855,7 @@
       },
       {
         "astId": 48806,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "_initializing",
         "offset": 1,
         "slot": "0",
@@ -755,7 +863,7 @@
       },
       {
         "astId": 49231,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "__gap",
         "offset": 0,
         "slot": "1",
@@ -763,7 +871,7 @@
       },
       {
         "astId": 48675,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "_owner",
         "offset": 0,
         "slot": "51",
@@ -771,7 +879,7 @@
       },
       {
         "astId": 48795,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "__gap",
         "offset": 0,
         "slot": "52",
@@ -779,7 +887,7 @@
       },
       {
         "astId": 2344,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "overhead",
         "offset": 0,
         "slot": "101",
@@ -787,7 +895,7 @@
       },
       {
         "astId": 2347,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "scalar",
         "offset": 0,
         "slot": "102",
@@ -795,7 +903,7 @@
       },
       {
         "astId": 2350,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "batcherHash",
         "offset": 0,
         "slot": "103",
@@ -803,7 +911,7 @@
       },
       {
         "astId": 2353,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "gasLimit",
         "offset": 0,
         "slot": "104",
@@ -811,7 +919,7 @@
       },
       {
         "astId": 2357,
-        "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+        "contract": "src/L1/SystemConfig.sol:SystemConfig",
         "label": "_resourceConfig",
         "offset": 0,
         "slot": "105",
@@ -853,7 +961,7 @@
         "members": [
           {
             "astId": 1986,
-            "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+            "contract": "src/L1/SystemConfig.sol:SystemConfig",
             "label": "maxResourceLimit",
             "offset": 0,
             "slot": "0",
@@ -861,7 +969,7 @@
           },
           {
             "astId": 1988,
-            "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+            "contract": "src/L1/SystemConfig.sol:SystemConfig",
             "label": "elasticityMultiplier",
             "offset": 4,
             "slot": "0",
@@ -869,7 +977,7 @@
           },
           {
             "astId": 1990,
-            "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+            "contract": "src/L1/SystemConfig.sol:SystemConfig",
             "label": "baseFeeMaxChangeDenominator",
             "offset": 5,
             "slot": "0",
@@ -877,7 +985,7 @@
           },
           {
             "astId": 1992,
-            "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+            "contract": "src/L1/SystemConfig.sol:SystemConfig",
             "label": "minimumBaseFee",
             "offset": 6,
             "slot": "0",
@@ -885,7 +993,7 @@
           },
           {
             "astId": 1994,
-            "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+            "contract": "src/L1/SystemConfig.sol:SystemConfig",
             "label": "systemTxMaxGas",
             "offset": 10,
             "slot": "0",
@@ -893,7 +1001,7 @@
           },
           {
             "astId": 1996,
-            "contract": "contracts/L1/SystemConfig.sol:SystemConfig",
+            "contract": "src/L1/SystemConfig.sol:SystemConfig",
             "label": "maximumBaseFee",
             "offset": 14,
             "slot": "0",
@@ -927,5 +1035,113 @@
         "numberOfBytes": "1"
       }
     }
+  },
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "BATCH_INBOX_SLOT()": {
+        "notice": "Storage slot that the batch inbox address is stored at."
+      },
+      "L1_CROSS_DOMAIN_MESSENGER_SLOT()": {
+        "notice": "Storage slot that the L1CrossDomainMessenger address is stored at."
+      },
+      "L1_ERC_721_BRIDGE_SLOT()": {
+        "notice": "Storage slot that the L1ERC721Bridge address is stored at."
+      },
+      "L1_STANDARD_BRIDGE_SLOT()": {
+        "notice": "Storage slot that the L1StandardBridge address is stored at."
+      },
+      "L2_OUTPUT_ORACLE_SLOT()": {
+        "notice": "Storage slot that the L2OutputOracle address is stored at."
+      },
+      "OPTIMISM_MINTABLE_ERC20_FACTORY_SLOT()": {
+        "notice": "Storage slot that the OptimismMintableERC20Factory address is stored at."
+      },
+      "OPTIMISM_PORTAL_SLOT()": {
+        "notice": "Storage slot that the OptimismPortal address is stored at."
+      },
+      "UNSAFE_BLOCK_SIGNER_SLOT()": {
+        "notice": "Storage slot that the unsafe block signer is stored at.         Storing it at this deterministic storage slot allows for decoupling the storage         layout from the way that `solc` lays out storage. The `op-node` uses a storage         proof to fetch this value."
+      },
+      "VERSION()": {
+        "notice": "Version identifier, used for upgrades."
+      },
+      "batchInbox()": {
+        "notice": "Getter for the BatchInbox address."
+      },
+      "batcherHash()": {
+        "notice": "Identifier for the batcher.         For version 1 of this configuration, this is represented as an address left-padded         with zeros to 32 bytes."
+      },
+      "constructor": {
+        "notice": "Constructs the SystemConfig contract. Cannot set         the owner to `address(0)` due to the Ownable contract's         implementation, so set it to `address(0xdEaD)`"
+      },
+      "gasLimit()": {
+        "notice": "L2 block gas limit."
+      },
+      "initialize(address,uint256,uint256,bytes32,uint64,address,(uint32,uint8,uint8,uint32,uint32,uint128),uint256,address,(address,address,address,address,address,address))": {
+        "notice": "Initializer.         The resource config must be set before the require check."
+      },
+      "l1CrossDomainMessenger()": {
+        "notice": "Getter for the L1CrossDomainMessenger address."
+      },
+      "l1ERC721Bridge()": {
+        "notice": "Getter for the L1ERC721Bridge address."
+      },
+      "l1StandardBridge()": {
+        "notice": "Getter for the L1StandardBridge address."
+      },
+      "l2OutputOracle()": {
+        "notice": "Getter for the L2OutputOracle address."
+      },
+      "minimumGasLimit()": {
+        "notice": "Returns the minimum L2 gas limit that can be safely set for the system to         operate. The L2 gas limit must be larger than or equal to the amount of         gas that is allocated for deposits per block plus the amount of gas that         is allocated for the system transaction.         This function is used to determine if changes to parameters are safe."
+      },
+      "optimismMintableERC20Factory()": {
+        "notice": "Getter for the OptimismMintableERC20Factory address."
+      },
+      "optimismPortal()": {
+        "notice": "Getter for the OptimismPortal address."
+      },
+      "overhead()": {
+        "notice": "Fixed L2 gas overhead. Used as part of the L2 fee calculation."
+      },
+      "resourceConfig()": {
+        "notice": "A getter for the resource config.         Ensures that the struct is returned instead of a tuple."
+      },
+      "scalar()": {
+        "notice": "Dynamic L2 gas overhead. Used as part of the L2 fee calculation."
+      },
+      "setBatcherHash(bytes32)": {
+        "notice": "Updates the batcher hash."
+      },
+      "setGasConfig(uint256,uint256)": {
+        "notice": "Updates gas config."
+      },
+      "setGasLimit(uint64)": {
+        "notice": "Updates the L2 gas limit."
+      },
+      "setResourceConfig((uint32,uint8,uint8,uint32,uint32,uint128))": {
+        "notice": "An external setter for the resource config.         In the future, this method may emit an event that the `op-node` picks up         for when the resource config is changed."
+      },
+      "setUnsafeBlockSigner(address)": {
+        "notice": "Updates the unsafe block signer address."
+      },
+      "startBlock()": {
+        "notice": "The block at which the op-node can start searching for logs from."
+      },
+      "unsafeBlockSigner()": {
+        "notice": "High level getter for the unsafe block signer address.         Unsafe blocks can be propagated across the p2p network if they are signed by the         key corresponding to this address."
+      },
+      "version()": {
+        "notice": "Returns the full semver contract version."
+      }
+    },
+    "events": {
+      "ConfigUpdate(uint256,uint8,bytes)": {
+        "notice": "Emitted when configuration is updated."
+      }
+    },
+    "notice": "The SystemConfig contract is used to manage configuration of an Optimism network.         All configuration is stored on L1 and picked up by L2 as part of the derviation of         the L2 chain."
   }
 }

@@ -2,13 +2,7 @@
   "address": "0x9b30CdC1aff7e7569E628834D00D2dd887F00174",
   "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "contract OptimismPortal",
-          "name": "_portal",
-          "type": "address"
-        }
-      ],
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -242,7 +236,13 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "contract OptimismPortal",
+          "name": "_portal",
+          "type": "address"
+        }
+      ],
       "name": "initialize",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -256,6 +256,19 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "portal",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -418,7 +431,8 @@
           "_0": "Amount of gas required to guarantee message receipt."
         }
       },
-      "constructor": {
+      "constructor": {},
+      "initialize(address)": {
         "params": {
           "_portal": "Address of the OptimismPortal contract on this network."
         }
@@ -523,14 +537,18 @@
       "SentMessageExtension1(address,uint256)": {
         "notice": "Additional event data to emit, required as of Bedrock. Cannot be merged with the         SentMessage event without breaking the ABI of this contract, this is good enough."
       }
-    },
-    "notice": "The L1CrossDomainMessenger is a message passing interface between L1 and L2 responsible         for sending and receiving data on the L1 side. Users are encouraged to use this         interface instead of interacting with lower-level contracts directly."
+    ],
+    "status": "0x1",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000800000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000",
+    "type": "0x2",
+    "effectiveGasPrice": "0xb2d05e0b"
   },
+  "solcInputHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "storageLayout": {
     "storage": [
       {
         "astId": 45492,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_0_0_20",
         "offset": 0,
         "slot": "0",
@@ -538,7 +556,7 @@
       },
       {
         "astId": 48803,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "_initialized",
         "offset": 20,
         "slot": "0",
@@ -546,7 +564,7 @@
       },
       {
         "astId": 48806,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "_initializing",
         "offset": 21,
         "slot": "0",
@@ -554,7 +572,7 @@
       },
       {
         "astId": 45499,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_1_0_1600",
         "offset": 0,
         "slot": "1",
@@ -562,7 +580,7 @@
       },
       {
         "astId": 45502,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_51_0_20",
         "offset": 0,
         "slot": "51",
@@ -570,7 +588,7 @@
       },
       {
         "astId": 45507,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_52_0_1568",
         "offset": 0,
         "slot": "52",
@@ -578,7 +596,7 @@
       },
       {
         "astId": 45510,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_101_0_1",
         "offset": 0,
         "slot": "101",
@@ -586,7 +604,7 @@
       },
       {
         "astId": 45515,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_102_0_1568",
         "offset": 0,
         "slot": "102",
@@ -594,7 +612,7 @@
       },
       {
         "astId": 45518,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_151_0_32",
         "offset": 0,
         "slot": "151",
@@ -602,7 +620,7 @@
       },
       {
         "astId": 45523,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "__gap_reentrancy_guard",
         "offset": 0,
         "slot": "152",
@@ -610,7 +628,7 @@
       },
       {
         "astId": 45528,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_201_0_32",
         "offset": 0,
         "slot": "201",
@@ -618,7 +636,7 @@
       },
       {
         "astId": 45533,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "spacer_202_0_32",
         "offset": 0,
         "slot": "202",
@@ -626,7 +644,7 @@
       },
       {
         "astId": 45569,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "successfulMessages",
         "offset": 0,
         "slot": "203",
@@ -634,7 +652,7 @@
       },
       {
         "astId": 45572,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "xDomainMsgSender",
         "offset": 0,
         "slot": "204",
@@ -642,7 +660,7 @@
       },
       {
         "astId": 45575,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "msgNonce",
         "offset": 0,
         "slot": "205",
@@ -650,7 +668,7 @@
       },
       {
         "astId": 45580,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "failedMessages",
         "offset": 0,
         "slot": "206",
@@ -658,11 +676,19 @@
       },
       {
         "astId": 45585,
-        "contract": "contracts/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
         "label": "__gap",
         "offset": 0,
         "slot": "207",
         "type": "t_array(t_uint256)42_storage"
+      },
+      {
+        "astId": 52655,
+        "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
+        "label": "PORTAL",
+        "offset": 0,
+        "slot": "249",
+        "type": "t_contract(OptimismPortal)54719"
       }
     ],
     "types": {
@@ -699,6 +725,11 @@
         "label": "bytes32",
         "numberOfBytes": "32"
       },
+      "t_contract(OptimismPortal)54719": {
+        "encoding": "inplace",
+        "label": "contract OptimismPortal",
+        "numberOfBytes": "20"
+      },
       "t_mapping(t_bytes32,t_bool)": {
         "encoding": "mapping",
         "key": "t_bytes32",
@@ -722,5 +753,90 @@
         "numberOfBytes": "1"
       }
     }
+  },
+  "transactionHash": "0xc4f6c74fc370db674f5674f783f9354b1478923233da6058bfcb567c86350e01",
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "MESSAGE_VERSION()": {
+        "notice": "Current message version identifier."
+      },
+      "MIN_GAS_CALLDATA_OVERHEAD()": {
+        "notice": "Extra gas added to base gas for each byte of calldata in a message."
+      },
+      "MIN_GAS_DYNAMIC_OVERHEAD_DENOMINATOR()": {
+        "notice": "Denominator for dynamic overhead added to the base gas for a message."
+      },
+      "MIN_GAS_DYNAMIC_OVERHEAD_NUMERATOR()": {
+        "notice": "Numerator for dynamic overhead added to the base gas for a message."
+      },
+      "OTHER_MESSENGER()": {
+        "notice": "Address of the paired CrossDomainMessenger contract on the other chain."
+      },
+      "PORTAL()": {
+        "notice": "Address of the OptimismPortal. The public getter for this         is legacy and will be removed in the future. Use `portal()` instead."
+      },
+      "RELAY_CALL_OVERHEAD()": {
+        "notice": "Gas reserved for performing the external call in `relayMessage`."
+      },
+      "RELAY_CONSTANT_OVERHEAD()": {
+        "notice": "Constant overhead added to the base gas for a message."
+      },
+      "RELAY_GAS_CHECK_BUFFER()": {
+        "notice": "Gas reserved for the execution between the `hasMinGas` check and the external         call in `relayMessage`."
+      },
+      "RELAY_RESERVED_GAS()": {
+        "notice": "Gas reserved for finalizing the execution of `relayMessage` after the safe call."
+      },
+      "baseGas(bytes,uint32)": {
+        "notice": "Computes the amount of gas required to guarantee that a given message will be         received on the other chain without running out of gas. Guaranteeing that a message         will not run out of gas is important because this ensures that a message can always         be replayed on the other chain if it fails to execute completely."
+      },
+      "constructor": {
+        "notice": "Constructs the L1CrossDomainMessenger contract."
+      },
+      "failedMessages(bytes32)": {
+        "notice": "Mapping of message hashes to a boolean if and only if the message has failed to be         executed at least once. A message will not be present in this mapping if it         successfully executed on the first attempt."
+      },
+      "initialize(address)": {
+        "notice": "Initializes the contract."
+      },
+      "messageNonce()": {
+        "notice": "Retrieves the next message nonce. Message version will be added to the upper two         bytes of the message nonce. Message version allows us to treat messages as having         different structures."
+      },
+      "portal()": {
+        "notice": "Getter for the OptimismPortal address."
+      },
+      "relayMessage(uint256,address,address,uint256,uint256,bytes)": {
+        "notice": "Relays a message that was sent by the other CrossDomainMessenger contract. Can only         be executed via cross-chain call from the other messenger OR if the message was         already received once and is currently being replayed."
+      },
+      "sendMessage(address,bytes,uint32)": {
+        "notice": "Sends a message to some target address on the other chain. Note that if the call         always reverts, then the message will be unrelayable, and any ETH sent will be         permanently locked. The same will occur if the target on the other chain is         considered unsafe (see the _isUnsafeTarget() function)."
+      },
+      "successfulMessages(bytes32)": {
+        "notice": "Mapping of message hashes to boolean receipt values. Note that a message will only         be present in this mapping if it has successfully been relayed on this chain, and         can therefore not be relayed again."
+      },
+      "version()": {
+        "notice": "Returns the full semver contract version."
+      },
+      "xDomainMessageSender()": {
+        "notice": "Retrieves the address of the contract or wallet that initiated the currently         executing message on the other chain. Will throw an error if there is no message         currently being executed. Allows the recipient of a call to see who triggered it."
+      }
+    },
+    "events": {
+      "FailedRelayedMessage(bytes32)": {
+        "notice": "Emitted whenever a message fails to be relayed on this chain."
+      },
+      "RelayedMessage(bytes32)": {
+        "notice": "Emitted whenever a message is successfully relayed on this chain."
+      },
+      "SentMessage(address,address,bytes,uint256,uint256)": {
+        "notice": "Emitted whenever a message is sent to the other chain."
+      },
+      "SentMessageExtension1(address,uint256)": {
+        "notice": "Additional event data to emit, required as of Bedrock. Cannot be merged with the         SentMessage event without breaking the ABI of this contract, this is good enough."
+      }
+    },
+    "notice": "The L1CrossDomainMessenger is a message passing interface between L1 and L2 responsible         for sending and receiving data on the L1 side. Users are encouraged to use this         interface instead of interacting with lower-level contracts directly."
   }
 }

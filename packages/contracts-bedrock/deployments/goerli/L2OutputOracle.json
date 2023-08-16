@@ -15,26 +15,6 @@
         },
         {
           "internalType": "uint256",
-          "name": "_startingBlockNumber",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_startingTimestamp",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "_proposer",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_challenger",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
           "name": "_finalizationPeriodSeconds",
           "type": "uint256"
         }
@@ -171,6 +151,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "challenger",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "uint256",
@@ -200,6 +193,19 @@
       "name": "deleteL2Outputs",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "finalizationPeriodSeconds",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -304,11 +310,34 @@
           "internalType": "uint256",
           "name": "_startingTimestamp",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_proposer",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_challenger",
+          "type": "address"
         }
       ],
       "name": "initialize",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2BlockTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -393,6 +422,19 @@
     },
     {
       "inputs": [],
+      "name": "proposer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "startingBlockNumber",
       "outputs": [
         {
@@ -407,6 +449,19 @@
     {
       "inputs": [],
       "name": "startingTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "submissionInterval",
       "outputs": [
         {
           "internalType": "uint256",
@@ -478,6 +533,8 @@
     "version": 1,
     "kind": "dev",
     "methods": {
+      "CHALLENGER()": {},
+      "PROPOSER()": {},
       "computeL2Timestamp(uint256)": {
         "params": {
           "_l2BlockNumber": "The L2 block number of the target block."
@@ -488,17 +545,14 @@
       },
       "constructor": {
         "params": {
-          "_challenger": "The address of the challenger.",
+          "_finalizationPeriodSeconds": "The amount of time that must pass for an output proposal",
           "_l2BlockTime": "The time per L2 block, in seconds.",
-          "_proposer": "The address of the proposer.",
-          "_startingBlockNumber": "The number of the first L2 block.",
-          "_startingTimestamp": "The timestamp of the first L2 block.",
           "_submissionInterval": "Interval in blocks at which checkpoints must be submitted."
         }
       },
       "deleteL2Outputs(uint256)": {
         "params": {
-          "_l2OutputIndex": "Index of the first L2 output to be deleted. All outputs after this                       output will also be deleted."
+          "_l2OutputIndex": "Index of the first L2 output to be deleted.                       All outputs after this output will also be deleted."
         }
       },
       "getL2Output(uint256)": {
@@ -525,8 +579,10 @@
           "_0": "Index of the first checkpoint that commits to the given L2 block number."
         }
       },
-      "initialize(uint256,uint256)": {
+      "initialize(uint256,uint256,address,address)": {
         "params": {
+          "_challenger": "The address of the challenger.",
+          "_proposer": "The address of the proposer.",
           "_startingBlockNumber": "Block number for the first recoded L2 block.",
           "_startingTimestamp": "Timestamp for the first recoded L2 block."
         }
@@ -582,83 +638,11 @@
       }
     }
   },
-  "userdoc": {
-    "version": 1,
-    "kind": "user",
-    "methods": {
-      "CHALLENGER()": {
-        "notice": "The address of the challenger. Can be updated via upgrade."
-      },
-      "FINALIZATION_PERIOD_SECONDS()": {
-        "notice": "Minimum time (in seconds) that must elapse before a withdrawal can be finalized."
-      },
-      "L2_BLOCK_TIME()": {
-        "notice": "The time between L2 blocks in seconds. Once set, this value MUST NOT be modified."
-      },
-      "PROPOSER()": {
-        "notice": "The address of the proposer. Can be updated via upgrade."
-      },
-      "SUBMISSION_INTERVAL()": {
-        "notice": "The interval in L2 blocks at which checkpoints must be submitted. Although this is         immutable, it can safely be modified by upgrading the implementation contract."
-      },
-      "computeL2Timestamp(uint256)": {
-        "notice": "Returns the L2 timestamp corresponding to a given L2 block number."
-      },
-      "deleteL2Outputs(uint256)": {
-        "notice": "Deletes all output proposals after and including the proposal that corresponds to         the given output index. Only the challenger address can delete outputs."
-      },
-      "getL2Output(uint256)": {
-        "notice": "Returns an output by index. Exists because Solidity's array access will return a         tuple instead of a struct."
-      },
-      "getL2OutputAfter(uint256)": {
-        "notice": "Returns the L2 output proposal that checkpoints a given L2 block number. Uses a         binary search to find the first output greater than or equal to the given block."
-      },
-      "getL2OutputIndexAfter(uint256)": {
-        "notice": "Returns the index of the L2 output that checkpoints a given L2 block number. Uses a         binary search to find the first output greater than or equal to the given block."
-      },
-      "initialize(uint256,uint256)": {
-        "notice": "Initializer."
-      },
-      "latestBlockNumber()": {
-        "notice": "Returns the block number of the latest submitted L2 output proposal. If no proposals         been submitted yet then this function will return the starting block number."
-      },
-      "latestOutputIndex()": {
-        "notice": "Returns the number of outputs that have been proposed. Will revert if no outputs         have been proposed yet."
-      },
-      "nextBlockNumber()": {
-        "notice": "Computes the block number of the next L2 block that needs to be checkpointed."
-      },
-      "nextOutputIndex()": {
-        "notice": "Returns the index of the next output to be proposed."
-      },
-      "proposeL2Output(bytes32,uint256,bytes32,uint256)": {
-        "notice": "Accepts an outputRoot and the timestamp of the corresponding L2 block. The timestamp         must be equal to the current value returned by `nextTimestamp()` in order to be         accepted. This function may only be called by the Proposer."
-      },
-      "startingBlockNumber()": {
-        "notice": "The number of the first L2 block recorded in this contract."
-      },
-      "startingTimestamp()": {
-        "notice": "The timestamp of the first L2 block recorded in this contract."
-      },
-      "version()": {
-        "notice": "Returns the full semver contract version."
-      }
-    },
-    "events": {
-      "OutputProposed(bytes32,uint256,uint256,uint256)": {
-        "notice": "Emitted when an output is proposed."
-      },
-      "OutputsDeleted(uint256,uint256)": {
-        "notice": "Emitted when outputs are deleted."
-      }
-    },
-    "notice": "The L2OutputOracle contains an array of L2 state outputs, where each output is a         commitment to the state of the L2 chain. Other contracts like the OptimismPortal use         these outputs to verify information about the state of L2."
-  },
   "storageLayout": {
     "storage": [
       {
         "astId": 49430,
-        "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+        "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
         "label": "_initialized",
         "offset": 0,
         "slot": "0",
@@ -666,7 +650,7 @@
       },
       {
         "astId": 49433,
-        "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+        "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
         "label": "_initializing",
         "offset": 1,
         "slot": "0",
@@ -674,7 +658,7 @@
       },
       {
         "astId": 884,
-        "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+        "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
         "label": "startingBlockNumber",
         "offset": 0,
         "slot": "1",
@@ -682,7 +666,7 @@
       },
       {
         "astId": 887,
-        "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+        "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
         "label": "startingTimestamp",
         "offset": 0,
         "slot": "2",
@@ -690,7 +674,7 @@
       },
       {
         "astId": 892,
-        "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+        "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
         "label": "l2Outputs",
         "offset": 0,
         "slot": "3",
@@ -721,7 +705,7 @@
         "members": [
           {
             "astId": 8639,
-            "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+            "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
             "label": "outputRoot",
             "offset": 0,
             "slot": "0",
@@ -729,7 +713,7 @@
           },
           {
             "astId": 8641,
-            "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+            "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
             "label": "timestamp",
             "offset": 0,
             "slot": "1",
@@ -737,7 +721,7 @@
           },
           {
             "astId": 8643,
-            "contract": "contracts/L1/L2OutputOracle.sol:L2OutputOracle",
+            "contract": "src/L1/L2OutputOracle.sol:L2OutputOracle",
             "label": "l2BlockNumber",
             "offset": 16,
             "slot": "1",
@@ -761,5 +745,92 @@
         "numberOfBytes": "1"
       }
     }
+  },
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "CHALLENGER()": {
+        "notice": "Getter for the challenger address. This will be removed         in the future, use `challenger` instead."
+      },
+      "L2_BLOCK_TIME()": {
+        "notice": "The time between L2 blocks in seconds. Once set, this value MUST NOT be modified.         Public getter is legacy and will be removed in the future. Use `l2BlockTime`         instead."
+      },
+      "PROPOSER()": {
+        "notice": "Getter for the proposer address. This will be removed in the         future, use `proposer` instead."
+      },
+      "SUBMISSION_INTERVAL()": {
+        "notice": "The interval in L2 blocks at which checkpoints must be submitted.         Although this is immutable, it can safely be modified by upgrading the         implementation contract.         Public getter is legacy and will be removed in the future. Use `submissionInterval`         instead."
+      },
+      "challenger()": {
+        "notice": "The address of the challenger. Can be updated via reinitialize."
+      },
+      "computeL2Timestamp(uint256)": {
+        "notice": "Returns the L2 timestamp corresponding to a given L2 block number."
+      },
+      "constructor": {
+        "notice": "Constructs the L2OutputOracle contract."
+      },
+      "deleteL2Outputs(uint256)": {
+        "notice": "Deletes all output proposals after and including the proposal that corresponds to         the given output index. Only the challenger address can delete outputs."
+      },
+      "finalizationPeriodSeconds()": {
+        "notice": "Getter for the finalization period."
+      },
+      "getL2Output(uint256)": {
+        "notice": "Returns an output by index. Needed to return a struct instead of a tuple."
+      },
+      "getL2OutputAfter(uint256)": {
+        "notice": "Returns the L2 output proposal that checkpoints a given L2 block number.         Uses a binary search to find the first output greater than or equal to the given         block."
+      },
+      "getL2OutputIndexAfter(uint256)": {
+        "notice": "Returns the index of the L2 output that checkpoints a given L2 block number.         Uses a binary search to find the first output greater than or equal to the given         block."
+      },
+      "initialize(uint256,uint256,address,address)": {
+        "notice": "Initializer."
+      },
+      "l2BlockTime()": {
+        "notice": "Getter for the L2 block time."
+      },
+      "latestBlockNumber()": {
+        "notice": "Returns the block number of the latest submitted L2 output proposal.         If no proposals been submitted yet then this function will return the starting         block number."
+      },
+      "latestOutputIndex()": {
+        "notice": "Returns the number of outputs that have been proposed.         Will revert if no outputs have been proposed yet."
+      },
+      "nextBlockNumber()": {
+        "notice": "Computes the block number of the next L2 block that needs to be checkpointed."
+      },
+      "nextOutputIndex()": {
+        "notice": "Returns the index of the next output to be proposed."
+      },
+      "proposeL2Output(bytes32,uint256,bytes32,uint256)": {
+        "notice": "Accepts an outputRoot and the timestamp of the corresponding L2 block.         The timestamp must be equal to the current value returned by `nextTimestamp()` in         order to be accepted. This function may only be called by the Proposer."
+      },
+      "proposer()": {
+        "notice": "The address of the proposer. Can be updated via reinitialize."
+      },
+      "startingBlockNumber()": {
+        "notice": "The number of the first L2 block recorded in this contract."
+      },
+      "startingTimestamp()": {
+        "notice": "The timestamp of the first L2 block recorded in this contract."
+      },
+      "submissionInterval()": {
+        "notice": "Getter for the output proposal submission interval."
+      },
+      "version()": {
+        "notice": "Returns the full semver contract version."
+      }
+    },
+    "events": {
+      "OutputProposed(bytes32,uint256,uint256,uint256)": {
+        "notice": "Emitted when an output is proposed."
+      },
+      "OutputsDeleted(uint256,uint256)": {
+        "notice": "Emitted when outputs are deleted."
+      }
+    },
+    "notice": "The L2OutputOracle contains an array of L2 state outputs, where each output is a         commitment to the state of the L2 chain. Other contracts like the OptimismPortal use         these outputs to verify information about the state of L2."
   }
 }

@@ -2,13 +2,7 @@
   "address": "0x75592Cb636e0fbE48F576C7b0A54e65C8945BA64",
   "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "address payable",
-          "name": "_messenger",
-          "type": "address"
-        }
-      ],
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -306,6 +300,19 @@
         }
       ],
       "name": "ETHWithdrawalFinalized",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "version",
+          "type": "uint8"
+        }
+      ],
+      "name": "Initialized",
       "type": "event"
     },
     {
@@ -715,6 +722,19 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "contract CrossDomainMessenger",
+          "name": "_messenger",
+          "type": "address"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "l2TokenBridge",
       "outputs": [
@@ -733,6 +753,19 @@
       "outputs": [
         {
           "internalType": "contract CrossDomainMessenger",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "otherBridge",
+      "outputs": [
+        {
+          "internalType": "contract StandardBridge",
           "name": "",
           "type": "address"
         }
@@ -786,6 +819,7 @@
     "version": 1,
     "kind": "dev",
     "methods": {
+      "MESSENGER()": {},
       "bridgeERC20(address,address,uint256,uint32,bytes)": {
         "params": {
           "_amount": "Amount of local tokens to deposit.",
@@ -818,15 +852,11 @@
           "_to": "Address of the receiver."
         }
       },
-      "constructor": {
-        "params": {
-          "_messenger": "Address of the L1CrossDomainMessenger."
-        }
-      },
+      "constructor": {},
       "depositERC20(address,address,uint256,uint32,bytes)": {
         "params": {
           "_amount": "Amount of the ERC20 to deposit.",
-          "_extraData": "Optional data to forward to L2. Data supplied here will not be used to                     execute any code on L2 and is only emitted as extra data for the                     convenience of off-chain tooling.",
+          "_extraData": "Optional data to forward to L2.                     Data supplied here will not be used to execute any code on L2 and is                     only emitted as extra data for the convenience of off-chain tooling.",
           "_l1Token": "Address of the L1 token being deposited.",
           "_l2Token": "Address of the corresponding token on L2.",
           "_minGasLimit": "Minimum gas limit for the deposit message on L2."
@@ -835,7 +865,7 @@
       "depositERC20To(address,address,address,uint256,uint32,bytes)": {
         "params": {
           "_amount": "Amount of the ERC20 to deposit.",
-          "_extraData": "Optional data to forward to L2. Data supplied here will not be used to                     execute any code on L2 and is only emitted as extra data for the                     convenience of off-chain tooling.",
+          "_extraData": "Optional data to forward to L2.                     Data supplied here will not be used to execute any code on L2 and is                     only emitted as extra data for the convenience of off-chain tooling.",
           "_l1Token": "Address of the L1 token being deposited.",
           "_l2Token": "Address of the corresponding token on L2.",
           "_minGasLimit": "Minimum gas limit for the deposit message on L2.",
@@ -844,13 +874,13 @@
       },
       "depositETH(uint32,bytes)": {
         "params": {
-          "_extraData": "Optional data to forward to L2. Data supplied here will not be used to                     execute any code on L2 and is only emitted as extra data for the                     convenience of off-chain tooling.",
+          "_extraData": "Optional data to forward to L2.                     Data supplied here will not be used to execute any code on L2 and is                     only emitted as extra data for the convenience of off-chain tooling.",
           "_minGasLimit": "Minimum gas limit for the deposit message on L2."
         }
       },
       "depositETHTo(address,uint32,bytes)": {
         "params": {
-          "_extraData": "Optional data to forward to L2. Data supplied here will not be used to                     execute any code on L2 and is only emitted as extra data for the                     convenience of off-chain tooling.",
+          "_extraData": "Optional data to forward to L2.                     Data supplied here will not be used to execute any code on L2 and is                     only emitted as extra data for the convenience of off-chain tooling.",
           "_minGasLimit": "Minimum gas limit for the deposit message on L2.",
           "_to": "Address of the recipient on L2."
         }
@@ -894,11 +924,6 @@
       "l2TokenBridge()": {
         "returns": {
           "_0": "Address of the corresponding L2 bridge contract."
-        }
-      },
-      "messenger()": {
-        "returns": {
-          "_0": "Messenger contract on this domain."
         }
       },
       "version()": {
@@ -946,15 +971,122 @@
       }
     }
   },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 47923,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "spacer_0_0_20",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint8"
+      },
+      {
+        "astId": 32103,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "_initializing",
+        "offset": 1,
+        "slot": "0",
+        "type": "t_bool"
+      },
+      {
+        "astId": 71253,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "spacer_0_2_20",
+        "offset": 2,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 47926,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "spacer_1_0_20",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 47933,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "deposits",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+      },
+      {
+        "astId": 47938,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "__gap",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_contract(CrossDomainMessenger)69261"
+      },
+      {
+        "astId": 71272,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "__gap",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_array(t_uint256)46_storage"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_uint256)46_storage": {
+        "encoding": "inplace",
+        "label": "uint256[46]",
+        "numberOfBytes": "1472",
+        "base": "t_uint256"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_contract(CrossDomainMessenger)69261": {
+        "encoding": "inplace",
+        "label": "contract CrossDomainMessenger",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => uint256))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_uint256)"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint8": {
+        "encoding": "inplace",
+        "label": "uint8",
+        "numberOfBytes": "1"
+      }
+    }
+  },
   "userdoc": {
     "version": 1,
     "kind": "user",
     "methods": {
       "MESSENGER()": {
-        "notice": "Messenger contract on this domain."
+        "notice": "Getter for messenger contract."
       },
       "OTHER_BRIDGE()": {
-        "notice": "Corresponding bridge on the other domain."
+        "notice": "Corresponding bridge on the other domain. This public getter is deprecated         and will be removed in the future. Please use `otherBridge` instead."
       },
       "bridgeERC20(address,address,uint256,uint32,bytes)": {
         "notice": "Sends ERC20 tokens to the sender's address on the other chain. Note that if the         ERC20 token on the other chain does not recognize the local token as the correct         pair token, the ERC20 bridge will fail and the tokens will be returned to sender on         this chain."
@@ -968,6 +1100,9 @@
       "bridgeETHTo(address,uint32,bytes)": {
         "notice": "Sends ETH to a receiver's address on the other chain. Note that if ETH is sent to a         smart contract and the call fails, the ETH will be temporarily locked in the         StandardBridge on the other chain until the call is replayed. If the call cannot be         replayed with any amount of gas (call always reverts), then the ETH will be         permanently locked in the StandardBridge on the other chain. ETH will also         be locked if the receiver is the other bridge, because finalizeBridgeETH will revert         in that case."
       },
+      "constructor": {
+        "notice": "Constructs the L1StandardBridge contract."
+      },
       "deposits(address,address)": {
         "notice": "Mapping that stores deposits for a given pair of local and remote tokens."
       },
@@ -976,6 +1111,15 @@
       },
       "finalizeBridgeETH(address,address,uint256,bytes)": {
         "notice": "Finalizes an ETH bridge on this chain. Can only be triggered by the other         StandardBridge contract on the remote chain."
+      },
+      "initialize(address)": {
+        "notice": "Initializer         The fix modifier should be removed during the next contract upgrade."
+      },
+      "messenger()": {
+        "notice": "Messenger contract on this domain. This public getter is deprecated         and will be removed in the future. Please use `messenger` instead."
+      },
+      "otherBridge()": {
+        "notice": "Getter for the remote domain bridge contract."
       },
       "version()": {
         "notice": "Returns the full semver contract version."
@@ -996,73 +1140,5 @@
       }
     },
     "notice": "The L1StandardBridge is responsible for transfering ETH and ERC20 tokens between L1 and         L2. In the case that an ERC20 token is native to L1, it will be escrowed within this         contract. If the ERC20 token is native to L2, it will be burnt. Before Bedrock, ETH was         stored within this contract. After Bedrock, ETH is instead stored inside the         OptimismPortal contract.         NOTE: this contract is not intended to support all variations of ERC20 tokens. Examples         of some token types that may not be properly supported by this contract include, but are         not limited to: tokens with transfer fees, rebasing tokens, and tokens with blocklists."
-  },
-  "storageLayout": {
-    "storage": [
-      {
-        "astId": 47923,
-        "contract": "contracts/L1/L1StandardBridge.sol:L1StandardBridge",
-        "label": "spacer_0_0_20",
-        "offset": 0,
-        "slot": "0",
-        "type": "t_address"
-      },
-      {
-        "astId": 47926,
-        "contract": "contracts/L1/L1StandardBridge.sol:L1StandardBridge",
-        "label": "spacer_1_0_20",
-        "offset": 0,
-        "slot": "1",
-        "type": "t_address"
-      },
-      {
-        "astId": 47933,
-        "contract": "contracts/L1/L1StandardBridge.sol:L1StandardBridge",
-        "label": "deposits",
-        "offset": 0,
-        "slot": "2",
-        "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
-      },
-      {
-        "astId": 47938,
-        "contract": "contracts/L1/L1StandardBridge.sol:L1StandardBridge",
-        "label": "__gap",
-        "offset": 0,
-        "slot": "3",
-        "type": "t_array(t_uint256)47_storage"
-      }
-    ],
-    "types": {
-      "t_address": {
-        "encoding": "inplace",
-        "label": "address",
-        "numberOfBytes": "20"
-      },
-      "t_array(t_uint256)47_storage": {
-        "encoding": "inplace",
-        "label": "uint256[47]",
-        "numberOfBytes": "1504",
-        "base": "t_uint256"
-      },
-      "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
-        "encoding": "mapping",
-        "key": "t_address",
-        "label": "mapping(address => mapping(address => uint256))",
-        "numberOfBytes": "32",
-        "value": "t_mapping(t_address,t_uint256)"
-      },
-      "t_mapping(t_address,t_uint256)": {
-        "encoding": "mapping",
-        "key": "t_address",
-        "label": "mapping(address => uint256)",
-        "numberOfBytes": "32",
-        "value": "t_uint256"
-      },
-      "t_uint256": {
-        "encoding": "inplace",
-        "label": "uint256",
-        "numberOfBytes": "32"
-      }
-    }
   }
 }

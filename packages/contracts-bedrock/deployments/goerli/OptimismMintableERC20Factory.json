@@ -217,6 +217,10 @@
     },
     "title": "OptimismMintableERC20Factory"
   },
+  "storageLayout": {
+    "storage": [],
+    "types": {}
+  },
   "userdoc": {
     "version": 1,
     "kind": "user",

@@ -2,28 +2,7 @@
   "address": "0x6e8fd67c9E74918be4A6A983a8DD5aa82D775EDe",
   "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "contract L2OutputOracle",
-          "name": "_l2Oracle",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_guardian",
-          "type": "address"
-        },
-        {
-          "internalType": "bool",
-          "name": "_paused",
-          "type": "bool"
-        },
-        {
-          "internalType": "contract SystemConfig",
-          "name": "_config",
-          "type": "address"
-        }
-      ],
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -285,7 +264,35 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "guardian",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
+        {
+          "internalType": "contract L2OutputOracle",
+          "name": "_l2Oracle",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_guardian",
+          "type": "address"
+        },
+        {
+          "internalType": "contract SystemConfig",
+          "name": "_systemConfig",
+          "type": "address"
+        },
         {
           "internalType": "bool",
           "name": "_paused",
@@ -311,6 +318,19 @@
           "internalType": "bool",
           "name": "",
           "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2Oracle",
+      "outputs": [
+        {
+          "internalType": "contract L2OutputOracle",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -485,6 +505,19 @@
     },
     {
       "inputs": [],
+      "name": "systemConfig",
+      "outputs": [
+        {
+          "internalType": "contract SystemConfig",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "unpause",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -552,18 +585,14 @@
     "version": 1,
     "kind": "dev",
     "methods": {
-      "constructor": {
-        "params": {
-          "_config": "Address of the SystemConfig contract.",
-          "_guardian": "Address that can pause deposits and withdrawals.",
-          "_l2Oracle": "Address of the L2OutputOracle contract.",
-          "_paused": "Sets the contract's pausability state."
-        }
-      },
+      "GUARDIAN()": {},
+      "L2_ORACLE()": {},
+      "SYSTEM_CONFIG()": {},
+      "constructor": {},
       "depositTransaction(address,uint256,uint64,bool,bytes)": {
         "params": {
           "_data": "Data to trigger the recipient with.",
-          "_gasLimit": "Minimum L2 gas limit (can be greater than or equal to this value).",
+          "_gasLimit": "Amount of L2 gas to purchase by burning gas on L1.",
           "_isCreation": "Whether or not the transaction is a contract creation.",
           "_to": "Target address on L2.",
           "_value": "ETH value to send to the recipient."
@@ -574,12 +603,28 @@
           "_tx": "Withdrawal transaction to finalize."
         }
       },
+      "initialize(address,address,address,bool)": {
+        "params": {
+          "_guardian": "Address that can pause withdrawals.",
+          "_l2Oracle": "Address of the L2OutputOracle contract.",
+          "_paused": "Sets the contract's pausability state.",
+          "_systemConfig": "Address of the SystemConfig contract."
+        }
+      },
       "isOutputFinalized(uint256)": {
         "params": {
           "_l2OutputIndex": "Index of the L2 output to check."
         },
         "returns": {
           "_0": "Whether or not the output is finalized."
+        }
+      },
+      "minimumGasLimit(uint64)": {
+        "params": {
+          "_byteCount": "Number of bytes in the calldata."
+        },
+        "returns": {
+          "_0": "The minimum gas limit for a deposit."
         }
       },
       "proveWithdrawalTransaction((uint256,address,address,uint256,uint256,bytes),uint256,(bytes32,bytes32,bytes32,bytes32),bytes[])": {
@@ -623,6 +668,8 @@
       },
       "WithdrawalProven(bytes32,address,address)": {
         "params": {
+          "from": "Address that triggered the withdrawal transaction.",
+          "to": "Address that the withdrawal transaction is directed to.",
           "withdrawalHash": "Hash of the withdrawal transaction."
         }
       }
@@ -700,14 +747,18 @@
       "WithdrawalProven(bytes32,address,address)": {
         "notice": "Emitted when a withdrawal transaction is proven."
       }
-    },
-    "notice": "The OptimismPortal is a low-level contract responsible for passing messages between L1         and L2. Messages sent directly to the OptimismPortal have no form of replayability.         Users are encouraged to use the L1CrossDomainMessenger for a higher-level interface."
+    ],
+    "status": "0x1",
+    "logsBloom": "0x00000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "type": "0x2",
+    "effectiveGasPrice": "0xb2d05e0b"
   },
+  "solcInputHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "storageLayout": {
     "storage": [
       {
         "astId": 49430,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "_initialized",
         "offset": 0,
         "slot": "0",
@@ -715,7 +766,7 @@
       },
       {
         "astId": 49433,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "_initializing",
         "offset": 1,
         "slot": "0",
@@ -723,7 +774,7 @@
       },
       {
         "astId": 2001,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "params",
         "offset": 0,
         "slot": "1",
@@ -731,7 +782,7 @@
       },
       {
         "astId": 2006,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "__gap",
         "offset": 0,
         "slot": "2",
@@ -739,7 +790,7 @@
       },
       {
         "astId": 1374,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "l2Sender",
         "offset": 0,
         "slot": "50",
@@ -747,7 +798,7 @@
       },
       {
         "astId": 1379,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "finalizedWithdrawals",
         "offset": 0,
         "slot": "51",
@@ -755,7 +806,7 @@
       },
       {
         "astId": 1385,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "provenWithdrawals",
         "offset": 0,
         "slot": "52",
@@ -763,11 +814,35 @@
       },
       {
         "astId": 1388,
-        "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
         "label": "paused",
         "offset": 0,
         "slot": "53",
         "type": "t_bool"
+      },
+      {
+        "astId": 54063,
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
+        "label": "l2Oracle",
+        "offset": 1,
+        "slot": "53",
+        "type": "t_contract(L2OutputOracle)53996"
+      },
+      {
+        "astId": 54067,
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
+        "label": "systemConfig",
+        "offset": 0,
+        "slot": "54",
+        "type": "t_contract(SystemConfig)55810"
+      },
+      {
+        "astId": 54070,
+        "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
+        "label": "guardian",
+        "offset": 0,
+        "slot": "55",
+        "type": "t_address"
       }
     ],
     "types": {
@@ -792,6 +867,16 @@
         "label": "bytes32",
         "numberOfBytes": "32"
       },
+      "t_contract(L2OutputOracle)53996": {
+        "encoding": "inplace",
+        "label": "contract L2OutputOracle",
+        "numberOfBytes": "20"
+      },
+      "t_contract(SystemConfig)55810": {
+        "encoding": "inplace",
+        "label": "contract SystemConfig",
+        "numberOfBytes": "20"
+      },
       "t_mapping(t_bytes32,t_bool)": {
         "encoding": "mapping",
         "key": "t_bytes32",
@@ -813,7 +898,7 @@
         "members": [
           {
             "astId": 1347,
-            "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+            "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
             "label": "outputRoot",
             "offset": 0,
             "slot": "0",
@@ -821,7 +906,7 @@
           },
           {
             "astId": 1349,
-            "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+            "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
             "label": "timestamp",
             "offset": 0,
             "slot": "1",
@@ -829,7 +914,7 @@
           },
           {
             "astId": 1351,
-            "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+            "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
             "label": "l2OutputIndex",
             "offset": 16,
             "slot": "1",
@@ -844,7 +929,7 @@
         "members": [
           {
             "astId": 1979,
-            "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+            "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
             "label": "prevBaseFee",
             "offset": 0,
             "slot": "0",
@@ -852,7 +937,7 @@
           },
           {
             "astId": 1981,
-            "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+            "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
             "label": "prevBoughtGas",
             "offset": 16,
             "slot": "0",
@@ -860,7 +945,7 @@
           },
           {
             "astId": 1983,
-            "contract": "contracts/L1/OptimismPortal.sol:OptimismPortal",
+            "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
             "label": "prevBlockNum",
             "offset": 24,
             "slot": "0",
@@ -889,5 +974,96 @@
         "numberOfBytes": "1"
       }
     }
+  },
+  "transactionHash": "0x3e0d1dc662d7401080bf943089860b83e9d44d649ccb257e9b168334a5ac8b48",
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "GUARDIAN()": {
+        "notice": "Getter for the Guardian"
+      },
+      "L2_ORACLE()": {
+        "notice": "Getter for the L2OutputOracle"
+      },
+      "SYSTEM_CONFIG()": {
+        "notice": "Getter for the SystemConfig"
+      },
+      "constructor": {
+        "notice": "Constructs the OptimismPortal contract."
+      },
+      "depositTransaction(address,uint256,uint64,bool,bytes)": {
+        "notice": "Accepts deposits of ETH and data, and emits a TransactionDeposited event for use in         deriving deposit transactions. Note that if a deposit is made by a contract, its         address will be aliased when retrieved using `tx.origin` or `msg.sender`. Consider         using the CrossDomainMessenger contracts for a simpler developer experience."
+      },
+      "donateETH()": {
+        "notice": "Accepts ETH value without triggering a deposit to L2.         This function mainly exists for the sake of the migration between the legacy         Optimism system and Bedrock."
+      },
+      "finalizeWithdrawalTransaction((uint256,address,address,uint256,uint256,bytes))": {
+        "notice": "Finalizes a withdrawal transaction."
+      },
+      "finalizedWithdrawals(bytes32)": {
+        "notice": "A list of withdrawal hashes which have been successfully finalized."
+      },
+      "guardian()": {
+        "notice": "Address that has the ability to pause and unpause withdrawals."
+      },
+      "initialize(address,address,address,bool)": {
+        "notice": "Initializer."
+      },
+      "isOutputFinalized(uint256)": {
+        "notice": "Determine if a given output is finalized.         Reverts if the call to L2_ORACLE.getL2Output reverts.         Returns a boolean otherwise."
+      },
+      "l2Oracle()": {
+        "notice": "Address of the L2OutputOracle contract."
+      },
+      "l2Sender()": {
+        "notice": "Address of the L2 account which initiated a withdrawal in this transaction.         If the of this variable is the default L2 sender address, then we are NOT inside of         a call to finalizeWithdrawalTransaction."
+      },
+      "minimumGasLimit(uint64)": {
+        "notice": "Computes the minimum gas limit for a deposit.         The minimum gas limit linearly increases based on the size of the calldata.         This is to prevent users from creating L2 resource usage without paying for it.         This function can be used when interacting with the portal to ensure forwards         compatibility."
+      },
+      "params()": {
+        "notice": "EIP-1559 style gas parameters."
+      },
+      "pause()": {
+        "notice": "Pauses withdrawals."
+      },
+      "paused()": {
+        "notice": "Determines if cross domain messaging is paused.         When set to true, withdrawals are paused.         This may be removed in the future."
+      },
+      "proveWithdrawalTransaction((uint256,address,address,uint256,uint256,bytes),uint256,(bytes32,bytes32,bytes32,bytes32),bytes[])": {
+        "notice": "Proves a withdrawal transaction."
+      },
+      "provenWithdrawals(bytes32)": {
+        "notice": "A mapping of withdrawal hashes to `ProvenWithdrawal` data."
+      },
+      "systemConfig()": {
+        "notice": "Address of the SystemConfig contract."
+      },
+      "unpause()": {
+        "notice": "Unpauses withdrawals."
+      },
+      "version()": {
+        "notice": "Returns the full semver contract version."
+      }
+    },
+    "events": {
+      "Paused(address)": {
+        "notice": "Emitted when the pause is triggered."
+      },
+      "TransactionDeposited(address,address,uint256,bytes)": {
+        "notice": "Emitted when a transaction is deposited from L1 to L2.         The parameters of this event are read by the rollup node and used to derive deposit         transactions on L2."
+      },
+      "Unpaused(address)": {
+        "notice": "Emitted when the pause is lifted."
+      },
+      "WithdrawalFinalized(bytes32,bool)": {
+        "notice": "Emitted when a withdrawal transaction is finalized."
+      },
+      "WithdrawalProven(bytes32,address,address)": {
+        "notice": "Emitted when a withdrawal transaction is proven."
+      }
+    },
+    "notice": "The OptimismPortal is a low-level contract responsible for passing messages between L1         and L2. Messages sent directly to the OptimismPortal have no form of replayability.         Users are encouraged to use the L1CrossDomainMessenger for a higher-level interface."
   }
 }

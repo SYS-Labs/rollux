@@ -2,18 +2,7 @@
   "address": "0xf7Fda8917c6B5589a514177F1878cc8ffE66f04a",
   "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_messenger",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_otherBridge",
-          "type": "address"
-        }
-      ],
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -101,6 +90,19 @@
         }
       ],
       "name": "ERC721BridgeInitiated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "version",
+          "type": "uint8"
+        }
+      ],
+      "name": "Initialized",
       "type": "event"
     },
     {
@@ -268,6 +270,19 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "contract CrossDomainMessenger",
+          "name": "_messenger",
+          "type": "address"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "messenger",
       "outputs": [
@@ -355,15 +370,10 @@
           "_tokenId": "Token ID to bridge."
         }
       },
-      "constructor": {
-        "params": {
-          "_messenger": "Address of the CrossDomainMessenger on this network.",
-          "_otherBridge": "Address of the ERC721 bridge on the other network."
-        }
-      },
+      "constructor": {},
       "finalizeBridgeERC721(address,address,address,address,uint256,bytes)": {
         "params": {
-          "_extraData": "Optional data to forward to L2. Data supplied here will not be used to                     execute any code on L2 and is only emitted as extra data for the                     convenience of off-chain tooling.",
+          "_extraData": "Optional data to forward to L2.                     Data supplied here will not be used to execute any code on L2 and is                     only emitted as extra data for the convenience of off-chain tooling.",
           "_from": "Address that triggered the bridge on the other domain.",
           "_localToken": "Address of the ERC721 token on this domain.",
           "_remoteToken": "Address of the ERC721 token on the other domain.",
@@ -371,9 +381,9 @@
           "_tokenId": "ID of the token being deposited."
         }
       },
-      "messenger()": {
-        "returns": {
-          "_0": "Messenger contract on this domain."
+      "initialize(address)": {
+        "params": {
+          "_messenger": "Address of the CrossDomainMessenger on this network."
         }
       },
       "otherBridge()": {
@@ -389,55 +399,42 @@
     },
     "title": "L1ERC721Bridge"
   },
-  "userdoc": {
-    "version": 1,
-    "kind": "user",
-    "methods": {
-      "MESSENGER()": {
-        "notice": "Messenger contract on this domain."
-      },
-      "OTHER_BRIDGE()": {
-        "notice": "Address of the bridge on the other network."
-      },
-      "bridgeERC721(address,address,uint256,uint32,bytes)": {
-        "notice": "Initiates a bridge of an NFT to the caller's account on the other chain. Note that         this function can only be called by EOAs. Smart contract wallets should use the         `bridgeERC721To` function after ensuring that the recipient address on the remote         chain exists. Also note that the current owner of the token on this chain must         approve this contract to operate the NFT before it can be bridged.         **WARNING**: Do not bridge an ERC721 that was originally deployed on Optimism. This         bridge only supports ERC721s originally deployed on Ethereum. Users will need to         wait for the one-week challenge period to elapse before their Optimism-native NFT         can be refunded on L2."
-      },
-      "bridgeERC721To(address,address,address,uint256,uint32,bytes)": {
-        "notice": "Initiates a bridge of an NFT to some recipient's account on the other chain. Note         that the current owner of the token on this chain must approve this contract to         operate the NFT before it can be bridged.         **WARNING**: Do not bridge an ERC721 that was originally deployed on Optimism. This         bridge only supports ERC721s originally deployed on Ethereum. Users will need to         wait for the one-week challenge period to elapse before their Optimism-native NFT         can be refunded on L2."
-      },
-      "deposits(address,address,uint256)": {
-        "notice": "Mapping of L1 token to L2 token to ID to boolean, indicating if the given L1 token         by ID was deposited for a given L2 token."
-      },
-      "finalizeBridgeERC721(address,address,address,address,uint256,bytes)": {
-        "notice": "Completes an ERC721 bridge from the other domain and sends the ERC721 token to the         recipient on this domain."
-      },
-      "version()": {
-        "notice": "Returns the full semver contract version."
-      }
-    },
-    "events": {
-      "ERC721BridgeFinalized(address,address,address,address,uint256,bytes)": {
-        "notice": "Emitted when an ERC721 bridge from the other network is finalized."
-      },
-      "ERC721BridgeInitiated(address,address,address,address,uint256,bytes)": {
-        "notice": "Emitted when an ERC721 bridge to the other network is initiated."
-      }
-    },
-    "notice": "The L1 ERC721 bridge is a contract which works together with the L2 ERC721 bridge to         make it possible to transfer ERC721 tokens from Ethereum to Optimism. This contract         acts as an escrow for ERC721 tokens deposited into L2."
-  },
+
   "storageLayout": {
     "storage": [
       {
+<<<<<<< HEAD
         "astId": 45994,
-        "contract": "contracts/L1/L1ERC721Bridge.sol:L1ERC721Bridge",
+        "contract": "src/L1/L1ERC721Bridge.sol:L1ERC721Bridge",
         "label": "__gap",
+=======
+        "astId": 32100,
+        "contract": "src/L1/L1ERC721Bridge.sol:L1ERC721Bridge",
+        "label": "_initialized",
+>>>>>>> upstream/develop
         "offset": 0,
         "slot": "0",
-        "type": "t_array(t_uint256)49_storage"
+        "type": "t_uint8"
+      },
+      {
+        "astId": 32103,
+        "contract": "src/L1/L1ERC721Bridge.sol:L1ERC721Bridge",
+        "label": "_initializing",
+        "offset": 1,
+        "slot": "0",
+        "type": "t_bool"
+      },
+      {
+        "astId": 69276,
+        "contract": "src/L1/L1ERC721Bridge.sol:L1ERC721Bridge",
+        "label": "messenger",
+        "offset": 2,
+        "slot": "0",
+        "type": "t_contract(CrossDomainMessenger)69261"
       },
       {
         "astId": 230,
-        "contract": "contracts/L1/L1ERC721Bridge.sol:L1ERC721Bridge",
+        "contract": "src/L1/L1ERC721Bridge.sol:L1ERC721Bridge",
         "label": "deposits",
         "offset": 0,
         "slot": "49",
@@ -450,16 +447,21 @@
         "label": "address",
         "numberOfBytes": "20"
       },
-      "t_array(t_uint256)49_storage": {
+      "t_array(t_uint256)48_storage": {
         "encoding": "inplace",
-        "label": "uint256[49]",
-        "numberOfBytes": "1568",
+        "label": "uint256[48]",
+        "numberOfBytes": "1536",
         "base": "t_uint256"
       },
       "t_bool": {
         "encoding": "inplace",
         "label": "bool",
         "numberOfBytes": "1"
+      },
+      "t_contract(CrossDomainMessenger)69261": {
+        "encoding": "inplace",
+        "label": "contract CrossDomainMessenger",
+        "numberOfBytes": "20"
       },
       "t_mapping(t_address,t_mapping(t_address,t_mapping(t_uint256,t_bool)))": {
         "encoding": "mapping",
@@ -486,7 +488,60 @@
         "encoding": "inplace",
         "label": "uint256",
         "numberOfBytes": "32"
+      },
+      "t_uint8": {
+        "encoding": "inplace",
+        "label": "uint8",
+        "numberOfBytes": "1"
       }
     }
+  },
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "MESSENGER()": {
+        "notice": "Getter for messenger contract."
+      },
+      "OTHER_BRIDGE()": {
+        "notice": "Address of the bridge on the other network."
+      },
+      "bridgeERC721(address,address,uint256,uint32,bytes)": {
+        "notice": "Initiates a bridge of an NFT to the caller's account on the other chain. Note that         this function can only be called by EOAs. Smart contract wallets should use the         `bridgeERC721To` function after ensuring that the recipient address on the remote         chain exists. Also note that the current owner of the token on this chain must         approve this contract to operate the NFT before it can be bridged.         **WARNING**: Do not bridge an ERC721 that was originally deployed on Optimism. This         bridge only supports ERC721s originally deployed on Ethereum. Users will need to         wait for the one-week challenge period to elapse before their Optimism-native NFT         can be refunded on L2."
+      },
+      "bridgeERC721To(address,address,address,uint256,uint32,bytes)": {
+        "notice": "Initiates a bridge of an NFT to some recipient's account on the other chain. Note         that the current owner of the token on this chain must approve this contract to         operate the NFT before it can be bridged.         **WARNING**: Do not bridge an ERC721 that was originally deployed on Optimism. This         bridge only supports ERC721s originally deployed on Ethereum. Users will need to         wait for the one-week challenge period to elapse before their Optimism-native NFT         can be refunded on L2."
+      },
+      "constructor": {
+        "notice": "Constructs the contract."
+      },
+      "deposits(address,address,uint256)": {
+        "notice": "Mapping of L1 token to L2 token to ID to boolean, indicating if the given L1 token         by ID was deposited for a given L2 token."
+      },
+      "finalizeBridgeERC721(address,address,address,address,uint256,bytes)": {
+        "notice": "Completes an ERC721 bridge from the other domain and sends the ERC721 token to the         recipient on this domain."
+      },
+      "initialize(address)": {
+        "notice": "Initializes the contract."
+      },
+      "messenger()": {
+        "notice": "Messenger contract on this domain."
+      },
+      "otherBridge()": {
+        "notice": "Getter for other bridge address."
+      },
+      "version()": {
+        "notice": "Returns the full semver contract version."
+      }
+    },
+    "events": {
+      "ERC721BridgeFinalized(address,address,address,address,uint256,bytes)": {
+        "notice": "Emitted when an ERC721 bridge from the other network is finalized."
+      },
+      "ERC721BridgeInitiated(address,address,address,address,uint256,bytes)": {
+        "notice": "Emitted when an ERC721 bridge to the other network is initiated."
+      }
+    },
+    "notice": "The L1 ERC721 bridge is a contract which works together with the L2 ERC721 bridge to         make it possible to transfer ERC721 tokens from Ethereum to Optimism. This contract         acts as an escrow for ERC721 tokens deposited into L2."
   }
 }
