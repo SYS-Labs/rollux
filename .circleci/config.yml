@@ -375,6 +375,10 @@ jobs:
             - pnpm-packages-v2-{{ checksum "pnpm-lock.yaml" }}
       - check-changed:
           patterns: contracts-bedrock,op-node
+      # populate node modules from the cache
+      - run:
+          name: Install dependencies
+          command: pnpm install --frozen-lockfile --prefer-offline
       - run:
           name: build contracts
           command: pnpm build
@@ -741,8 +745,7 @@ jobs:
       - checkout
       - run:
           name: run lint
-          command: |
-            golangci-lint run -E goimports,sqlclosecheck,bodyclose,asciicheck,misspell,errorlint --timeout 5m -e "errors.As" -e "errors.Is" ./...
+          command: make lint
           working_directory: <<parameters.module>>
 
   go-test:
@@ -838,7 +841,7 @@ jobs:
           patterns: <<parameters.working_directory>>,<<parameters.dependencies>>
       - run:
           name: Lint
-          command: golangci-lint run -E goimports,sqlclosecheck,bodyclose,asciicheck,misspell,errorlint --timeout 2m -e "errors.As" -e "errors.Is" ./...
+          command: make lint
           working_directory: <<parameters.working_directory>>
       - store_test_results:
           path: /test-results
@@ -888,7 +891,7 @@ jobs:
           name: Test
           command: |
             mkdir -p /test-results
-            DB_USER=postgres gotestsum --junitfile /test-results/tests.xml -- -parallel=4 ./...
+            DB_USER=postgres gotestsum --format=standard-verbose --junitfile /test-results/tests.xml -- -parallel=4 ./...
           working_directory: indexer
       - run:
           name: Build
