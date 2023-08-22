@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-challenger/metrics"
 	"github.com/ethereum-optimism/optimism/op-challenger/version"
 	"github.com/ethereum-optimism/optimism/op-service/client"
+	"github.com/ethereum-optimism/optimism/op-service/clock"
 	oppprof "github.com/ethereum-optimism/optimism/op-service/pprof"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,6 +37,8 @@ type service struct {
 func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*service, error) {
 	// SYSCOIN
 	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx)
+	cl := clock.SystemClock
+
 	m := metrics.NewMetrics()
 	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &m.TxMetrics, cfg.TxMgrConfig, syscoinClient)
 	if err != nil {
@@ -74,7 +77,7 @@ func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*se
 	}
 	loader := NewGameLoader(factory)
 
-	monitor := newGameMonitor(logger, client.BlockNumber, cfg.GameAddress, loader, func(addr common.Address) (gamePlayer, error) {
+	monitor := newGameMonitor(logger, cl, client.BlockNumber, cfg.GameAllowlist, loader, func(addr common.Address) (gamePlayer, error) {
 		return NewGamePlayer(ctx, logger, cfg, addr, txMgr, client)
 	})
 
