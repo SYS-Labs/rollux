@@ -68,7 +68,7 @@ func NewTraceProvider(ctx context.Context, logger log.Logger, cfg *config.Config
 }
 
 func NewTraceProviderFromInputs(logger log.Logger, cfg *config.Config, gameDirName string, localInputs LocalGameInputs) *CannonTraceProvider {
-	dir := filepath.Join(cfg.CannonDatadir, gameDirName)
+	dir := filepath.Join(cfg.Datadir, gameDirName)
 	return &CannonTraceProvider{
 		logger:    logger,
 		dir:       dir,
@@ -116,6 +116,10 @@ func (p *CannonTraceProvider) AbsolutePreState(ctx context.Context) ([]byte, err
 		return nil, fmt.Errorf("cannot load absolute pre-state: %w", err)
 	}
 	return state.EncodeWitness(), nil
+}
+
+func (p *CannonTraceProvider) Cleanup() error {
+	return os.RemoveAll(p.dir)
 }
 
 // loadProof will attempt to load or generate the proof data at the specified index
