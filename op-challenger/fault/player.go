@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-challenger/config"
 	"github.com/ethereum-optimism/optimism/op-challenger/fault/alphabet"
 	"github.com/ethereum-optimism/optimism/op-challenger/fault/cannon"
+	"github.com/ethereum-optimism/optimism/op-challenger/fault/responder"
 	"github.com/ethereum-optimism/optimism/op-challenger/fault/types"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -27,7 +28,7 @@ type GameInfo interface {
 type GamePlayer struct {
 	agent                   Actor
 	agreeWithProposedOutput bool
-	caller                  GameInfo
+	loader                  GameInfo
 	logger                  log.Logger
 
 	completed bool
@@ -79,20 +80,15 @@ func NewGamePlayer(
 		return nil, fmt.Errorf("failed to validate absolute prestate: %w", err)
 	}
 
-	responder, err := NewFaultResponder(logger, txMgr, addr)
+	responder, err := responder.NewFaultResponder(logger, txMgr, addr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the responder: %w", err)
-	}
-
-	caller, err := NewFaultCallerFromBindings(addr, client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to bind the fault contract: %w", err)
 	}
 
 	return &GamePlayer{
 		agent:                   NewAgent(loader, int(gameDepth), provider, responder, updater, cfg.AgreeWithProposedOutput, logger),
 		agreeWithProposedOutput: cfg.AgreeWithProposedOutput,
-		caller:                  caller,
+		loader:                  loader,
 		logger:                  logger,
 	}, nil
 }
@@ -107,7 +103,7 @@ func (g *GamePlayer) ProgressGame(ctx context.Context) bool {
 	if err := g.agent.Act(ctx); err != nil {
 		g.logger.Error("Error when acting on game", "err", err)
 	}
-	if status, err := g.caller.GetGameStatus(ctx); err != nil {
+	if status, err := g.loader.GetGameStatus(ctx); err != nil {
 		g.logger.Warn("Unable to retrieve game status", "err", err)
 	} else {
 		g.logGameStatus(ctx, status)
@@ -119,7 +115,7 @@ func (g *GamePlayer) ProgressGame(ctx context.Context) bool {
 
 func (g *GamePlayer) logGameStatus(ctx context.Context, status types.GameStatus) {
 	if status == types.GameStatusInProgress {
-		claimCount, err := g.caller.GetClaimCount(ctx)
+		claimCount, err := g.loader.GetClaimCount(ctx)
 		if err != nil {
 			g.logger.Error("Failed to get claim count for in progress game", "err", err)
 			return
