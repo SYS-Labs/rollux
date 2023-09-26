@@ -68,30 +68,6 @@ contract Deploy is Deployer {
     function run() public {
         console.log("Deploying L1 system");
 
-//        deployProxyAdmin();
-//
-//        deployOptimismPortalProxy();
-//        deployL2OutputOracleProxy();
-//        deploySystemConfigProxy();
-//        deployL1StandardBridgeProxy();
-//        deployL1CrossDomainMessengerProxy();
-//        deployOptimismMintableERC20FactoryProxy();
-//        deployL1ERC721BridgeProxy();
-//        deployDisputeGameFactoryProxy();
-//        deployBatchInboxProxy();
-//
-//        deployOptimismPortal();
-//        deployL1CrossDomainMessenger();
-//        deployL2OutputOracle();
-//        deployOptimismMintableERC20Factory();
-//        deploySystemConfig();
-//        deployL1StandardBridge();
-//        deployL1ERC721Bridge();
-//        deployDisputeGameFactory();
-//        deployBlockOracle();
-//        deployPreimageOracle();
-//        deployMips();
-
         deployProxies();
         deployImplementations();
 
@@ -103,7 +79,6 @@ contract Deploy is Deployer {
         initializeL1CrossDomainMessenger();
         initializeL2OutputOracle();
         initializeOptimismPortal();
-//        initializeBatchInbox();
         initializeProtocolVersions();
 
         setAlphabetFaultGameImplementation();
@@ -814,18 +789,6 @@ contract Deploy is Deployer {
         require(address(portal.SYSTEM_CONFIG()) == systemConfigProxy);
         require(portal.paused() == false);
     }
-
-<<<<<<< HEAD
-    /// @notice Initialize the BatchInbox
-    function initializeBatchInbox() broadcast() public {
-        ProxyAdmin proxyAdmin = ProxyAdmin(mustGetAddress("ProxyAdmin"));
-        address batchInboxProxy = mustGetAddress("BatchInboxProxy");
-        address batchInbox = mustGetAddress("BatchInbox");
-        proxyAdmin.upgrade({
-            _proxy: payable(batchInboxProxy),
-            _implementation: batchInbox
-        });
-=======
     function initializeProtocolVersions() public onlyTestnetOrDevnet broadcast {
         ProxyAdmin proxyAdmin = ProxyAdmin(mustGetAddress("ProxyAdmin"));
         address protocolVersionsProxy = mustGetAddress("ProtocolVersionsProxy");
@@ -855,7 +818,6 @@ contract Deploy is Deployer {
         require(versions.owner() == finalSystemOwner);
         require(ProtocolVersion.unwrap(versions.required()) == requiredProtocolVersion);
         require(ProtocolVersion.unwrap(versions.recommended()) == recommendedProtocolVersion);
->>>>>>> upstream/develop
     }
 
     /// @notice Transfer ownership of the ProxyAdmin contract to the final system owner
