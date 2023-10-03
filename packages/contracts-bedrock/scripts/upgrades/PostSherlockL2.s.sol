@@ -48,7 +48,8 @@ contract PostSherlockL2 is SafeBuilder {
     string constant internal SequencerFeeVault_Version = "1.2.0";
     string constant internal OptimismMintableERC20Factory_Version = "1.1.0";
     string constant internal OptimismMintableERC721Factory_Version = "1.2.0";
-
+    string constant internal EAS_Version = "1.0.0";
+    string constant internal SchemaRegistry_Version = "1.0.0";
 
     /// @notice Place the contract addresses in storage so they can be used when building calldata.
     function setUp() external {
@@ -63,7 +64,9 @@ contract PostSherlockL2 is SafeBuilder {
             L2ToL1MessagePasser: 0x7C12CFc99386F775a63bd95642299843e185e50E,
             SequencerFeeVault: 0xbb0D433fFCeE8738bB60dd82AF9207e2ddD30372,
             OptimismMintableERC20Factory: 0x9C1b34e67daD1441fcf379A000f06D4b061Aa1cF,
-            OptimismMintableERC721Factory: 0xF118Fa4553b9c1CB38a1822234014B3550cF09e2
+            OptimismMintableERC721Factory: 0xF118Fa4553b9c1CB38a1822234014B3550cF09e2,
+            EAS: getAddress("EAS"),
+            SchemaRegistry: getAddress("SchemaRegistry")
         });
 
         proxies[OP_GOERLI] = ContractSet({
@@ -77,7 +80,9 @@ contract PostSherlockL2 is SafeBuilder {
             L2ToL1MessagePasser: Predeploys.L2_TO_L1_MESSAGE_PASSER,
             SequencerFeeVault: Predeploys.SEQUENCER_FEE_WALLET,
             OptimismMintableERC20Factory: Predeploys.OPTIMISM_MINTABLE_ERC20_FACTORY,
-            OptimismMintableERC721Factory: Predeploys.OPTIMISM_MINTABLE_ERC721_FACTORY
+            OptimismMintableERC721Factory: Predeploys.OPTIMISM_MINTABLE_ERC721_FACTORY,
+            EAS: Predeploys.EAS,
+            SchemaRegistry: Predeploys.SCHEMA_REGISTRY
         });
         implementations[OP_MAINNET] = ContractSet({
             BaseFeeVault: 0x63D297aa3feCbf6eEdE0aCd15B0308B9C8379afb,
@@ -90,7 +95,9 @@ contract PostSherlockL2 is SafeBuilder {
             L2ToL1MessagePasser: 0xd513d73EeF8A464A65b76770491FDE9BacEb5b83,
             SequencerFeeVault: 0x39CadECd381928F1330D1B2c13c8CAC358Dce65A,
             OptimismMintableERC20Factory: 0x61200B9fcBB421aFD0Bb5A732fe48ec98482E39C,
-            OptimismMintableERC721Factory: 0x1a196196C3afD9f702cA722095904Fc97812Ee02
+            OptimismMintableERC721Factory: 0x1a196196C3afD9f702cA722095904Fc97812Ee02,
+            EAS: getAddress("EAS"),
+            SchemaRegistry: getAddress("SchemaRegistry")
         });
 
         proxies[OP_MAINNET] = ContractSet({
@@ -104,7 +111,9 @@ contract PostSherlockL2 is SafeBuilder {
             L2ToL1MessagePasser: Predeploys.L2_TO_L1_MESSAGE_PASSER,
             SequencerFeeVault: Predeploys.SEQUENCER_FEE_WALLET,
             OptimismMintableERC20Factory: Predeploys.OPTIMISM_MINTABLE_ERC20_FACTORY,
-            OptimismMintableERC721Factory: Predeploys.OPTIMISM_MINTABLE_ERC721_FACTORY
+            OptimismMintableERC721Factory: Predeploys.OPTIMISM_MINTABLE_ERC721_FACTORY,
+            EAS: Predeploys.EAS,
+            SchemaRegistry: Predeploys.SCHEMA_REGISTRY
         });
     }
 
@@ -136,7 +145,8 @@ contract PostSherlockL2 is SafeBuilder {
             _versionHash(prox.OptimismMintableERC721Factory) == keccak256(bytes(OptimismMintableERC721Factory_Version)),
             "OptimismMintableERC721Factory"
         );
-
+        require( _versionHash(prox.EAS) == keccak256(bytes(EAS_Version)), "EAS");
+        require( _versionHash(prox.SchemaRegistry) == keccak256(bytes(SchemaRegistry_Version)), "SchemaRegistry");
         // Check that the codehashes of all implementations match the proxies set implementations.
         ContractSet memory impl = getImplementations();
         require(PROXY_ADMIN.getProxyImplementation(prox.BaseFeeVault).codehash == impl.BaseFeeVault.codehash);
@@ -161,6 +171,8 @@ contract PostSherlockL2 is SafeBuilder {
             PROXY_ADMIN.getProxyImplementation(prox.OptimismMintableERC721Factory).codehash
                 == impl.OptimismMintableERC721Factory.codehash
         );
+        require(PROXY_ADMIN.getProxyImplementation(prox.EAS).codehash == impl.EAS.codehash);
+        require(PROXY_ADMIN.getProxyImplementation(prox.SchemaRegistry).codehash == impl.SchemaRegistry.codehash);
     }
 
     /// @notice Test coverage of the logic. Should only run on goerli but other chains
@@ -196,7 +208,7 @@ contract PostSherlockL2 is SafeBuilder {
     ///         A total of 9 calls are made to the proxy admin to upgrade the implementations
     ///         of the predeploys.
     function buildCalldata(address _proxyAdmin) internal view override returns (bytes memory) {
-        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](11);
+        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](13);
 
         ContractSet memory impl = getImplementations();
         ContractSet memory prox = getProxies();
@@ -283,7 +295,19 @@ contract PostSherlockL2 is SafeBuilder {
                 ProxyAdmin.upgrade, (payable(prox.OptimismMintableERC721Factory), impl.OptimismMintableERC721Factory)
                 )
         });
+        // Upgrade EAS
+        calls[11] = IMulticall3.Call3({
+            target: _proxyAdmin,
+            allowFailure: false,
+            callData: abi.encodeCall(ProxyAdmin.upgrade, (payable(prox.EAS), impl.EAS))
+        });
 
+        // Upgrade SchemaRegistry
+        calls[12] = IMulticall3.Call3({
+            target: _proxyAdmin,
+            allowFailure: false,
+            callData: abi.encodeCall(ProxyAdmin.upgrade, (payable(prox.SchemaRegistry), impl.SchemaRegistry))
+        });
         return abi.encodeCall(IMulticall3.aggregate3, (calls));
     }
 
