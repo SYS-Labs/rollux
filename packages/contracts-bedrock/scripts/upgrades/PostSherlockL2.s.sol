@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity ^0.8.0;
 
-import { console } from "forge-std/console.sol";
+import { console2 as console } from "forge-std/console2.sol";
 import { SafeBuilder } from "../universal/SafeBuilder.sol";
 import { IGnosisSafe, Enum } from "../interfaces/IGnosisSafe.sol";
 import { IMulticall3 } from "forge-std/interfaces/IMulticall3.sol";
 import { Predeploys } from "../../src/libraries/Predeploys.sol";
 import { ProxyAdmin } from "../../src/universal/ProxyAdmin.sol";
+import { Deployer } from "../Deployer.sol";
 
 /// @title PostSherlockL2
 /// @notice Upgrades the L2 contracts.
-contract PostSherlockL2 is SafeBuilder {
+contract PostSherlockL2 is SafeBuilder, Deployer {
     /// @notice The proxy admin predeploy on L2.
-    ProxyAdmin constant PROXY_ADMIN = ProxyAdmin(0x4200000000000000000000000000000000000018);
+    ProxyAdmin immutable PROXY_ADMIN = ProxyAdmin(Predeploys.PROXY_ADMIN);
 
     /// @notice Represents a set of L2 predepploy contracts. Used to represent a set of
     ///         implementations and also a set of proxies.
@@ -28,6 +29,8 @@ contract PostSherlockL2 is SafeBuilder {
         address SequencerFeeVault;
         address OptimismMintableERC20Factory;
         address OptimismMintableERC721Factory;
+        address EAS;
+        address SchemaRegistry;
     }
 
     /// @notice A mapping of chainid to a ContractSet of implementations.
@@ -48,11 +51,12 @@ contract PostSherlockL2 is SafeBuilder {
     string constant internal SequencerFeeVault_Version = "1.2.0";
     string constant internal OptimismMintableERC20Factory_Version = "1.1.0";
     string constant internal OptimismMintableERC721Factory_Version = "1.2.0";
-    string constant internal EAS_Version = "1.0.0";
-    string constant internal SchemaRegistry_Version = "1.0.0";
+    string constant internal EAS_Version = "1.3.0";
+    string constant internal SchemaRegistry_Version = "1.3.0";
 
     /// @notice Place the contract addresses in storage so they can be used when building calldata.
-    function setUp() external {
+    function setUp() public override {
+        super.setUp();
         implementations[OP_GOERLI] = ContractSet({
             BaseFeeVault: 0x73ae51299eCA0167a5956e3D1DaE3D98b06CcD9D,
             GasPriceOracle: 0xD6EA7Ac2455c4f8D52c0feAb893c6F0d71e43dC9,
@@ -65,8 +69,8 @@ contract PostSherlockL2 is SafeBuilder {
             SequencerFeeVault: 0xbb0D433fFCeE8738bB60dd82AF9207e2ddD30372,
             OptimismMintableERC20Factory: 0x9C1b34e67daD1441fcf379A000f06D4b061Aa1cF,
             OptimismMintableERC721Factory: 0xF118Fa4553b9c1CB38a1822234014B3550cF09e2,
-            EAS: getAddress("EAS"),
-            SchemaRegistry: getAddress("SchemaRegistry")
+            EAS: 0x7a7a83998F737d126FE3742F638E571C47928BD1,
+            SchemaRegistry: 0x9f49A8d186b89d98Fd44e14d61c899627D5818c0
         });
 
         proxies[OP_GOERLI] = ContractSet({
@@ -96,8 +100,8 @@ contract PostSherlockL2 is SafeBuilder {
             SequencerFeeVault: 0x39CadECd381928F1330D1B2c13c8CAC358Dce65A,
             OptimismMintableERC20Factory: 0x61200B9fcBB421aFD0Bb5A732fe48ec98482E39C,
             OptimismMintableERC721Factory: 0x1a196196C3afD9f702cA722095904Fc97812Ee02,
-            EAS: getAddress("EAS"),
-            SchemaRegistry: getAddress("SchemaRegistry")
+            EAS: 0x7a7a83998F737d126FE3742F638E571C47928BD1,
+            SchemaRegistry: 0x9f49A8d186b89d98Fd44e14d61c899627D5818c0
         });
 
         proxies[OP_MAINNET] = ContractSet({
@@ -115,6 +119,11 @@ contract PostSherlockL2 is SafeBuilder {
             EAS: Predeploys.EAS,
             SchemaRegistry: Predeploys.SCHEMA_REGISTRY
         });
+    }
+
+    /// @notice
+    function name() public pure override returns (string memory) {
+        return "PostSherlockL2";
     }
 
     /// @notice Follow up assertions to ensure that the script ran to completion.
@@ -175,34 +184,6 @@ contract PostSherlockL2 is SafeBuilder {
         require(PROXY_ADMIN.getProxyImplementation(prox.SchemaRegistry).codehash == impl.SchemaRegistry.codehash);
     }
 
-    /// @notice Test coverage of the logic. Should only run on goerli but other chains
-    ///         could be added.
-    function test_script_succeeds() external skipWhenNotForking {
-        address _safe;
-        address _proxyAdmin;
-
-        if (block.chainid == OP_GOERLI) {
-            _safe = 0x298e4eDced84698aa7c6A69b721EAC2d95A261D5;
-            _proxyAdmin = 0x4200000000000000000000000000000000000018;
-        }
-        require(_safe != address(0) && _proxyAdmin != address(0));
-
-        address[] memory owners = IGnosisSafe(payable(_safe)).getOwners();
-
-        for (uint256 i; i < owners.length; i++) {
-            address owner = owners[i];
-            vm.startBroadcast(owner);
-            bool success = _run(_safe, _proxyAdmin);
-            vm.stopBroadcast();
-
-            if (success) {
-                console.log("tx success");
-                break;
-            }
-        }
-
-        _postCheck(ProxyAdmin(_proxyAdmin));
-    }
 
     /// @notice Builds the calldata that the multisig needs to make for the upgrade to happen.
     ///         A total of 9 calls are made to the proxy admin to upgrade the implementations

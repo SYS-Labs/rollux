@@ -554,10 +554,10 @@ contract Deploy is Deployer {
             console.log("AddressManager ownership transferred to %s", proxyAdmin);
         }
 
-        save("BatchInbox", address(inbox));
-        console.log("BatchInbox deployed at %s", address(inbox));
+        //save("BatchInbox", address(inbox));
+        //console.log("BatchInbox deployed at %s", address(inbox));
 
-        return address(inbox);
+        //return address(inbox);
     }
 
     /// @notice Make a call from the Safe contract to an arbitrary address with arbitrary data
