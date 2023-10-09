@@ -1,28 +1,31 @@
 package sources
 
 import (
-	"context"
 	"bytes"
-	"encoding/json"
+	"context"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"math/big"
 	"net"
 	"net/http"
 	"runtime/debug"
-	"time"
-	"errors"
-	"fmt"
-	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
+
 // JSONMarshalerV2 is used for marshalling requests to newer Syscoin Type RPC interfaces
 type JSONMarshalerV2 struct{}
+
 var addressLabel string = "podalabel"
+
 // Marshal converts struct passed by parameter to JSON
 func (JSONMarshalerV2) Marshal(v interface{}) ([]byte, error) {
 	d, err := json.Marshal(v)
@@ -31,18 +34,20 @@ func (JSONMarshalerV2) Marshal(v interface{}) ([]byte, error) {
 	}
 	return d, nil
 }
+
 // SyscoinRPC is an interface to JSON-RPC syscoind service.
 type SyscoinRPC struct {
 	client       http.Client
 	rpcURL       string
 	user         string
 	password     string
-	podaurl	     string
+	podaurl      string
 	RPCMarshaler JSONMarshalerV2
 }
 type SyscoinClient struct {
 	client *SyscoinRPC
 }
+
 func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 	transport := &http.Transport{
 		Dial:                (&net.Dialer{KeepAlive: 600 * time.Second}).Dial,
@@ -54,7 +59,7 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 		rpcURL:       "http://l1:8370",
 		user:         "u",
 		password:     "p",
-		podaurl:	  podaurl,
+		podaurl:      podaurl,
 		RPCMarshaler: JSONMarshalerV2{},
 	}
 	client := SyscoinClient{s}
@@ -102,11 +107,13 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 	log.Info("NewSyscoinClient loaded!")
 	return &client, nil
 }
+
 // RPCError defines rpc error returned by backend
 type RPCError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
+
 func (e *RPCError) Error() string {
 	return fmt.Sprintf("%d: %s", e.Code, e.Message)
 }
@@ -251,8 +258,8 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) error {
 }
 func (s *SyscoinClient) GetBalance() (float64, error) {
 	type ResGetBalance struct {
-		Error  *RPCError `json:"error"`
-		Balance float64 `json:"result"`
+		Error   *RPCError `json:"error"`
+		Balance float64   `json:"result"`
 	}
 
 	res := ResGetBalance{}
@@ -273,8 +280,8 @@ func (s *SyscoinClient) GetBalance() (float64, error) {
 }
 func (s *SyscoinClient) GetNewAddress(addresslabel string) (string, error) {
 	type ResGetAddress struct {
-		Error  *RPCError `json:"error"`
-		Address string `json:"result"`
+		Error   *RPCError `json:"error"`
+		Address string    `json:"result"`
 	}
 
 	res := ResGetAddress{}
@@ -301,7 +308,7 @@ func (s *SyscoinClient) FetchAddressByLabel(addresslabel string) (string, error)
 		Purpose string `json:"purpose"`
 	}
 	type ResGetAddress struct {
-		Error  *RPCError `json:"error"`
+		Error  *RPCError                                 `json:"error"`
 		Result map[string]GetAddressesByLabelRespElement `json:"result"`
 	}
 
@@ -326,11 +333,12 @@ func (s *SyscoinClient) FetchAddressByLabel(addresslabel string) (string, error)
 	}
 	return "", nil
 }
+
 // SYSCOIN used to get blob confirmation by checking block number then tx receipt below to get block height of blob confirmation
 func (s *SyscoinClient) BlockNumber(ctx context.Context) (uint64, error) {
 	type ResGetBlockNumber struct {
-		Error  *RPCError `json:"error"`
-		BlockNumber uint64 `json:"result"`
+		Error       *RPCError `json:"error"`
+		BlockNumber uint64    `json:"result"`
 	}
 	res := ResGetBlockNumber{}
 	type CmdGetBlockNumber struct {
@@ -348,6 +356,7 @@ func (s *SyscoinClient) BlockNumber(ctx context.Context) (uint64, error) {
 	}
 	return res.BlockNumber, err
 }
+
 // SYSCOIN used to get blob receipt
 func (s *SyscoinClient) TransactionReceipt(ctx context.Context, vh common.Hash) (*types.Receipt, error) {
 	type ResGetBlobReceipt struct {
@@ -376,7 +385,7 @@ func (s *SyscoinClient) TransactionReceipt(ctx context.Context, vh common.Hash) 
 	if res.Result.MPT > 0 {
 		// store VH in TxHash used by driver to put into the batch
 		receipt = types.Receipt{
-			TxHash:      vh,
+			TxHash: vh,
 			// store MPT in BlockNumber to be used in caller
 			BlockNumber: big.NewInt(res.Result.MPT),
 			Status:      types.ReceiptStatusSuccessful,
@@ -397,7 +406,7 @@ func (s *SyscoinClient) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
 		Method string `json:"method"`
 		Params struct {
 			VersionHash string `json:"versionhash_or_txid"`
-			Verbose   bool   `json:"getdata"`
+			Verbose     bool   `json:"getdata"`
 		} `json:"params"`
 	}
 	req := CmdGetBlobData{Method: "getnevmblobdata"}
@@ -418,7 +427,7 @@ func (s *SyscoinClient) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
 }
 
 func (s *SyscoinClient) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
-	url :=  s.client.podaurl + vh.String()[2:]
+	url := s.client.podaurl + vh.String()[2:]
 	var res *http.Response
 	var err error
 	// try 4 times incase of timeout or reset/hanging socket with 5+i second expiry each attempt
@@ -438,8 +447,8 @@ func (s *SyscoinClient) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
 		return nil, err
 	}
 	defer res.Body.Close() // we need to close the connection
-    body, err := ioutil.ReadAll(res.Body)
-    if err != nil {
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
 		return nil, err
 	}
 	txBytes, err := hex.DecodeString(string(body))

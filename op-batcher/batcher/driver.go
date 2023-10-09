@@ -13,7 +13,7 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
-	opclient "github.com/ethereum-optimism/optimism/op-service/client"
+	"github.com/ethereum-optimism/optimism/op-service/dial"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 	_ "github.com/ethereum/go-ethereum/core"
@@ -53,19 +53,19 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 
 	// Connect to L1 and L2 providers. Perform these last since they are the
 	// most expensive.
-	l1Client, err := opclient.DialEthClientWithTimeout(opclient.DefaultDialTimeout, l, cfg.L1EthRpc)
+	l1Client, err := dial.DialEthClientWithTimeout(dial.DefaultDialTimeout, l, cfg.L1EthRpc)
 	if err != nil {
 		l.Warn("l1 dialEthClientWithTimeout", "err", err)
 		return nil, err
 	}
 
-	l2Client, err := opclient.DialEthClientWithTimeout(opclient.DefaultDialTimeout, l, cfg.L2EthRpc)
+	l2Client, err := dial.DialEthClientWithTimeout(dial.DefaultDialTimeout, l, cfg.L2EthRpc)
 	if err != nil {
 		l.Warn("l2 dialEthClientWithTimeout", "err", err)
 		return nil, err
 	}
 
-	rollupClient, err := opclient.DialRollupClientWithTimeout(opclient.DefaultDialTimeout, l, cfg.RollupRpc)
+	rollupClient, err := dial.DialRollupClientWithTimeout(dial.DefaultDialTimeout, l, cfg.RollupRpc)
 	if err != nil {
 		l.Warn("dialRollupClientWithTimeout", "err", err)
 		return nil, err
