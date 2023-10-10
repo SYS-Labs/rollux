@@ -21,7 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/ethereum-optimism/optimism/op-service/client"
+	opclient "github.com/ethereum-optimism/optimism/op-service/client"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-service/sources/caching"
 )
@@ -93,9 +93,9 @@ func (c *EthClientConfig) Check() error {
 
 // EthClient retrieves ethereum data with optimized batch requests, cached results, and flag to not trust the RPC.
 type EthClient struct {
-	client client.RPC
+	client opclient.RPC
 	// SYSCOIN
-	syscoinClient *SyscoinClient
+	syscoinClient *opclient.SyscoinClient
 
 	maxBatchSize int
 
@@ -169,15 +169,15 @@ func (s *EthClient) OnReceiptsMethodErr(m ReceiptsFetchingMethod, err error) {
 
 // NewEthClient returns an [EthClient], wrapping an RPC with bindings to fetch ethereum data with added error logging,
 // metric tracking, and caching. The [EthClient] uses a [LimitRPC] wrapper to limit the number of concurrent RPC requests.
-func NewEthClient(client client.RPC, log log.Logger, metrics caching.Metrics, config *EthClientConfig) (*EthClient, error) {
+func NewEthClient(client opclient.RPC, log log.Logger, metrics caching.Metrics, config *EthClientConfig) (*EthClient, error) {
 	var err error
 	if err = config.Check(); err != nil {
 		return nil, fmt.Errorf("bad config, cannot create L1 source: %w", err)
 	}
 	client = LimitRPC(client, config.MaxConcurrentRequests)
-	var sysClient *SyscoinClient = nil
+	var sysClient *opclient.SyscoinClient = nil
 	if config.SysPODAURL != "" {
-		sysClient, err = NewSyscoinClient(config.SysPODAURL)
+		sysClient, err = opclient.NewSyscoinClient(config.SysPODAURL)
 		if err != nil {
 			return nil, fmt.Errorf("Could not create Syscoin RPC client: %w", err)
 		}
