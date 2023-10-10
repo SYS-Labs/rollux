@@ -357,10 +357,6 @@ contract Deploy is Deployer {
 
         address admin = address(uint160(uint256(vm.load(address(proxy), OWNER_KEY))));
         require(admin == proxyAdmin);
-//        save("BatchInboxProxy", address(proxy));
-//        console.log("BatchInboxProxy deployed at %s", address(proxy));
-//
-//        return address(proxy);
         save("ProtocolVersionsProxy", address(proxy));
         console.log("ProtocolVersionsProxy deployed at %s", address(proxy));
 
