@@ -116,6 +116,7 @@ services:
     ports:
       - "6062:6060"
       - "7302:7300"
+      - "6546:8545"
     environment:
       OP_PROPOSER_L1_ETH_RPC: https://rpc.tanenbaum.io
       OP_PROPOSER_ROLLUP_RPC: http://op-node:8545
@@ -127,12 +128,7 @@ services:
       OP_PROPOSER_PPROF_ENABLED: "true"
       OP_PROPOSER_METRICS_ENABLED: "true"
       OP_PROPOSER_ALLOW_NON_FINALIZED: "true"
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-      - 192.168.9.45
-    env_file:
-      - ./envs/op-node.env
+      OP_PROPOSER_RPC_ENABLE_ADMIN: "true"
 
   op-batcher:
     depends_on:

@@ -9,6 +9,8 @@ import (
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 	"github.com/ethereum-optimism/optimism/op-challenger/config"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/loader"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/registry"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/scheduler"
 	"github.com/ethereum-optimism/optimism/op-challenger/metrics"
 	"github.com/ethereum-optimism/optimism/op-challenger/version"
@@ -17,7 +19,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/httputil"
 	oppprof "github.com/ethereum-optimism/optimism/op-service/pprof"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -91,11 +92,14 @@ func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*Se
 		m.StartBalanceMetrics(ctx, logger, l1Client, txMgr.From())
 	}
 
-	factory, err := bindings.NewDisputeGameFactory(cfg.GameFactoryAddress, l1Client)
+	factoryContract, err := bindings.NewDisputeGameFactory(cfg.GameFactoryAddress, l1Client)
 	if err != nil {
 		return nil, errors.Join(fmt.Errorf("failed to bind the fault dispute game factory contract: %w", err), s.Stop(ctx))
 	}
-	loader := NewGameLoader(factory)
+	loader := loader.NewGameLoader(factoryContract)
+
+	gameTypeRegistry := registry.NewGameTypeRegistry()
+	fault.RegisterGameTypes(gameTypeRegistry, ctx, logger, m, cfg, txMgr, l1Client)
 
 	disk := newDiskManager(cfg.Datadir)
 	s.sched = scheduler.NewScheduler(
@@ -103,9 +107,7 @@ func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*Se
 		m,
 		disk,
 		cfg.MaxConcurrency,
-		func(addr common.Address, dir string) (scheduler.GamePlayer, error) {
-			return fault.NewGamePlayer(ctx, logger, m, cfg, dir, addr, txMgr, l1Client)
-		})
+		gameTypeRegistry.CreatePlayer)
 
 	pollClient, err := opclient.NewRPCWithClient(ctx, logger, cfg.L1EthRpc, opclient.NewBaseRPCClient(l1Client.Client()), cfg.PollInterval)
 	if err != nil {
