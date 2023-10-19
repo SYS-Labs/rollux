@@ -195,6 +195,4 @@ bedrock-markdown-links:
 		--exclude-mail /input/README.md "/input/specs/**/*.md"
 
 install-geth:
-	go install github.com/ethereum/go-ethereum/cmd/geth@v1.12.0
-
-git add Makefile op-challenger/game/service.go op-e2e/setup.go packages/contracts-bedrock/scripts/Deploy.s.sol packages/sdk/src/interfaces/types.ts packages/sdk/src/utils/chain-constants.ts
+	go install github.com/ethereum/go-ethereum/cmd/geth@$(shell cat .gethrc)
