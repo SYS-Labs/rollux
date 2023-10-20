@@ -49,3 +49,5 @@ __pycache__
 crytic-export
 
 temp/*
+backup-devnet/*
+*.zip

@@ -47,5 +47,13 @@
     "gasPriceOracleOverhead": 188,
     "gasPriceOracleScalar": 684000,
     "eip1559Denominator": 50,
-    "eip1559Elasticity": 6
+    "eip1559Elasticity": 6,
+
+
+
+  "TODO": "AFTER CONTRACT DEPLOY",
+  "systemConfigStartBlock": 17422444,
+  "requiredProtocolVersion": "0x0000000000000000000000000000000000000003000000010000000000000000",
+  "recommendedProtocolVersion": "0x0000000000000000000000000000000000000003000000010000000000000000"
+
 }

@@ -350,7 +350,7 @@ contract Deploy is Deployer {
     /// @notice Deploy the BatchInboxProxy
 //    function deployBatchInboxProxy() broadcast() public returns (address) {
     /// @notice Deploy the ProtocolVersionsProxy
-    function deployProtocolVersionsProxy() public onlyTestnetOrDevnet broadcast returns (address addr_) {
+    function deployProtocolVersionsProxy() public broadcast returns (address addr_) {
         address proxyAdmin = mustGetAddress("ProxyAdmin");
         Proxy proxy = new Proxy({
             _admin: proxyAdmin
@@ -454,7 +454,7 @@ contract Deploy is Deployer {
     }
 
     /// @notice Deploy the ProtocolVersions
-    function deployProtocolVersions() public onlyTestnetOrDevnet broadcast returns (address addr_) {
+    function deployProtocolVersions() public broadcast returns (address addr_) {
         ProtocolVersions versions = new ProtocolVersions{ salt: implSalt() }();
         save("ProtocolVersions", address(versions));
         console.log("ProtocolVersions deployed at %s", address(versions));
@@ -859,7 +859,9 @@ contract Deploy is Deployer {
         require(address(portal.SYSTEM_CONFIG()) == systemConfigProxy);
         require(portal.paused() == false);
     }
-    function initializeProtocolVersions() public onlyTestnetOrDevnet broadcast {
+
+    function initializeProtocolVersions() public broadcast {
+
         address protocolVersionsProxy = mustGetAddress("ProtocolVersionsProxy");
         address protocolVersions = mustGetAddress("ProtocolVersions");
 
