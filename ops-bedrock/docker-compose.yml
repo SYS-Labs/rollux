@@ -15,6 +15,7 @@ volumes:
 
 
 services:
+
   l1:
     build:
       context: .
@@ -55,6 +56,7 @@ services:
 
   op-node:
     depends_on:
+      - op_stack_go_builder
       - l1
       - l2
     build:
@@ -104,6 +106,7 @@ services:
 
   op-proposer:
     depends_on:
+      - op_stack_go_builder
       - l1
       - l2
       - op-node
@@ -132,6 +135,7 @@ services:
 
   op-batcher:
     depends_on:
+      - op_stack_go_builder
       - l1
       - l2
       - op-node
@@ -181,26 +185,18 @@ services:
     security_opt:
       - "no-new-privileges:true"
 
-  stateviz:
-    build:
-      context: ../
-      dockerfile: ./ops-bedrock/Dockerfile.stateviz
-    image: stateviz:${TAG}
-    command:
-      - stateviz
-      - -addr=0.0.0.0:8080
-      - -snapshot=/op_log/snapshot.log
-      - -refresh=10s
-    ports:
-      - "9090:8080"
-    volumes:
-      - op_log:/op_log:ro
+=======
+#  stateviz:
+#    build:
+#      context: ../
+#      dockerfile: ./ops-bedrock/Dockerfile.stateviz
+#    command:
+#      - stateviz
+#      - -addr=0.0.0.0:8080
+#      - -snapshot=/op_log/snapshot.log
+#      - -refresh=10s
+#    ports:
+#      - "9090:8080"
+#    volumes:
+#      - op_log:/op_log:ro
 
-networks:
-  default:
-      driver: bridge
-      ipam:
-          driver: default
-          config:
-            - subnet: 192.168.0.0/16
-              gateway: 192.168.0.1
