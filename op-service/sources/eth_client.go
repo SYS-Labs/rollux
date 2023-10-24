@@ -12,6 +12,7 @@ package sources
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum-optimism/optimism/op-node/sources"
 	"math/big"
 	"time"
 
@@ -95,7 +96,7 @@ func (c *EthClientConfig) Check() error {
 type EthClient struct {
 	client client.RPC
 	// SYSCOIN
-	syscoinClient *SyscoinClient
+	syscoinClient *sources.SyscoinClient
 
 	maxBatchSize int
 
@@ -175,9 +176,9 @@ func NewEthClient(client client.RPC, log log.Logger, metrics caching.Metrics, co
 		return nil, fmt.Errorf("bad config, cannot create L1 source: %w", err)
 	}
 	client = LimitRPC(client, config.MaxConcurrentRequests)
-	var sysClient *SyscoinClient = nil
+	var sysClient *sources.SyscoinClient = nil
 	if config.SysPODAURL != "" {
-		sysClient, err = NewSyscoinClient(config.SysPODAURL)
+		sysClient, err = sources.NewSyscoinClient(config.SysPODAURL)
 		if err != nil {
 			return nil, fmt.Errorf("Could not create Syscoin RPC client: %w", err)
 		}
