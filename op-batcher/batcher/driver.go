@@ -4,6 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
+	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
+	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum-optimism/optimism/op-service/txmgr"
+	_ "github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	"io"
 	"math/big"
 	_ "net/http/pprof"
@@ -11,23 +19,40 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
-	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
-	"github.com/ethereum-optimism/optimism/op-service/dial"
-	"github.com/ethereum-optimism/optimism/op-service/eth"
-	"github.com/ethereum-optimism/optimism/op-service/txmgr"
-	_ "github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
-	// SYSCOIN
-	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
+	"github.com/ethereum-optimism/optimism/op-node/rollup"
 )
+
+var ErrBatcherNotRunning = errors.New("batcher is not running")
+
+type L1Client interface {
+	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
+}
+
+type L2Client interface {
+	BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error)
+}
+
+type RollupClient interface {
+	SyncStatus(ctx context.Context) (*eth.SyncStatus, error)
+}
+
+// DriverSetup is the collection of input/output interfaces and configuration that the driver operates on.
+type DriverSetup struct {
+	Log          log.Logger
+	Metr         metrics.Metricer
+	RollupCfg    *rollup.Config
+	Cfg          BatcherConfig
+	Txmgr        txmgr.TxManager
+	L1Client     L1Client
+	L2Client     L2Client
+	RollupClient RollupClient
+	Channel      ChannelConfig
+}
 
 // BatchSubmitter encapsulates a service responsible for submitting L2 tx
 // batches to L1 for availability.
 type BatchSubmitter struct {
-	Config // directly embed the config + sources
-
+	DriverSetup
 	txMgr txmgr.TxManager
 	wg    sync.WaitGroup
 
@@ -46,99 +71,16 @@ type BatchSubmitter struct {
 	state *channelManager
 }
 
-// NewBatchSubmitterFromCLIConfig initializes the BatchSubmitter, gathering any resources
-// that will be needed during operation.
-func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metricer) (*BatchSubmitter, error) {
-	ctx := context.Background()
-
-	// Connect to L1 and L2 providers. Perform these last since they are the
-	// most expensive.
-	l1Client, err := dial.DialEthClientWithTimeout(dial.DefaultDialTimeout, l, cfg.L1EthRpc)
-	if err != nil {
-		l.Warn("l1 dialEthClientWithTimeout", "err", err)
-		return nil, err
-	}
-
-	l2Client, err := dial.DialEthClientWithTimeout(dial.DefaultDialTimeout, l, cfg.L2EthRpc)
-	if err != nil {
-		l.Warn("l2 dialEthClientWithTimeout", "err", err)
-		return nil, err
-	}
-
-	rollupClient, err := dial.DialRollupClientWithTimeout(dial.DefaultDialTimeout, l, cfg.RollupRpc)
-	if err != nil {
-		l.Warn("dialRollupClientWithTimeout", "err", err)
-		return nil, err
-	}
-
-	// SYSCOIN
-	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx)
-	if err != nil {
-		l.Warn("dialSyscoinClientWithTimeout", "err", err)
-		return nil, err
-	}
-
-	rcfg, err := rollupClient.RollupConfig(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying rollup config: %w", err)
-	}
-	// SYSCOIN
-	txManager, err := txmgr.NewSimpleTxManager("batcher", l, m, cfg.TxMgrConfig, syscoinClient)
-	if err != nil {
-		l.Warn("txmgr.NewConfig", "err", err)
-		return nil, err
-	}
-
-	batcherCfg := Config{
-		L1Client:               l1Client,
-		L2Client:               l2Client,
-		RollupNode:             rollupClient,
-		PollInterval:           cfg.PollInterval,
-		MaxPendingTransactions: cfg.MaxPendingTransactions,
-		NetworkTimeout:         cfg.TxMgrConfig.NetworkTimeout,
-		TxManager:              txManager,
-		Rollup:                 rcfg,
-		Channel: ChannelConfig{
-			SeqWindowSize:      rcfg.SeqWindowSize,
-			ChannelTimeout:     rcfg.ChannelTimeout,
-			MaxChannelDuration: cfg.MaxChannelDuration,
-			SubSafetyMargin:    cfg.SubSafetyMargin,
-			MaxFrameSize:       cfg.MaxL1TxSize - 1, // subtract 1 byte for version
-			CompressorConfig:   cfg.CompressorConfig.Config(),
-		},
-	}
-
-	// Validate the batcher config
-	if err := batcherCfg.Check(); err != nil {
-		return nil, err
-	}
-
-	return NewBatchSubmitter(ctx, batcherCfg, l, m)
-}
-
-// NewBatchSubmitter initializes the BatchSubmitter, gathering any resources
-// that will be needed during operation.
-func NewBatchSubmitter(ctx context.Context, cfg Config, l log.Logger, m metrics.Metricer) (*BatchSubmitter, error) {
-	balance, err := cfg.L1Client.BalanceAt(ctx, cfg.TxManager.From(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.log = l
-	cfg.log.Info("creating batch submitter", "submitter_addr", cfg.TxManager.From(), "submitter_bal", balance)
-
-	cfg.metr = m
-
+// NewBatchSubmitter initializes the BatchSubmitter driver from a preconfigured DriverSetup
+func NewBatchSubmitter(setup DriverSetup) *BatchSubmitter {
 	return &BatchSubmitter{
-		Config: cfg,
-		txMgr:  cfg.TxManager,
-		state:  NewChannelManager(l, m, cfg.Channel),
-	}, nil
-
+		DriverSetup: setup,
+		state:       NewChannelManager(setup.Log, setup.Metr, setup.Channel),
+	}
 }
 
-func (l *BatchSubmitter) Start() error {
-	l.log.Info("Starting Batch Submitter")
+func (l *BatchSubmitter) StartBatchSubmitting() error {
+	l.Log.Info("Starting Batch Submitter")
 
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
@@ -156,23 +98,27 @@ func (l *BatchSubmitter) Start() error {
 	l.wg.Add(1)
 	go l.loop()
 
-	l.log.Info("Batch Submitter started")
-
+	l.Log.Info("Batch Submitter started")
 	return nil
 }
 
-func (l *BatchSubmitter) StopIfRunning(ctx context.Context) {
-	_ = l.Stop(ctx)
+func (l *BatchSubmitter) StopBatchSubmittingIfRunning(ctx context.Context) error {
+	err := l.StopBatchSubmitting(ctx)
+	if errors.Is(err, ErrBatcherNotRunning) {
+		return nil
+	}
+	return err
 }
 
-func (l *BatchSubmitter) Stop(ctx context.Context) error {
-	l.log.Info("Stopping Batch Submitter")
+// StopBatchSubmitting stops the batch-submitter loop, and force-kills if the provided ctx is done.
+func (l *BatchSubmitter) StopBatchSubmitting(ctx context.Context) error {
+	l.Log.Info("Stopping Batch Submitter")
 
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
 	if !l.running {
-		return errors.New("batcher is not running")
+		return ErrBatcherNotRunning
 	}
 	l.running = false
 
@@ -189,8 +135,7 @@ func (l *BatchSubmitter) Stop(ctx context.Context) error {
 	l.wg.Wait()
 	l.cancelKillCtx()
 
-	l.log.Info("Batch Submitter stopped")
-
+	l.Log.Info("Batch Submitter stopped")
 	return nil
 }
 
@@ -205,7 +150,7 @@ func (l *BatchSubmitter) Stop(ctx context.Context) error {
 func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 	start, end, err := l.calculateL2BlockRangeToStore(ctx)
 	if err != nil {
-		l.log.Warn("Error calculating L2 block range", "err", err)
+		l.Log.Warn("Error calculating L2 block range", "err", err)
 		return err
 	} else if start.Number >= end.Number {
 		return errors.New("start number is >= end number")
@@ -216,30 +161,30 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 	for i := start.Number + 1; i < end.Number+1; i++ {
 		block, err := l.loadBlockIntoState(ctx, i)
 		if errors.Is(err, ErrReorg) {
-			l.log.Warn("Found L2 reorg", "block_number", i)
+			l.Log.Warn("Found L2 reorg", "block_number", i)
 			l.lastStoredBlock = eth.BlockID{}
 			return err
 		} else if err != nil {
-			l.log.Warn("failed to load block into state", "err", err)
+			l.Log.Warn("failed to load block into state", "err", err)
 			return err
 		}
 		l.lastStoredBlock = eth.ToBlockID(block)
 		latestBlock = block
 	}
 
-	l2ref, err := derive.L2BlockToBlockRef(latestBlock, &l.Rollup.Genesis)
+	l2ref, err := derive.L2BlockToBlockRef(latestBlock, &l.RollupCfg.Genesis)
 	if err != nil {
-		l.log.Warn("Invalid L2 block loaded into state", "err", err)
+		l.Log.Warn("Invalid L2 block loaded into state", "err", err)
 		return err
 	}
 
-	l.metr.RecordL2BlocksLoaded(l2ref)
+	l.Metr.RecordL2BlocksLoaded(l2ref)
 	return nil
 }
 
 // loadBlockIntoState fetches & stores a single block into `state`. It returns the block it loaded.
 func (l *BatchSubmitter) loadBlockIntoState(ctx context.Context, blockNumber uint64) (*types.Block, error) {
-	ctx, cancel := context.WithTimeout(ctx, l.NetworkTimeout)
+	ctx, cancel := context.WithTimeout(ctx, l.Cfg.NetworkTimeout)
 	defer cancel()
 	block, err := l.L2Client.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumber))
 	if err != nil {
@@ -250,16 +195,16 @@ func (l *BatchSubmitter) loadBlockIntoState(ctx context.Context, blockNumber uin
 		return nil, fmt.Errorf("adding L2 block to state: %w", err)
 	}
 
-	l.log.Info("added L2 block to local state", "block", eth.ToBlockID(block), "tx_count", len(block.Transactions()), "time", block.Time())
+	l.Log.Info("added L2 block to local state", "block", eth.ToBlockID(block), "tx_count", len(block.Transactions()), "time", block.Time())
 	return block, nil
 }
 
 // calculateL2BlockRangeToStore determines the range (start,end] that should be loaded into the local state.
 // It also takes care of initializing some local state (i.e. will modify l.lastStoredBlock in certain conditions)
 func (l *BatchSubmitter) calculateL2BlockRangeToStore(ctx context.Context) (eth.BlockID, eth.BlockID, error) {
-	ctx, cancel := context.WithTimeout(ctx, l.NetworkTimeout)
+	ctx, cancel := context.WithTimeout(ctx, l.Cfg.NetworkTimeout)
 	defer cancel()
-	syncStatus, err := l.RollupNode.SyncStatus(ctx)
+	syncStatus, err := l.RollupClient.SyncStatus(ctx)
 	// Ensure that we have the sync status
 	if err != nil {
 		return eth.BlockID{}, eth.BlockID{}, fmt.Errorf("failed to get sync status: %w", err)
@@ -271,10 +216,10 @@ func (l *BatchSubmitter) calculateL2BlockRangeToStore(ctx context.Context) (eth.
 	// Check last stored to see if it needs to be set on startup OR set if is lagged behind.
 	// It lagging implies that the op-node processed some batches that were submitted prior to the current instance of the batcher being alive.
 	if l.lastStoredBlock == (eth.BlockID{}) {
-		l.log.Info("Starting batch-submitter work at safe-head", "safe", syncStatus.SafeL2)
+		l.Log.Info("Starting batch-submitter work at safe-head", "safe", syncStatus.SafeL2)
 		l.lastStoredBlock = syncStatus.SafeL2.ID()
 	} else if l.lastStoredBlock.Number < syncStatus.SafeL2.Number {
-		l.log.Warn("last submitted block lagged behind L2 safe head: batch submission will continue from the safe head now", "last", l.lastStoredBlock, "safe", syncStatus.SafeL2)
+		l.Log.Warn("last submitted block lagged behind L2 safe head: batch submission will continue from the safe head now", "last", l.lastStoredBlock, "safe", syncStatus.SafeL2)
 		l.lastStoredBlock = syncStatus.SafeL2.ID()
 	}
 
@@ -300,11 +245,11 @@ func (l *BatchSubmitter) calculateL2BlockRangeToStore(ctx context.Context) (eth.
 func (l *BatchSubmitter) loop() {
 	defer l.wg.Done()
 
-	ticker := time.NewTicker(l.PollInterval)
+	ticker := time.NewTicker(l.Cfg.PollInterval)
 	defer ticker.Stop()
 
 	receiptsCh := make(chan txmgr.TxReceipt[txData])
-	queue := txmgr.NewQueue[txData](l.killCtx, l.txMgr, l.MaxPendingTransactions)
+	queue := txmgr.NewQueue[txData](l.killCtx, l.Txmgr, l.Cfg.MaxPendingTransactions)
 
 	for {
 		select {
@@ -312,7 +257,7 @@ func (l *BatchSubmitter) loop() {
 			if err := l.loadBlocksIntoState(l.shutdownCtx); errors.Is(err, ErrReorg) {
 				err := l.state.Close()
 				if err != nil {
-					l.log.Error("error closing the channel manager to handle a L2 reorg", "err", err)
+					l.Log.Error("error closing the channel manager to handle a L2 reorg", "err", err)
 				}
 				l.publishStateToL1(queue, receiptsCh, true)
 				l.state.Clear()
@@ -324,7 +269,7 @@ func (l *BatchSubmitter) loop() {
 		case <-l.shutdownCtx.Done():
 			err := l.state.Close()
 			if err != nil {
-				l.log.Error("error closing the channel manager", "err", err)
+				l.Log.Error("error closing the channel manager", "err", err)
 			}
 			l.publishStateToL1(queue, receiptsCh, true)
 			return
@@ -349,7 +294,7 @@ func (l *BatchSubmitter) publishStateToL1(queue *txmgr.Queue[txData], receiptsCh
 			err := l.publishTxToL1(l.killCtx, queue, receiptsCh)
 			if err != nil {
 				if drain && err != io.EOF {
-					l.log.Error("error sending tx while draining state", "err", err)
+					l.Log.Error("error sending tx while draining state", "err", err)
 				}
 				return
 			}
@@ -371,7 +316,7 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	// send all available transactions
 	l1tip, err := l.l1Tip(ctx)
 	if err != nil {
-		l.log.Error("Failed to query L1 tip", "error", err)
+		l.Log.Error("Failed to query L1 tip", "error", err)
 		return err
 	}
 	l.recordL1Tip(l1tip)
@@ -379,16 +324,16 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	// Collect next transaction data
 	txdata, err := l.state.TxData(l1tip.ID())
 	if err == io.EOF {
-		l.log.Trace("no transaction data available")
+		l.Log.Trace("no transaction data available")
 		return err
 	} else if err != nil {
-		l.log.Error("unable to get tx data", "err", err)
+		l.Log.Error("unable to get tx data", "err", err)
 		return err
 	}
 	// Function name and parameter types
 	parsedABI, err := bindings.BatchInboxMetaData.GetAbi()
 	if err != nil {
-		l.log.Error("Failed to parse contract ABI: %v", err)
+		l.Log.Error("Failed to parse contract ABI: %v", err)
 		return err
 	}
 
@@ -396,7 +341,7 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
 		l.recordFailedTx(txdata.ID(), err)
 	} else {
-		l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
+		l.Log.Info("Blob confirmed", "versionhash", receipt.TxHash)
 		// Create the transaction
 		// we avoid changing Receipt object and just reuse TxHash for VH
 		var arrayOfVHs [][32]byte
@@ -405,7 +350,7 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 		arrayOfVHs = append(arrayOfVHs, array)
 		packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, arrayOfVHs)
 		if err != nil {
-			l.log.Error("Failed to pack data for function call: %v", err)
+			l.Log.Error("Failed to pack data for function call: %v", err)
 			l.recordFailedTx(txdata.ID(), err)
 			return err
 		}
@@ -423,12 +368,12 @@ func (l *BatchSubmitter) sendTransaction(txdata txData, queue *txmgr.Queue[txDat
 	data := txdata.frame.data
 	/*intrinsicGas, err := core.IntrinsicGas(data, nil, false, true, true, false)
 	if err != nil {
-		l.log.Error("Failed to calculate intrinsic gas", "error", err)
+		l.Log.Error("Failed to calculate intrinsic gas", "error", err)
 		return
 	}*/
 
 	candidate := txmgr.TxCandidate{
-		To:     &l.Rollup.BatchInboxAddress,
+		To:     &l.RollupCfg.BatchInboxAddress,
 		TxData: data,
 		// SYSCOIN let L1 estimate gas due to precompile
 		GasLimit: 0,
@@ -439,10 +384,10 @@ func (l *BatchSubmitter) sendTransaction(txdata txData, queue *txmgr.Queue[txDat
 func (l *BatchSubmitter) handleReceipt(r txmgr.TxReceipt[txData]) {
 	// Record TX Status
 	if r.Err != nil {
-		l.log.Warn("unable to publish tx", "err", r.Err, "data_size", r.ID.Len())
+		l.Log.Warn("unable to publish tx", "err", r.Err, "data_size", r.ID.Len())
 		l.recordFailedTx(r.ID.ID(), r.Err)
 	} else {
-		l.log.Info("tx successfully published", "tx_hash", r.Receipt.TxHash, "data_size", r.ID.Len())
+		l.Log.Info("tx successfully published", "tx_hash", r.Receipt.TxHash, "data_size", r.ID.Len())
 		l.recordConfirmedTx(r.ID.ID(), r.Receipt)
 	}
 }
@@ -456,10 +401,10 @@ func (l *BatchSubmitter) sendBlobTransaction(ctx context.Context, data []byte) (
 	ctx, cancel := context.WithTimeout(ctx, 25*time.Minute)
 	defer cancel()
 	if receipt, err := l.txMgr.SendBlob(ctx, data); err != nil {
-		l.log.Warn("unable to publish blob", "err", err)
+		l.Log.Warn("unable to publish blob", "err", err)
 		return nil, err
 	} else {
-		l.log.Info("blob successfully published", "version_hash", receipt.TxHash)
+		l.Log.Info("blob successfully published", "version_hash", receipt.TxHash)
 		return receipt, nil
 	}
 }
@@ -469,16 +414,16 @@ func (l *BatchSubmitter) recordL1Tip(l1tip eth.L1BlockRef) {
 		return
 	}
 	l.lastL1Tip = l1tip
-	l.metr.RecordLatestL1Block(l1tip)
+	l.Metr.RecordLatestL1Block(l1tip)
 }
 
 func (l *BatchSubmitter) recordFailedTx(id txID, err error) {
-	l.log.Warn("Failed to send transaction", "err", err)
+	l.Log.Warn("Failed to send transaction", "err", err)
 	l.state.TxFailed(id)
 }
 
 func (l *BatchSubmitter) recordConfirmedTx(id txID, receipt *types.Receipt) {
-	l.log.Info("Transaction confirmed", "tx_hash", receipt.TxHash, "status", receipt.Status, "block_hash", receipt.BlockHash, "block_number", receipt.BlockNumber)
+	l.Log.Info("Transaction confirmed", "tx_hash", receipt.TxHash, "status", receipt.Status, "block_hash", receipt.BlockHash, "block_number", receipt.BlockNumber)
 	l1block := eth.BlockID{Number: receipt.BlockNumber.Uint64(), Hash: receipt.BlockHash}
 	l.state.TxConfirmed(id, l1block)
 }
@@ -486,7 +431,7 @@ func (l *BatchSubmitter) recordConfirmedTx(id txID, receipt *types.Receipt) {
 // l1Tip gets the current L1 tip as a L1BlockRef. The passed context is assumed
 // to be a lifetime context, so it is internally wrapped with a network timeout.
 func (l *BatchSubmitter) l1Tip(ctx context.Context) (eth.L1BlockRef, error) {
-	tctx, cancel := context.WithTimeout(ctx, l.NetworkTimeout)
+	tctx, cancel := context.WithTimeout(ctx, l.Cfg.NetworkTimeout)
 	defer cancel()
 	head, err := l.L1Client.HeaderByNumber(tctx, nil)
 	if err != nil {
