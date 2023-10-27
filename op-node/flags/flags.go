@@ -262,9 +262,10 @@ var (
 		EnvVars: prefixEnvVars("ROLLUP_LOAD_PROTOCOL_VERSIONS"),
 	}
 	CanyonOverrideFlag = &cli.Uint64Flag{
-		Name:   "override.canyon",
-		Usage:  "Manually specify the Canyon fork timestamp, overriding the bundled setting",
-		Hidden: true,
+		Name:    "override.canyon",
+		Usage:   "Manually specify the Canyon fork timestamp, overriding the bundled setting",
+		EnvVars: prefixEnvVars("OVERRIDE_CANYON"),
+		Hidden:  false,
 	}
 )
 
