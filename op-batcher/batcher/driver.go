@@ -49,6 +49,11 @@ type DriverSetup struct {
 	Channel      ChannelConfig
 }
 
+const (
+	// SYSCOIN
+	appendSequencerBatchMethodName = "appendSequencerBatch"
+)
+
 // BatchSubmitter encapsulates a service responsible for submitting L2 tx
 // batches to L1 for availability.
 type BatchSubmitter struct {

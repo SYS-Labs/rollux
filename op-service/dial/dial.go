@@ -55,11 +55,11 @@ func dialRPCClientWithBackoff(ctx context.Context, log log.Logger, addr string) 
 			log.Warn("failed to dial address, but may connect later", "addr", addr)
 			return nil, fmt.Errorf("address unavailable (%s)", addr)
 		}
-		client, err := rpc.DialOptions(ctx, addr)
+		rpcClient, err := rpc.DialOptions(ctx, addr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to dial address (%s): %w", addr, err)
 		}
-		return client, nil
+		return rpcClient, nil
 	})
 }
 

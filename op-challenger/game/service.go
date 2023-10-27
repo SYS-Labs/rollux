@@ -48,14 +48,18 @@ func (s *Service) Stop(ctx context.Context) error {
 
 // NewService creates a new Service.
 func NewService(ctx context.Context, logger log.Logger, cfg *config.Config) (*Service, error) {
+
+	cl := clock.SystemClock
 	// SYSCOIN
 	syscoinClient, err := dial.DialSyscoinClientWithTimeout(ctx)
-	cl := clock.SystemClock
-
+	if err != nil {
+		logger.Warn("dialSyscoinClientWithTimeout", "err", err)
+		return nil, err
+	}
 	m := metrics.NewMetrics()
 	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &m.TxMetrics, cfg.TxMgrConfig, syscoinClient)
 	if err != nil {
-		logger.Warn("dialSyscoinClientWithTimeout", "err", err)
+		logger.Warn("NewSimpleTxManager", "err", err)
 		return nil, err
 	}
 	l1Client, err := dial.DialEthClientWithTimeout(ctx, dial.DefaultDialTimeout, logger, cfg.L1EthRpc)
