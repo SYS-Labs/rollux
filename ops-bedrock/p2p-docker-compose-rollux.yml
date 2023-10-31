@@ -22,8 +22,7 @@ services:
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
-      - "127.0.0.1:8545:8545"   # local, rpc L1
-    #      - "7060:6060"            # ?
+      - "8545:8545"   # local, rpc L1
     volumes:
       - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l1_data:/db/.syscoin"
     dns:
@@ -37,8 +36,8 @@ services:
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
-      - "127.0.0.1:9545:8545"   # local, rpc L2
-      - "127.0.0.1:9546:8546"   # local, wss L2
+      - "9545:8545"   # local, rpc L2
+      - "9546:8546"   # local, wss L2
     #      - "8060:6060"            # ?
     volumes:
       - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l2_data:/db"
@@ -74,7 +73,7 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
-      --p2p.static=/ip4/<ip>/tcp/9003/p2p/<peer_ids>
+      --p2p.static=/ip4/50.112.6.15/tcp/9003/p2p/16Uiu2HAmPfjQhjFC9ESFUqMtXZmmX4vWyovMEbiyyRQ2U5yy5JvR
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
@@ -84,7 +83,7 @@ services:
       --rpc.enable-admin
       --heartbeat.enabled
       --heartbeat.moniker=sequencer
-      --heartbeat.url=http://op-heartbeat:8080
+      --heartbeat.url=https://heartbeat.rollux.com
       --sys-poda-url=https://poda.syscoin.org/vh/
     ports:
       #      - "7545:8545"            # ? rpc ?
@@ -100,83 +99,6 @@ services:
       - 8.8.8.8
       - 8.8.4.4
       - 192.168.9.45
-
-  op-heartbeat:
-    build:
-      context: ../
-      dockerfile: ./op-heartbeat/Dockerfile
-    environment:
-      OP_HEARTBEAT_HTTP_ADDR: 0.0.0.0
-      OP_HEARTBEAT_HTTP_PORT: 8080
-    ports:
-      - "8080:8080"
-
-  op-exporter:
-    build:
-      context: ../
-      dockerfile: ./op-exporter/Dockerfile
-    ports:
-      - "9100:9100"
-    command: >
-      --rpc.provider=https://rpc.rollux.com/
-      --label.network=rollux
-      --rollUpGasPrices.enable
-      --gaseBaseFee.enable
-
-  grafana:
-    image: grafana/grafana:9.5.2
-    env_file:
-      - ./envs/metrics.env
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./docker/grafana/provisioning/:/etc/grafana/provisioning/:ro
-      - grafana_data:/var/lib/grafana/
-      - grafana_dashboards:/grafana-dashboards:ro
-
-  influxdb:
-    image: quay.io/influxdb/influxdb:1.6
-    env_file:
-      - ./envs/metrics.env
-    volumes:
-      - influxdb_data:/var/lib/influxdb
-
-  prometheus:
-    image: prom/prometheus
-    env_file:
-      - ./envs/metrics.env
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./docker/prometheus:/etc/prometheus
-      - prometheus_data:/prometheus
-
-  batcher-monitor:
-    build:
-      context: docker/contract_monitor/
-      dockerfile: Dockerfile
-    environment:
-      L1_URL: http://l1:8545
-      CONTRACT_ADDRESS: "${BATCH_INBOX_ADDRESS}"
-      METRIC_NAME: "batcher_health"
-
-  blackbox_exporter:
-    image: prom/blackbox-exporter:latest
-    volumes:
-      - ./docker/blackbox.yml:/etc/blackbox_exporter/config.yml
-    command:
-      - '--config.file=/etc/blackbox_exporter/config.yml'
-    ports:
-      - "9115:9115"
-
-  proposer-monitor:
-    build:
-      context: docker/contract_monitor/
-      dockerfile: Dockerfile
-    environment:
-      L1_URL: http://l1:8545
-      CONTRACT_ADDRESS: "${L2OO_ADDRESS}"
-      METRIC_NAME: "proposer_health"
 
 networks:
   default:

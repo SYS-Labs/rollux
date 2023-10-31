@@ -38,7 +38,7 @@ CONTRACTS_GOVERNANCE="$PWD/packages/contracts-governance"
 NETWORK=rollux
 ROLLUX="$PWD/.rollux"
 TESTNET=0
-TAG="rollux-v1.0.0"
+TAG="rollux-v1.2.3"
 # Helper method that waits for a given URL to be up. Can't use
 # cURL's built-in retry logic because connection reset errors
 # are ignored unless you're using a very recent version of cURL
@@ -108,10 +108,3 @@ L2OO_ADDRESS="$(cat $ROLLUX/rollup.json | jq -r '.output_oracle_address')"
 
 echo "L2 ready."
 
-# Bring up Monitoring infrastructure; exporter, heartbeat, influxdb, prometheus and grafana
-(
-  export TAG=$TAG
-  cd ops-bedrock
-  echo "Bringing up monitoring infrastructure"
-  docker-compose -f p2p-docker-compose-rollux.yml up -d op-exporter prometheus grafana influxdb dashboard-sync
-)
