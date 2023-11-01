@@ -171,12 +171,14 @@ services:
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
       OP_BATCHER_RPC_ENABLE_ADMIN: "true"
+      OP_BATCHER_BATCH_TYPE: 0
     dns:
       - 8.8.8.8
       - 8.8.4.4
       - 192.168.9.45
     env_file:
       - ./envs/op-node.env
+
 
   artifact-server:
     depends_on:
