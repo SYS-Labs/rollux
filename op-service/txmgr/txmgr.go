@@ -45,10 +45,6 @@ type TxManager interface {
 	SendBlob(ctx context.Context, data []byte) (*types.Receipt, error)
 	Send(ctx context.Context, candidate TxCandidate) (*types.Receipt, error)
 
-	// Call is used to call a contract.
-	// Internally, it uses the [ethclient.Client.CallContract] method.
-	Call(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
-
 	// From returns the sending address associated with the instance of the transaction manager.
 	// It is static for a single instance of a TxManager.
 	From() common.Address
@@ -181,12 +177,6 @@ func (m *SimpleTxManager) Send(ctx context.Context, candidate TxCandidate) (*typ
 		m.resetNonce()
 	}
 	return receipt, err
-}
-
-// Call is used to call a contract.
-// Internally, it uses the [ethclient.Client.CallContract] method.
-func (m *SimpleTxManager) Call(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
-	return m.backend.CallContract(ctx, msg, blockNumber)
 }
 
 // send performs the actual transaction creation and sending.
