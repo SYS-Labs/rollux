@@ -41,6 +41,10 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox_exporter:9115
 
+  - job_name: 'replica-monitor'
+    static_configs:
+      - targets: [ 'host.docker.internal:8090' ]
+
   - job_name: 'pessimism'
     static_configs:
       - targets: ['host.docker.internal:7301']

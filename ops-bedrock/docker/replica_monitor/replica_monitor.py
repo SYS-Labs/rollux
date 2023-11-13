@@ -53,20 +53,7 @@ while True:
             time.sleep(5)
             continue
 
-
-        latest_l2_block = get_latest_block_number(L2_RPC_URL)
-
-        retries = 3
-        while retries > 0 and (latest_l2_block is None or latest_l2_block < latest_sequencer_block):
-            time.sleep(10)  # wait for 10 seconds before retrying
-            latest_l2_block = get_latest_block_number(L2_RPC_URL)
-            retries -= 1
-
-        if latest_l2_block is None or latest_l2_block < latest_sequencer_block:
-            hash_match_gauge.labels(block_number=latest_sequencer_block).set(0)
-            continue
-
-        l2_hash = get_block_hash(L2_RPC_URL, latest_l2_block)
+        l2_hash = get_block_hash(L2_RPC_URL, latest_sequencer_block)
         sequencer_hash = get_block_hash(SEQUENCER_RPC_URL, latest_sequencer_block)
         hash_match = 1 if l2_hash == sequencer_hash else 0
         hash_match_gauge.labels(block_number=latest_sequencer_block).set(hash_match)
