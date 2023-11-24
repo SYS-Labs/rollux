@@ -58,6 +58,10 @@ func (f fakeTxMgr) SendBlob(_ context.Context, _ []byte) (*types.Receipt, error)
 	panic("unimplemented")
 }
 
+func (f fakeTxMgr) Close() {
+
+}
+
 func NewL2Proposer(t Testing, log log.Logger, cfg *ProposerCfg, l1 *ethclient.Client, rollupCl *sources.RollupClient) *L2Proposer {
 	proposerConfig := proposer.ProposerConfig{
 		PollInterval:       time.Second,

@@ -65,7 +65,7 @@ func registerOutputCannon(
 		if err != nil {
 			return nil, nil, err
 		}
-		accessor, err := outputs.NewOutputCannonTraceAccessor(ctx, logger, cfg.RollupRpc, gameDepth, agreed.L2BlockNumber.Uint64(), disputed.L2BlockNumber.Uint64())
+		accessor, err := outputs.NewOutputCannonTraceAccessor(ctx, logger, m, cfg, contract, dir, gameDepth, agreed.L2BlockNumber.Uint64(), disputed.L2BlockNumber.Uint64())
 		if err != nil {
 			return nil, nil, err
 		}
@@ -91,7 +91,7 @@ func registerCannon(
 	client *ethclient.Client) {
 	resourceCreator := func(addr common.Address, contract *contracts.FaultDisputeGameContract, gameDepth uint64, dir string) (faultTypes.TraceAccessor, gameValidator, error) {
 		logger := logger.New("game", addr)
-		provider, err := cannon.NewTraceProvider(ctx, logger, m, cfg, contract, cannon.NoLocalContext, dir, gameDepth)
+		provider, err := cannon.NewTraceProvider(ctx, logger, m, cfg, contract, faultTypes.NoLocalContext, dir, gameDepth)
 		if err != nil {
 			return nil, nil, fmt.Errorf("create cannon trace provider: %w", err)
 		}
