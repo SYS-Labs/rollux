@@ -60,7 +60,6 @@ services:
 
   op-node:
     depends_on:
-      - op_stack_go_builder
       - l1
       - l2
     build:
@@ -69,6 +68,7 @@ services:
     image: op-node:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
+
     command: >
       op-node
       --l1=ws://l1:8546
@@ -110,7 +110,6 @@ services:
 
   op-proposer:
     depends_on:
-      - op_stack_go_builder
       - l1
       - l2
       - op-node
@@ -139,7 +138,6 @@ services:
 
   op-batcher:
     depends_on:
-      - op_stack_go_builder
       - l1
       - l2
       - op-node
@@ -149,6 +147,7 @@ services:
     image: op-batcher:${TAG}
     stop_signal: SIGINT
     stop_grace_period: 30s
+
     ports:
       - "6061:6060"
       - "7301:7300"
