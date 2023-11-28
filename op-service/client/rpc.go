@@ -111,7 +111,7 @@ func NewRPCWithClient(ctx context.Context, lgr log.Logger, addr string, underlyi
 func dialRPCClientWithBackoff(ctx context.Context, log log.Logger, addr string, attempts int, opts ...rpc.ClientOption) (*rpc.Client, error) {
 	bOff := retry.Exponential()
 	return retry.Do(ctx, attempts, bOff, func() (*rpc.Client, error) {
-		if !IsURLAvailable(addr) {
+		if !IsURLAvailable(addr, log) {
 			log.Warn("failed to dial address, but may connect later", "addr", addr)
 			return nil, fmt.Errorf("address unavailable (%s)", addr)
 		}
@@ -123,9 +123,10 @@ func dialRPCClientWithBackoff(ctx context.Context, log log.Logger, addr string, 
 	})
 }
 
-func IsURLAvailable(address string) bool {
+func IsURLAvailable(address string, log log.Logger) bool {
 	u, err := url.Parse(address)
 	if err != nil {
+		log.Warn("failed to dial address, can't be parsed")
 		return false
 	}
 	addr := u.Host
@@ -142,6 +143,7 @@ func IsURLAvailable(address string) bool {
 	}
 	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
 	if err != nil {
+		log.Warn("failed to dial address, timed out")
 		return false
 	}
 	conn.Close()

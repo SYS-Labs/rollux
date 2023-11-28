@@ -1,0 +1,79 @@
+version: '3.4'
+
+volumes:
+  l2_data:
+  op_log:
+
+services:
+  l2:
+    build:
+      context: .
+      dockerfile: Dockerfile.l2
+    stop_signal: SIGINT
+    stop_grace_period: 30s
+    ports:
+      - "9545:8545"
+      - "9546:8546"
+    volumes:
+      - "l2_data:/db"
+      - "./genesis-l2.json:/genesis.json"
+      - "./test-jwt-secret.txt:/config/test-jwt-secret.txt"
+    entrypoint:
+      - "/bin/sh"
+      - "/entrypoint.sh"
+      - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
+    env_file:
+      - .env
+
+  op-node:
+    build:
+      context: ../
+      dockerfile: ./op-node/Dockerfile
+    stop_signal: SIGINT
+    stop_grace_period: 30s
+    command: >
+      op-node
+      --l1=${L1_URL}
+      --l2=http://l2:9551
+      --l2.jwt-secret=/config/test-jwt-secret.txt
+      --sequencer.stopped
+      --sequencer.l1-confs=0
+      --verifier.l1-confs=0
+      --rollup.config=/rollup.json
+      --rpc.addr=0.0.0.0
+      --rpc.port=8545
+      --p2p.no-discovery=false
+      --p2p.listen.ip=0.0.0.0
+      --p2p.listen.tcp=9003
+      --p2p.listen.udp=9003
+      --p2p.static=${P2P_STATIC}
+      --snapshotlog.file=/op_log/snapshot.log
+      --p2p.priv.path=/config/p2p-node-key.txt
+      --metrics.enabled
+      --metrics.addr=0.0.0.0
+      --metrics.port=7300
+      --pprof.enabled
+      --rpc.enable-admin
+      --heartbeat.enabled
+      --heartbeat.moniker=sequencer
+      --heartbeat.url=https://heartbeat.rollux.com
+      --sys-poda-url=https://poda.syscoin.org/vh/
+    ports:
+      - "9003:9003" # p2p
+      - "7300:7300" # metrics
+    volumes:
+      - "./p2p-node-key.txt:/config/p2p-node-key.txt"
+      - "./test-jwt-secret.txt:/config/test-jwt-secret.txt"
+      - "./rollup.json:/rollup.json"
+      - "op_log:/op_log"
+    env_file:
+      - .env
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/16
+          gateway: 192.168.0.1
