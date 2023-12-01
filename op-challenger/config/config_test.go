@@ -21,11 +21,10 @@ var (
 	validDatadir               = "/tmp/data"
 	validCannonL2              = "http://localhost:9545"
 	validRollupRpc             = "http://localhost:8555"
-	agreeWithProposedOutput    = true
 )
 
 func validConfig(traceType TraceType) Config {
-	cfg := NewConfig(validGameFactoryAddress, validL1EthRpc, agreeWithProposedOutput, validDatadir, traceType)
+	cfg := NewConfig(validGameFactoryAddress, validL1EthRpc, validDatadir, traceType)
 	switch traceType {
 	case TraceTypeAlphabet:
 		cfg.AlphabetTrace = validAlphabetTrace
@@ -36,7 +35,7 @@ func validConfig(traceType TraceType) Config {
 		cfg.CannonL2 = validCannonL2
 		cfg.CannonNetwork = validCannonNetwork
 	}
-	if traceType == TraceTypeOutputCannon {
+	if traceType == TraceTypeOutputCannon || traceType == TraceTypeOutputAlphabet {
 		cfg.RollupRpc = validRollupRpc
 	}
 	return cfg
@@ -85,6 +84,12 @@ func TestAlphabetTraceRequired(t *testing.T) {
 	require.ErrorIs(t, config.Check(), ErrMissingAlphabetTrace)
 }
 
+func TestAlphabetTraceNotRequiredForOutputAlphabet(t *testing.T) {
+	config := validConfig(TraceTypeOutputAlphabet)
+	config.AlphabetTrace = ""
+	require.NoError(t, config.Check())
+}
+
 func TestCannonBinRequired(t *testing.T) {
 	config := validConfig(TraceTypeCannon)
 	config.CannonBin = ""
@@ -129,8 +134,14 @@ func TestHttpPollInterval(t *testing.T) {
 	})
 }
 
-func TestRollupRpcRequired(t *testing.T) {
+func TestRollupRpcRequired_OutputCannon(t *testing.T) {
 	config := validConfig(TraceTypeOutputCannon)
+	config.RollupRpc = ""
+	require.ErrorIs(t, config.Check(), ErrMissingRollupRpc)
+}
+
+func TestRollupRpcRequired_OutputAlphabet(t *testing.T) {
+	config := validConfig(TraceTypeOutputAlphabet)
 	config.RollupRpc = ""
 	require.ErrorIs(t, config.Check(), ErrMissingRollupRpc)
 }

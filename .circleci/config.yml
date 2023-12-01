@@ -4,6 +4,9 @@ parameters:
   ci_builder_image:
     type: string
     default: us-docker.pkg.dev/oplabs-tools-artifacts/images/ci-builder:v0.30.0
+  base_image:
+    type: string
+    default: ubuntu-2204:2022.07.1
 
 orbs:
   go: circleci/go@1.8.0
@@ -209,7 +212,7 @@ jobs:
         type: string
         default: medium
     machine:
-      image: ubuntu-2204:2022.07.1
+      image: <<pipeline.parameters.base_image>>
       resource_class: "<<parameters.resource_class>>"
       docker_layer_caching: true  # we rely on this for faster builds, and actively warm it up for builds with common stages
     steps:
@@ -346,7 +349,7 @@ jobs:
   contracts-bedrock-tests:
     docker:
       - image: <<pipeline.parameters.ci_builder_image>>
-    resource_class: medium
+    resource_class: xlarge
     steps:
       - checkout
       - run:
@@ -378,7 +381,7 @@ jobs:
   contracts-bedrock-checks:
     docker:
       - image: <<pipeline.parameters.ci_builder_image>>
-    resource_class: medium
+    resource_class: xlarge
     steps:
       - checkout
       - run:
@@ -421,16 +424,15 @@ jobs:
           working_directory: packages/contracts-bedrock
           no_output_timeout: 15m
       - run:
-          name: storage snapshot
-          command: |
-            pnpm storage-snapshot
-            git diff --exit-code .storage-layout || echo "export STORAGE_SNAPSHOT_STATUS=1" >> "$BASH_ENV"
-          working_directory: packages/contracts-bedrock
-      - run:
           name: invariant docs
           command: |
             pnpm autogen:invariant-docs
             git diff --exit-code ./invariant-docs/*.md || echo "export INVARIANT_DOCS_STATUS=1" >> "$BASH_ENV"
+          working_directory: packages/contracts-bedrock
+      - run:
+          name: snapshots
+          command: |
+            pnpm snapshots:check || echo "export SNAPSHOTS_STATUS=1" >> "$BASH_ENV"
           working_directory: packages/contracts-bedrock
       - run:
           name: check statuses
@@ -443,10 +445,6 @@ jobs:
               FAILED=1
               echo "Gas snapshot failed, see job output for details."
             fi
-            if [[ "$STORAGE_SNAPSHOT_STATUS" -ne 0 ]]; then
-              echo "Storage snapshot failed, see job output for details."
-              FAILED=1
-            fi
             if [[ "$SEMVER_LOCK_STATUS" -ne 0 ]]; then
               echo "Semver lock failed, see job output for details."
               FAILED=1
@@ -457,6 +455,10 @@ jobs:
             fi
             if [[ "$DEPLOY_CONFIGS_STATUS" -ne 0 ]]; then
               echo "Deploy config check failed, see job output for details."
+              FAILED=1
+            fi
+            if [[ "$SNAPSHOTS_STATUS" -ne 0 ]]; then
+              echo "Snapshots check failed, see job output for details."
               FAILED=1
             fi
             if [[ "$FAILED" -ne 0 ]]; then
@@ -474,7 +476,7 @@ jobs:
       - run:
           name: slither
           command: |
-            slither --version && pnpm slither || echo "Slither failed"
+            pnpm slither:check || echo "Slither failed"
 
   contracts-bedrock-validate-spaces:
     docker:
@@ -626,7 +628,7 @@ jobs:
 
   todo-issues:
     machine:
-      image: ubuntu-2204:2022.07.1
+      image: <<pipeline.parameters.base_image>>
     steps:
       - checkout
       - run:
@@ -639,7 +641,7 @@ jobs:
 
   bedrock-markdown:
     machine:
-      image: ubuntu-2204:2022.07.1
+      image: <<pipeline.parameters.base_image>>
     steps:
       - checkout
       - check-changed:
@@ -660,7 +662,7 @@ jobs:
 
   bedrock-markdown-links:
     machine:
-      image: ubuntu-2204:2022.07.1
+      image: <<pipeline.parameters.base_image>>
     steps:
       - checkout
       - run:
@@ -920,7 +922,7 @@ jobs:
           working_directory: indexer
       - run:
           name: git submodules
-          command: git submodule update --init --recursive
+          command: make submodules
       - run:
           name: generate cannon prestate
           command: make cannon-prestate
@@ -995,7 +997,7 @@ jobs:
           key: golang-build-cache
       - run:
           name: git submodules
-          command: git submodule update --init --recursive
+          command: make submodules
       - run:
           name: generate devnet allocs
           command: make devnet-allocs
@@ -1009,7 +1011,7 @@ jobs:
 
   devnet:
     machine:
-      image: ubuntu-2204:2022.10.2
+      image: <<pipeline.parameters.base_image>>
     environment:
       DOCKER_BUILDKIT: 1
       DEVNET_NO_BUILD: 'true'
@@ -1054,7 +1056,7 @@ jobs:
             npm i pnpm --global
       - run:
           name: git submodules
-          command: git submodule update --init --recursive
+          command: make submodules
       - run:
           name: Install and build
           command: |
@@ -1081,10 +1083,12 @@ jobs:
           command: |
             IMAGE_BASE_PREFIX="us-docker.pkg.dev/oplabs-tools-artifacts/images"
             # Load from previous docker-build job
+            docker load < "/tmp/workspace/op-stack-go.tar"
             docker load < "/tmp/workspace/op-node.tar"
             docker load < "/tmp/workspace/op-proposer.tar"
             docker load < "/tmp/workspace/op-batcher.tar"
             # rename to the tags that the docker-compose of the devnet expects
+            docker tag "$IMAGE_BASE_PREFIX/op-stack-go:<<pipeline.git.revision>>" "$IMAGE_BASE_PREFIX/op-stack-go:devnet"
             docker tag "$IMAGE_BASE_PREFIX/op-node:<<pipeline.git.revision>>" "$IMAGE_BASE_PREFIX/op-node:devnet"
             docker tag "$IMAGE_BASE_PREFIX/op-proposer:<<pipeline.git.revision>>" "$IMAGE_BASE_PREFIX/op-proposer:devnet"
             docker tag "$IMAGE_BASE_PREFIX/op-batcher:<<pipeline.git.revision>>" "$IMAGE_BASE_PREFIX/op-batcher:devnet"
@@ -1212,6 +1216,45 @@ jobs:
       - run:
           name: "Go mod tidy"
           command: make mod-tidy && git diff --exit-code
+
+  op-service-rethdb-tests:
+    docker:
+      - image: <<pipeline.parameters.ci_builder_image>>
+    steps:
+      - checkout
+      - check-changed:
+          patterns: op-service,op-node
+      - restore_cache:
+          name: Restore Go modules cache
+          key: gomod-{{ checksum "go.sum" }}
+      - run:
+          name: Cargo fmt + clippy
+          command: |
+            cargo +nightly fmt -- --check
+            cargo +nightly clippy --all --all-features -- -D warnings
+          working_directory: op-service/rethdb-reader
+      - run:
+          name: Generate testdata db
+          command: cargo test
+          working_directory: op-service/rethdb-reader
+      - run:
+          name: Build dylib
+          command: cargo build --release
+          working_directory: op-service/rethdb-reader
+      - run:
+          name: Update LD_LIBRARY_PATH
+          command: echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/root/project/op-service/rethdb-reader/target/release"' >> $BASH_ENV
+      - run:
+          name: Run op-service RethDB tests
+          command: |
+            gotestsum --format=standard-verbose --junitfile=/tmp/test-results/op-service.xml \
+            -- -parallel=8 -coverpkg=github.com/ethereum-optimism/optimism/... -coverprofile=coverage.out \
+            -run TestRethDB -tags rethdb -v
+          working_directory: op-service/sources
+      # TODO(CLI-148): Fix codecov
+      #- run:
+          #name: upload coverage
+          #command: codecov --verbose --clean --flags bedrock-rethdb-go-tests
 
   bedrock-go-tests:  # just a helper, that depends on all the actual test jobs
     docker:
@@ -1428,6 +1471,9 @@ workflows:
           name: op-service-tests
           module: op-service
           requires: ["op-stack-go-lint"]
+      - op-service-rethdb-tests:
+          requires:
+            - op-stack-go-lint
       - go-e2e-test:
           name: op-e2e-WS-tests
           module: op-e2e
@@ -1477,35 +1523,47 @@ workflows:
             - op-e2e-WS-tests
             - op-e2e-HTTP-tests
             - op-e2e-ext-geth-tests
+            - op-service-rethdb-tests
+      - docker-build: # just to warm up the cache (other jobs run in parallel)
+          name: op-stack-go-docker-build
+          docker_name: op-stack-go
+          docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          save_image_tag: <<pipeline.git.revision>> # for devnet later
       - docker-build:
           name: op-node-docker-build
           docker_name: op-node
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: ['op-stack-go-docker-build']
           save_image_tag: <<pipeline.git.revision>> # for devnet later
       - docker-build:
           name: op-batcher-docker-build
           docker_name: op-batcher
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: ['op-stack-go-docker-build']
           save_image_tag: <<pipeline.git.revision>> # for devnet later
       - docker-build:
           name: op-program-docker-build
           docker_name: op-program
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: ['op-stack-go-docker-build']
           save_image_tag: <<pipeline.git.revision>> # for devnet later
       - docker-build:
           name: op-proposer-docker-build
           docker_name: op-proposer
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: ['op-stack-go-docker-build']
           save_image_tag: <<pipeline.git.revision>> # for devnet later
       - docker-build:
           name: op-challenger-docker-build
           docker_name: op-challenger
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: ['op-stack-go-docker-build']
           save_image_tag: <<pipeline.git.revision>> # for devnet later
       - docker-build:
           name: op-heartbeat-docker-build
           docker_name: op-heartbeat
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: ['op-stack-go-docker-build']
           save_image_tag: <<pipeline.git.revision>> # for devnet later
       - cannon-prestate:
           requires: ["op-stack-go-lint"]
@@ -1541,6 +1599,18 @@ workflows:
               only: /^(proxyd|chain-mon|indexer|ci-builder|ufm-[a-z0-9\-]*|op-[a-z0-9\-]*)\/v.*/
             branches:
               ignore: /.*/
+      - docker-build: # just to warm up the cache (other jobs run in parallel)
+          name: op-stack-go-docker-build-release
+          filters:
+            tags:
+              only: /^(proxyd|chain-mon|indexer|ci-builder|ufm-[a-z0-9\-]*|op-[a-z0-9\-]*)\/v.*/
+            branches:
+              ignore: /.*/
+          docker_name: op-stack-go
+          docker_tags: <<pipeline.git.revision>>
+          platforms: "linux/amd64,linux/arm64"
+          requires:
+            - hold
       - docker-build:
           name: op-heartbeat-release
           filters:
@@ -1550,7 +1620,7 @@ workflows:
               ignore: /.*/
           docker_name: op-heartbeat
           docker_tags: <<pipeline.git.revision>>
-          requires: ['hold']
+          requires: ['op-stack-go-docker-build-release']
           platforms: "linux/amd64,linux/arm64"
           publish: true
           release: true
@@ -1565,7 +1635,7 @@ workflows:
               ignore: /.*/
           docker_name: op-node
           docker_tags: <<pipeline.git.revision>>
-          requires: ['hold']
+          requires: ['op-stack-go-docker-build-release']
           platforms: "linux/amd64,linux/arm64"
           publish: true
           release: true
@@ -1580,7 +1650,7 @@ workflows:
               ignore: /.*/
           docker_name: op-batcher
           docker_tags: <<pipeline.git.revision>>
-          requires: ['hold']
+          requires: ['op-stack-go-docker-build-release']
           platforms: "linux/amd64,linux/arm64"
           publish: true
           release: true
@@ -1595,7 +1665,7 @@ workflows:
               ignore: /.*/
           docker_name: op-proposer
           docker_tags: <<pipeline.git.revision>>
-          requires: ['hold']
+          requires: ['op-stack-go-docker-build-release']
           platforms: "linux/amd64,linux/arm64"
           publish: true
           release: true
@@ -1610,7 +1680,7 @@ workflows:
               ignore: /.*/
           docker_name: op-challenger
           docker_tags: <<pipeline.git.revision>>
-          requires: ['hold']
+          requires: ['op-stack-go-docker-build-release']
           platforms: "linux/amd64,linux/arm64"
           publish: true
           release: true
@@ -1738,10 +1808,19 @@ workflows:
     when:
       equal: [ build_hourly, <<pipeline.schedule.name>> ]
     jobs:
+      - docker-build: # just to warm up the cache (other jobs run in parallel)
+          name: op-stack-go-docker-build-publish
+          docker_name: op-stack-go
+          docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          platforms: "linux/amd64,linux/arm64"
+          context:
+            - oplabs-gcr
+            - slack
       - docker-build:
           name: op-node-docker-publish
           docker_name: op-node
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: [ 'op-stack-go-docker-build-publish' ]
           platforms: "linux/amd64,linux/arm64"
           publish: true
           context:
@@ -1751,6 +1830,7 @@ workflows:
           name: op-batcher-docker-publish
           docker_name: op-batcher
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: [ 'op-stack-go-docker-build-publish' ]
           platforms: "linux/amd64,linux/arm64"
           publish: true
           context:
@@ -1760,6 +1840,7 @@ workflows:
           name: op-program-docker-publish
           docker_name: op-program
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: [ 'op-stack-go-docker-build-publish' ]
           platforms: "linux/amd64,linux/arm64"
           publish: true
           context:
@@ -1769,6 +1850,7 @@ workflows:
           name: op-proposer-docker-publish
           docker_name: op-proposer
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: [ 'op-stack-go-docker-build-publish' ]
           platforms: "linux/amd64,linux/arm64"
           publish: true
           context:
@@ -1778,6 +1860,7 @@ workflows:
           name: op-challenger-docker-publish
           docker_name: op-challenger
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: [ 'op-stack-go-docker-build-publish' ]
           platforms: "linux/amd64,linux/arm64"
           publish: true
           context:
@@ -1787,6 +1870,7 @@ workflows:
           name: op-heartbeat-docker-publish
           docker_name: op-heartbeat
           docker_tags: <<pipeline.git.revision>>,<<pipeline.git.branch>>
+          requires: [ 'op-stack-go-docker-build-publish' ]
           platforms: "linux/amd64,linux/arm64"
           publish: true
           context:

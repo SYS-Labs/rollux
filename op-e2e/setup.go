@@ -16,7 +16,7 @@ import (
 	"time"
 
 	ds "github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-datastore/sync"
+	dsSync "github.com/ipfs/go-datastore/sync"
 	ic "github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -52,6 +52,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/driver"
+	"github.com/ethereum-optimism/optimism/op-node/rollup/sync"
 	l2os "github.com/ethereum-optimism/optimism/op-proposer/proposer"
 	"github.com/ethereum-optimism/optimism/op-service/cliapp"
 	"github.com/ethereum-optimism/optimism/op-service/clock"
@@ -127,6 +128,7 @@ func DefaultSystemConfig(t *testing.T) SystemConfig {
 				L1EpochPollInterval:         time.Second * 2,
 				RuntimeConfigReloadInterval: time.Minute * 10,
 				ConfigPersistence:           &rollupNode.DisabledConfigPersistence{},
+				Sync:                        sync.Config{SyncMode: sync.CLSync},
 			},
 			"verifier": {
 				Driver: driver.Config{
@@ -137,6 +139,7 @@ func DefaultSystemConfig(t *testing.T) SystemConfig {
 				L1EpochPollInterval:         time.Second * 4,
 				RuntimeConfigReloadInterval: time.Minute * 10,
 				ConfigPersistence:           &rollupNode.DisabledConfigPersistence{},
+				Sync:                        sync.Config{SyncMode: sync.CLSync},
 			},
 		},
 		Loggers: map[string]log.Logger{
@@ -248,7 +251,7 @@ type EthInstance interface {
 }
 
 type System struct {
-	cfg SystemConfig
+	Cfg SystemConfig
 
 	RollupConfig *rollup.Config
 
@@ -335,7 +338,7 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 	}
 
 	sys := &System{
-		cfg:          cfg,
+		Cfg:          cfg,
 		EthInstances: make(map[string]EthInstance),
 		Clients:      make(map[string]*ethclient.Client),
 		RawClients:   make(map[string]*rpc.Client),
@@ -436,7 +439,10 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 			L1SystemConfigAddress:   cfg.DeployConfig.SystemConfigProxy,
 			RegolithTime:            cfg.DeployConfig.RegolithTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
 			CanyonTime:              cfg.DeployConfig.CanyonTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
-			SpanBatchTime:           cfg.DeployConfig.SpanBatchTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
+			DeltaTime:               cfg.DeployConfig.DeltaTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
+			EclipseTime:             cfg.DeployConfig.EclipseTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
+			FjordTime:               cfg.DeployConfig.FjordTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
+			InteropTime:             cfg.DeployConfig.InteropTime(uint64(cfg.DeployConfig.L1GenesisBlockTimestamp)),
 			ProtocolVersionsAddress: cfg.L1Deployments.ProtocolVersionsProxy,
 		}
 	}
@@ -693,7 +699,7 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 			Format: oplog.FormatText,
 		},
 	}
-	proposer, err := l2os.ProposerServiceFromCLIConfig(context.Background(), "0.0.1", proposerCLIConfig, sys.cfg.Loggers["proposer"])
+	proposer, err := l2os.ProposerServiceFromCLIConfig(context.Background(), "0.0.1", proposerCLIConfig, sys.Cfg.Loggers["proposer"])
 	if err != nil {
 		return nil, fmt.Errorf("unable to setup l2 output submitter: %w", err)
 	}
@@ -703,7 +709,7 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 	sys.L2OutputSubmitter = proposer
 
 	var batchType uint = derive.SingularBatchType
-	if cfg.DeployConfig.L2GenesisSpanBatchTimeOffset != nil && *cfg.DeployConfig.L2GenesisSpanBatchTimeOffset == hexutil.Uint64(0) {
+	if cfg.DeployConfig.L2GenesisDeltaTimeOffset != nil && *cfg.DeployConfig.L2GenesisDeltaTimeOffset == hexutil.Uint64(0) {
 		batchType = derive.SpanBatchType
 	}
 	batcherMaxL1TxSizeBytes := cfg.BatcherMaxL1TxSizeBytes
@@ -729,11 +735,11 @@ func (cfg SystemConfig) Start(t *testing.T, _opts ...SystemConfigOption) (*Syste
 			Level:  log.LvlInfo,
 			Format: oplog.FormatText,
 		},
-		Stopped:   sys.cfg.DisableBatcher, // Batch submitter may be enabled later
+		Stopped:   sys.Cfg.DisableBatcher, // Batch submitter may be enabled later
 		BatchType: batchType,
 	}
 	// Batch Submitter
-	batcher, err := bss.BatcherServiceFromCLIConfig(context.Background(), "0.0.1", batcherCLIConfig, sys.cfg.Loggers["batcher"])
+	batcher, err := bss.BatcherServiceFromCLIConfig(context.Background(), "0.0.1", batcherCLIConfig, sys.Cfg.Loggers["batcher"])
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup batch submitter: %w", err)
 	}
@@ -782,7 +788,7 @@ func (sys *System) newMockNetPeer() (host.Host, error) {
 	_ = ps.AddPrivKey(p, sk)
 	_ = ps.AddPubKey(p, sk.GetPublic())
 
-	ds := sync.MutexWrap(ds.NewMapDatastore())
+	ds := dsSync.MutexWrap(ds.NewMapDatastore())
 	eps, err := store.NewExtendedPeerstore(context.Background(), log.Root(), clock.SystemClock, ps, ds, 24*time.Hour)
 	if err != nil {
 		return nil, err
