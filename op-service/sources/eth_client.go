@@ -67,6 +67,9 @@ type EthClientConfig struct {
 	SysPODAURL string
 
 	// [OPTIONAL] The reth DB path to fetch receipts from
+	// [OPTIONAL] The reth DB path to fetch receipts from.
+	// If it is specified, the rethdb receipts fetcher will be used
+	// and the RPC configuration parameters don't need to be set.
 	RethDBPath string
 }
 
@@ -82,6 +85,15 @@ func (c *EthClientConfig) Check() error {
 	}
 	if c.PayloadsCacheSize < 0 {
 		return fmt.Errorf("invalid payloads cache size: %d", c.PayloadsCacheSize)
+	}
+	if c.RethDBPath != "" {
+		if buildRethdb {
+			// If the rethdb path is set, we use the rethdb receipts fetcher and skip creating
+			// an RCP receipts fetcher, so below rpc config parameters don't need to be checked.
+			return nil
+		} else {
+			return fmt.Errorf("rethdb path specified, but built without rethdb support")
+		}
 	}
 	if c.MaxConcurrentRequests < 1 {
 		return fmt.Errorf("expected at least 1 concurrent request, but max is %d", c.MaxConcurrentRequests)
@@ -101,25 +113,23 @@ type EthClient struct {
 	// SYSCOIN
 	syscoinClient *opclient.SyscoinClient
 
-	maxBatchSize int
+	recProvider ReceiptsProvider
 
 	trustRPC bool
 
 	mustBePostMerge bool
-
-	provKind RPCProviderKind
 
 	log log.Logger
 
 	// cache receipts in bundles per block hash
 	// We cache the receipts fetching job to not lose progress when we have to retry the `Fetch` call
 	// common.Hash -> *receiptsFetchingJob
-	receiptsCache *caching.LRUCache[common.Hash, *receiptsFetchingJob]
-
-	// cache receipts in bundles per block hash based on blob transactions
-	// We cache the receipts fetcher to not lose progress when we have to retry the `Fetch` call
-	// common.Hash -> eth.ReceiptsFetcher
-	receiptsBlobCache *caching.LRUCache[common.Hash, *receiptsFetchingJob]
+	//receiptsCache *caching.LRUCache[common.Hash, *receiptsFetchingJob]
+	//
+	//// cache receipts in bundles per block hash based on blob transactions
+	//// We cache the receipts fetcher to not lose progress when we have to retry the `Fetch` call
+	//// common.Hash -> eth.ReceiptsFetcher
+	//receiptsBlobCache *caching.LRUCache[common.Hash, *receiptsFetchingJob]
 
 	// cache transactions in bundles per block hash
 	// common.Hash -> types.Transactions
@@ -132,46 +142,6 @@ type EthClient struct {
 	// cache payloads by hash
 	// common.Hash -> *eth.ExecutionPayload
 	payloadsCache *caching.LRUCache[common.Hash, *eth.ExecutionPayload]
-
-	// availableReceiptMethods tracks which receipt methods can be used for fetching receipts
-	// This may be modified concurrently, but we don't lock since it's a single
-	// uint64 that's not critical (fine to miss or mix up a modification)
-	availableReceiptMethods ReceiptsFetchingMethod
-
-	// lastMethodsReset tracks when availableReceiptMethods was last reset.
-	// When receipt-fetching fails it falls back to available methods,
-	// but periodically it will try to reset to the preferred optimal methods.
-	lastMethodsReset time.Time
-
-	// methodResetDuration defines how long we take till we reset lastMethodsReset
-	methodResetDuration time.Duration
-
-	// [OPTIONAL] The reth DB path to fetch receipts from
-	rethDbPath string
-}
-
-func (s *EthClient) PickReceiptsMethod(txCount uint64) ReceiptsFetchingMethod {
-	if now := time.Now(); now.Sub(s.lastMethodsReset) > s.methodResetDuration {
-		m := AvailableReceiptsFetchingMethods(s.provKind)
-		if s.availableReceiptMethods != m {
-			s.log.Warn("resetting back RPC preferences, please review RPC provider kind setting", "kind", s.provKind.String())
-		}
-		s.availableReceiptMethods = m
-		s.lastMethodsReset = now
-	}
-	return PickBestReceiptsFetchingMethod(s.provKind, s.availableReceiptMethods, txCount)
-}
-
-func (s *EthClient) OnReceiptsMethodErr(m ReceiptsFetchingMethod, err error) {
-	if unusableMethod(err) {
-		// clear the bit of the method that errored
-		s.availableReceiptMethods &^= m
-		s.log.Warn("failed to use selected RPC method for receipt fetching, temporarily falling back to alternatives",
-			"provider_kind", s.provKind, "failed_method", m, "fallback", s.availableReceiptMethods, "err", err)
-	} else {
-		s.log.Debug("failed to use selected RPC method for receipt fetching, but method does appear to be available, so we continue to use it",
-			"provider_kind", s.provKind, "failed_method", m, "fallback", s.availableReceiptMethods&^m, "err", err)
-	}
 }
 
 // NewEthClient returns an [EthClient], wrapping an RPC with bindings to fetch ethereum data with added error logging,
@@ -181,6 +151,7 @@ func NewEthClient(client opclient.RPC, log log.Logger, metrics caching.Metrics, 
 	if err = config.Check(); err != nil {
 		return nil, fmt.Errorf("bad config, cannot create L1 source: %w", err)
 	}
+
 	client = LimitRPC(client, config.MaxConcurrentRequests)
 	var sysClient *opclient.SyscoinClient = nil
 	if config.SysPODAURL != "" {
@@ -189,26 +160,22 @@ func NewEthClient(client opclient.RPC, log log.Logger, metrics caching.Metrics, 
 			return nil, fmt.Errorf("Could not create Syscoin RPC client: %w", err)
 		}
 	}
+	recProvider := newRecProviderFromConfig(client, log, metrics, config)
 	return &EthClient{
-		client: client,
+		client:      client,
+		recProvider: recProvider,
 		// SYSCOIN
 		syscoinClient:   sysClient,
-		maxBatchSize:    config.MaxRequestsPerBatch,
 		trustRPC:        config.TrustRPC,
 		mustBePostMerge: config.MustBePostMerge,
-		provKind:        config.RPCProviderKind,
 		log:             log,
 
 		// SYSCOIN
-		receiptsBlobCache:       caching.NewLRUCache[common.Hash, *receiptsFetchingJob](metrics, "receiptsBlob", config.ReceiptsCacheSize),
-		receiptsCache:           caching.NewLRUCache[common.Hash, *receiptsFetchingJob](metrics, "receipts", config.ReceiptsCacheSize),
-		transactionsCache:       caching.NewLRUCache[common.Hash, types.Transactions](metrics, "txs", config.TransactionsCacheSize),
-		headersCache:            caching.NewLRUCache[common.Hash, eth.BlockInfo](metrics, "headers", config.HeadersCacheSize),
-		payloadsCache:           caching.NewLRUCache[common.Hash, *eth.ExecutionPayload](metrics, "payloads", config.PayloadsCacheSize),
-		availableReceiptMethods: AvailableReceiptsFetchingMethods(config.RPCProviderKind),
-		lastMethodsReset:        time.Now(),
-		methodResetDuration:     config.MethodResetDuration,
-		rethDbPath:              config.RethDBPath,
+		//receiptsBlobCache:       caching.NewLRUCache[common.Hash, any](metrics, "receiptsBlob", config.ReceiptsCacheSize),
+		//receiptsCache:           caching.NewLRUCache[common.Hash, types.Receipts](metrics, "receipts", config.ReceiptsCacheSize),
+		transactionsCache: caching.NewLRUCache[common.Hash, types.Transactions](metrics, "txs", config.TransactionsCacheSize),
+		headersCache:      caching.NewLRUCache[common.Hash, eth.BlockInfo](metrics, "headers", config.HeadersCacheSize),
+		payloadsCache:     caching.NewLRUCache[common.Hash, *eth.ExecutionPayload](metrics, "payloads", config.PayloadsCacheSize),
 	}, nil
 }
 
@@ -377,20 +344,11 @@ func (s *EthClient) PayloadByLabel(ctx context.Context, label eth.BlockLabel) (*
 func (s *EthClient) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
 	info, txs, err := s.InfoAndTxsByHash(ctx, blockHash)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, fmt.Errorf("querying block: %w", err)
 	}
-	// Try to reuse the receipts fetcher because is caches the results of intermediate calls. This means
-	// that if just one of many calls fail, we only retry the failed call rather than all of the calls.
-	// The underlying fetcher uses the receipts hash to verify receipt integrity.
-	var job *receiptsFetchingJob
-	if v, ok := s.receiptsCache.Get(blockHash); ok {
-		job = v
-	} else {
-		txHashes := eth.TransactionsToHashes(txs)
-		job = NewReceiptsFetchingJob(s, s.client, s.maxBatchSize, eth.ToBlockID(info), info.ReceiptHash(), txHashes, s.rethDbPath)
-		s.receiptsCache.Add(blockHash, job)
-	}
-	receipts, err := job.Fetch(ctx)
+
+	txHashes, block := eth.TransactionsToHashes(txs), eth.ToBlockID(info)
+	receipts, err := s.recProvider.FetchReceipts(ctx, block, txHashes)
 	if err != nil {
 		return nil, nil, nil, err
 	}

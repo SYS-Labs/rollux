@@ -217,6 +217,8 @@ type DeployConfig struct {
 	FaultGameMaxDuration uint64 `json:"faultGameMaxDuration"`
 	// OutputBisectionGameGenesisBlock is the block number for genesis.
 	OutputBisectionGameGenesisBlock uint64 `json:"outputBisectionGameGenesisBlock"`
+	// OutputBisectionGameGenesisOutputRoot is the output root for the genesis block.
+	OutputBisectionGameGenesisOutputRoot common.Hash `json:"outputBisectionGameGenesisOutputRoot"`
 	// OutputBisectionGameSplitDepth is the depth at which the output bisection game splits.
 	OutputBisectionGameSplitDepth uint64 `json:"outputBisectionGameSplitDepth"`
 	// FundDevAccounts configures whether or not to fund the dev accounts. Should only be used
@@ -865,7 +867,10 @@ func NewL2StorageConfig(config *DeployConfig, block *types.Block) (state.Storage
 		"xDomainMsgSender": "0x000000000000000000000000000000000000dEaD",
 		"msgNonce":         0,
 	}
-	storage["L2StandardBridge"] = state.StorageValues{}
+	storage["L2StandardBridge"] = state.StorageValues{
+		"_initialized":  1,
+		"_initializing": false,
+	}
 	storage["L1Block"] = state.StorageValues{
 		"number":         block.Number(),
 		"timestamp":      block.Time(),
