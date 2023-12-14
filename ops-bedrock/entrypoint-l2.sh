@@ -69,8 +69,9 @@ exec geth \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
-	--maxpeers=1 \
-	--networkid=$CHAIN_ID \
+	--nodiscover \
+	--maxpeers=0 \
+	--networkid="$CHAIN_ID" \
 	--rpc.allow-unprotected-txs \
 	--authrpc.addr="0.0.0.0" \
 	--authrpc.port="9551" \

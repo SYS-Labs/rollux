@@ -39,6 +39,7 @@ func RegisterGameTypes(
 	logger log.Logger,
 	m metrics.Metricer,
 	cfg *config.Config,
+	rollupClient outputs.OutputRollupClient,
 	txMgr txmgr.TxManager,
 	caller *batching.MultiCaller,
 ) (CloseFunc, error) {
@@ -53,16 +54,16 @@ func RegisterGameTypes(
 		closer = l2Client.Close
 	}
 	if cfg.TraceTypeEnabled(config.TraceTypeOutputCannon) {
-		registerOutputCannon(registry, ctx, logger, m, cfg, txMgr, caller, l2Client)
+		registerOutputCannon(registry, ctx, logger, m, cfg, rollupClient, txMgr, caller, l2Client)
 	}
 	if cfg.TraceTypeEnabled(config.TraceTypeOutputAlphabet) {
-		registerOutputAlphabet(registry, ctx, logger, m, cfg, txMgr, caller)
+		registerOutputAlphabet(registry, ctx, logger, m, rollupClient, txMgr, caller)
 	}
 	if cfg.TraceTypeEnabled(config.TraceTypeCannon) {
 		registerCannon(registry, ctx, logger, m, cfg, txMgr, caller, l2Client)
 	}
 	if cfg.TraceTypeEnabled(config.TraceTypeAlphabet) {
-		registerAlphabet(registry, ctx, logger, m, cfg, txMgr, caller)
+		registerAlphabet(registry, ctx, logger, m, cfg.AlphabetTrace, txMgr, caller)
 	}
 	return closer, nil
 }
@@ -72,7 +73,7 @@ func registerOutputAlphabet(
 	ctx context.Context,
 	logger log.Logger,
 	m metrics.Metricer,
-	cfg *config.Config,
+	rollupClient outputs.OutputRollupClient,
 	txMgr txmgr.TxManager,
 	caller *batching.MultiCaller) {
 	playerCreator := func(game types.GameMetadata, dir string) (scheduler.GamePlayer, error) {
@@ -80,23 +81,25 @@ func registerOutputAlphabet(
 		if err != nil {
 			return nil, err
 		}
+		prestateBlock, poststateBlock, err := contract.GetBlockRange(ctx)
+		if err != nil {
+			return nil, err
+		}
+		prestateProvider := outputs.NewPrestateProvider(ctx, logger, rollupClient, prestateBlock)
+		splitDepth, err := contract.GetSplitDepth(ctx)
+		if err != nil {
+			return nil, err
+		}
 		creator := func(ctx context.Context, logger log.Logger, gameDepth uint64, dir string) (faultTypes.TraceAccessor, error) {
-			// TODO(client-pod#44): Validate absolute pre-state for split games
-			prestateBlock, poststateBlock, err := contract.GetBlockRange(ctx)
-			if err != nil {
-				return nil, err
-			}
-			splitDepth, err := contract.GetSplitDepth(ctx)
-			if err != nil {
-				return nil, err
-			}
-			accessor, err := outputs.NewOutputAlphabetTraceAccessor(ctx, logger, m, cfg, gameDepth, splitDepth, prestateBlock, poststateBlock)
+			accessor, err := outputs.NewOutputAlphabetTraceAccessor(logger, m, prestateProvider, rollupClient, splitDepth, prestateBlock, poststateBlock)
 			if err != nil {
 				return nil, err
 			}
 			return accessor, nil
 		}
-		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, creator)
+		prestateValidator := NewPrestateValidator(contract.GetAbsolutePrestateHash, prestateProvider)
+		genesisValidator := NewPrestateValidator(contract.GetGenesisOutputRoot, prestateProvider)
+		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, []Validator{prestateValidator, genesisValidator}, creator)
 	}
 	registry.RegisterGameType(outputAlphabetGameType, playerCreator)
 }
@@ -107,6 +110,7 @@ func registerOutputCannon(
 	logger log.Logger,
 	m metrics.Metricer,
 	cfg *config.Config,
+	rollupClient outputs.OutputRollupClient,
 	txMgr txmgr.TxManager,
 	caller *batching.MultiCaller,
 	l2Client cannon.L2HeaderSource) {
@@ -115,23 +119,25 @@ func registerOutputCannon(
 		if err != nil {
 			return nil, err
 		}
+		prestateBlock, poststateBlock, err := contract.GetBlockRange(ctx)
+		if err != nil {
+			return nil, err
+		}
+		prestateProvider := outputs.NewPrestateProvider(ctx, logger, rollupClient, prestateBlock)
 		creator := func(ctx context.Context, logger log.Logger, gameDepth uint64, dir string) (faultTypes.TraceAccessor, error) {
-			// TODO(client-pod#44): Validate absolute pre-state for split games
-			agreed, disputed, err := contract.GetBlockRange(ctx)
-			if err != nil {
-				return nil, err
-			}
 			splitDepth, err := contract.GetSplitDepth(ctx)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load split depth: %w", err)
 			}
-			accessor, err := outputs.NewOutputCannonTraceAccessor(ctx, logger, m, cfg, l2Client, contract, dir, gameDepth, splitDepth, agreed, disputed)
+			accessor, err := outputs.NewOutputCannonTraceAccessor(logger, m, cfg, l2Client, contract, prestateProvider, rollupClient, dir, splitDepth, prestateBlock, poststateBlock)
 			if err != nil {
 				return nil, err
 			}
 			return accessor, nil
 		}
-		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, creator)
+		prestateValidator := NewPrestateValidator(contract.GetAbsolutePrestateHash, prestateProvider)
+		genesisValidator := NewPrestateValidator(contract.GetGenesisOutputRoot, prestateProvider)
+		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, []Validator{prestateValidator, genesisValidator}, creator)
 	}
 	registry.RegisterGameType(outputCannonGameType, playerCreator)
 }
@@ -150,18 +156,17 @@ func registerCannon(
 		if err != nil {
 			return nil, err
 		}
+		prestateProvider := cannon.NewPrestateProvider(cfg.CannonAbsolutePreState)
 		creator := func(ctx context.Context, logger log.Logger, gameDepth uint64, dir string) (faultTypes.TraceAccessor, error) {
 			localInputs, err := cannon.FetchLocalInputs(ctx, contract, l2Client)
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch cannon local inputs: %w", err)
 			}
 			provider := cannon.NewTraceProvider(logger, m, cfg, faultTypes.NoLocalContext, localInputs, dir, gameDepth)
-			if err := ValidateAbsolutePrestate(ctx, provider, contract); err != nil {
-				return nil, err
-			}
 			return trace.NewSimpleTraceAccessor(provider), nil
 		}
-		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, creator)
+		validator := NewPrestateValidator(contract.GetAbsolutePrestateHash, prestateProvider)
+		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, []Validator{validator}, creator)
 	}
 	registry.RegisterGameType(cannonGameType, playerCreator)
 }
@@ -171,7 +176,7 @@ func registerAlphabet(
 	ctx context.Context,
 	logger log.Logger,
 	m metrics.Metricer,
-	cfg *config.Config,
+	alphabetTrace string,
 	txMgr txmgr.TxManager,
 	caller *batching.MultiCaller) {
 	playerCreator := func(game types.GameMetadata, dir string) (scheduler.GamePlayer, error) {
@@ -179,14 +184,13 @@ func registerAlphabet(
 		if err != nil {
 			return nil, err
 		}
+		prestateProvider := &alphabet.AlphabetPrestateProvider{}
 		creator := func(ctx context.Context, logger log.Logger, gameDepth uint64, dir string) (faultTypes.TraceAccessor, error) {
-			provider := alphabet.NewTraceProvider(cfg.AlphabetTrace, gameDepth)
-			if err := ValidateAbsolutePrestate(ctx, provider, contract); err != nil {
-				return nil, err
-			}
-			return trace.NewSimpleTraceAccessor(provider), nil
+			traceProvider := alphabet.NewTraceProvider(alphabetTrace, gameDepth)
+			return trace.NewSimpleTraceAccessor(traceProvider), nil
 		}
-		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, creator)
+		validator := NewPrestateValidator(contract.GetAbsolutePrestateHash, prestateProvider)
+		return NewGamePlayer(ctx, logger, m, dir, game.Proxy, txMgr, contract, []Validator{validator}, creator)
 	}
 	registry.RegisterGameType(alphabetGameType, playerCreator)
 }

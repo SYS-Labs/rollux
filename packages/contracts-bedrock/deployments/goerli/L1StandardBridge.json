@@ -2,7 +2,13 @@
   "address": "0x75592Cb636e0fbE48F576C7b0A54e65C8945BA64",
   "abi": [
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address payable",
+          "name": "_messenger",
+          "type": "address"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -724,8 +730,8 @@
     {
       "inputs": [
         {
-          "internalType": "contract CrossDomainMessenger",
-          "name": "_messenger",
+          "internalType": "contract SuperchainConfig",
+          "name": "_superchainConfig",
           "type": "address"
         }
       ],
@@ -766,6 +772,32 @@
       "outputs": [
         {
           "internalType": "contract StandardBridge",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "superchainConfig",
+      "outputs": [
+        {
+          "internalType": "contract SuperchainConfig",
           "name": "",
           "type": "address"
         }
@@ -819,7 +851,6 @@
     "version": 1,
     "kind": "dev",
     "methods": {
-      "MESSENGER()": {},
       "bridgeERC20(address,address,uint256,uint32,bytes)": {
         "params": {
           "_amount": "Amount of local tokens to deposit.",
@@ -921,6 +952,11 @@
           "_to": "Address of the recipient on L1."
         }
       },
+      "initialize(address)": {
+        "params": {
+          "_superchainConfig": "Address of the SuperchainConfig contract on this network."
+        }
+      },
       "l2TokenBridge()": {
         "returns": {
           "_0": "Address of the corresponding L2 bridge contract."
@@ -971,10 +1007,12 @@
       }
     }
   },
+
   "storageLayout": {
     "storage": [
       {
         "astId": 47923,
+
         "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
         "label": "spacer_0_0_20",
         "offset": 0,
@@ -982,7 +1020,7 @@
         "type": "t_uint8"
       },
       {
-        "astId": 32103,
+        "astId": 47335,
         "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
         "label": "_initializing",
         "offset": 1,
@@ -1026,8 +1064,16 @@
         "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
         "label": "__gap",
         "offset": 0,
-        "slot": "4",
-        "type": "t_array(t_uint256)46_storage"
+        "slot": "3",
+        "type": "t_array(t_uint256)47_storage"
+      },
+      {
+        "astId": 75748,
+        "contract": "src/L1/L1StandardBridge.sol:L1StandardBridge",
+        "label": "superchainConfig",
+        "offset": 0,
+        "slot": "50",
+        "type": "t_contract(SuperchainConfig)78153"
       }
     ],
     "types": {
@@ -1036,10 +1082,10 @@
         "label": "address",
         "numberOfBytes": "20"
       },
-      "t_array(t_uint256)46_storage": {
+      "t_array(t_uint256)47_storage": {
         "encoding": "inplace",
-        "label": "uint256[46]",
-        "numberOfBytes": "1472",
+        "label": "uint256[47]",
+        "numberOfBytes": "1504",
         "base": "t_uint256"
       },
       "t_bool": {
@@ -1049,7 +1095,7 @@
       },
       "t_contract(CrossDomainMessenger)69261": {
         "encoding": "inplace",
-        "label": "contract CrossDomainMessenger",
+        "label": "contract SuperchainConfig",
         "numberOfBytes": "20"
       },
       "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
@@ -1083,7 +1129,7 @@
     "kind": "user",
     "methods": {
       "MESSENGER()": {
-        "notice": "Getter for messenger contract."
+        "notice": "Messenger contract on this domain."
       },
       "OTHER_BRIDGE()": {
         "notice": "Corresponding bridge on the other domain. This public getter is deprecated         and will be removed in the future. Please use `otherBridge` instead."
@@ -1116,10 +1162,16 @@
         "notice": "Initializer         The fix modifier should be removed during the next contract upgrade."
       },
       "messenger()": {
-        "notice": "Messenger contract on this domain. This public getter is deprecated         and will be removed in the future. Please use `messenger` instead."
+        "notice": "Getter for messenger contract."
       },
       "otherBridge()": {
-        "notice": "Getter for the remote domain bridge contract."
+        "notice": "Getter for the other bridge."
+      },
+      "paused()": {
+        "notice": "This function should return true if the contract is paused.         On L1 this function will check the SuperchainConfig for its paused status.         On L2 this function should be a no-op."
+      },
+      "superchainConfig()": {
+        "notice": "Address of the SuperchainConfig contract."
       },
       "version()": {
         "notice": "Returns the full semver contract version."

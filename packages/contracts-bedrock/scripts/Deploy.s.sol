@@ -12,11 +12,8 @@ import { SafeProxyFactory } from "safe-contracts/proxies/SafeProxyFactory.sol";
 import { Enum as SafeOps } from "safe-contracts/common/Enum.sol";
 
 import { Deployer } from "scripts/Deployer.sol";
-import "scripts/Deployer.sol";
 import { DeployConfig } from "scripts/DeployConfig.s.sol";
 
-import { Safe } from "safe-contracts/Safe.sol";
-import { SafeProxyFactory } from "safe-contracts/proxies/SafeProxyFactory.sol";
 import { ProxyAdmin } from "src/universal/ProxyAdmin.sol";
 import { AddressManager } from "src/legacy/AddressManager.sol";
 import { Proxy } from "src/universal/Proxy.sol";
@@ -46,6 +43,7 @@ import { Chains } from "scripts/Chains.sol";
 import { IBigStepper } from "src/dispute/interfaces/IBigStepper.sol";
 import { IPreimageOracle } from "src/cannon/interfaces/IPreimageOracle.sol";
 import { AlphabetVM } from "test/mocks/AlphabetVM.sol";
+import { AlphabetVM2 } from "test/mocks/AlphabetVM2.sol";
 import "src/libraries/DisputeTypes.sol";
 import { ChainAssertions } from "scripts/ChainAssertions.sol";
 import { Types } from "scripts/Types.sol";
@@ -57,6 +55,9 @@ import { LibStateDiff } from "scripts/libraries/LibStateDiff.sol";
 ///         To add a new contract to the system, add a public function that deploys that individual contract.
 ///         Then add a call to that function inside of `run`. Be sure to call the `save` function after each
 ///         deployment so that hardhat-deploy style artifacts can be generated using a call to `sync()`.
+///         The `CONTRACT_ADDRESSES_PATH` environment variable can be set to a path that contains a JSON file full of
+///         contract name to address pairs. That enables this script to be much more flexible in the way
+///         it is used.
 contract Deploy is Deployer {
     DeployConfig public cfg;
 
@@ -380,9 +381,7 @@ contract Deploy is Deployer {
     /// @notice Deploy the ProxyAdmin
     function deployProxyAdmin() public broadcast returns (address addr_) {
         console.log("Deploying ProxyAdmin");
-        ProxyAdmin admin = new ProxyAdmin({
-            _owner: msg.sender
-        });
+        ProxyAdmin admin = new ProxyAdmin({ _owner: msg.sender });
         require(admin.owner() == msg.sender);
 
         save("ProxyAdmin", address(admin));
@@ -433,9 +432,7 @@ contract Deploy is Deployer {
     function deployERC1967Proxy(string memory _name) public broadcast returns (address addr_) {
         console.log(string.concat("Deploying ERC1967 proxy for", _name, ""));
         address proxyAdmin = mustGetAddress("ProxyAdmin");
-        Proxy proxy = new Proxy({
-            _admin: proxyAdmin
-        });
+        Proxy proxy = new Proxy({ _admin: proxyAdmin });
 
         address admin = address(uint160(uint256(vm.load(address(proxy), OWNER_KEY))));
         require(admin == proxyAdmin);
@@ -465,9 +462,8 @@ contract Deploy is Deployer {
     function deployL1CrossDomainMessenger() public broadcast returns (address addr_) {
         console.log("Deploying L1CrossDomainMessenger implementation");
         address portal = mustGetAddress("OptimismPortalProxy");
-        L1CrossDomainMessenger messenger = new L1CrossDomainMessenger{ salt: _implSalt() }({
-            _portal: OptimismPortal(payable(portal))
-        });
+        L1CrossDomainMessenger messenger =
+            new L1CrossDomainMessenger{ salt: _implSalt() }({ _portal: OptimismPortal(payable(portal)) });
 
         save("L1CrossDomainMessenger", address(messenger));
         console.log("L1CrossDomainMessenger deployed at %s", address(messenger));
@@ -491,10 +487,8 @@ contract Deploy is Deployer {
         L2OutputOracle l2OutputOracle = L2OutputOracle(mustGetAddress("L2OutputOracleProxy"));
         SystemConfig systemConfig = SystemConfig(mustGetAddress("SystemConfigProxy"));
 
-        OptimismPortal portal = new OptimismPortal{ salt: _implSalt() }({
-            _l2Oracle: l2OutputOracle,
-            _systemConfig: systemConfig
-        });
+        OptimismPortal portal =
+            new OptimismPortal{ salt: _implSalt() }({ _l2Oracle: l2OutputOracle, _systemConfig: systemConfig });
 
         save("OptimismPortal", address(portal));
         console.log("OptimismPortal deployed at %s", address(portal));
@@ -544,7 +538,7 @@ contract Deploy is Deployer {
         console.log("Deploying OptimismMintableERC20Factory implementation");
         address l1standardBridgeProxy = mustGetAddress("L1StandardBridgeProxy");
         OptimismMintableERC20Factory factory =
-            new OptimismMintableERC20Factory{ salt: _implSalt() }({_bridge: l1standardBridgeProxy});
+            new OptimismMintableERC20Factory{ salt: _implSalt() }({ _bridge: l1standardBridgeProxy });
 
         save("OptimismMintableERC20Factory", address(factory));
         console.log("OptimismMintableERC20Factory deployed at %s", address(factory));
@@ -653,9 +647,8 @@ contract Deploy is Deployer {
         console.log("Deploying L1StandardBridge implementation");
         address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
 
-        L1StandardBridge bridge = new L1StandardBridge{ salt: _implSalt() }({
-            _messenger: payable(l1CrossDomainMessengerProxy)
-        });
+        L1StandardBridge bridge =
+            new L1StandardBridge{ salt: _implSalt() }({ _messenger: payable(l1CrossDomainMessengerProxy) });
 
         save("L1StandardBridge", address(bridge));
         console.log("L1StandardBridge deployed at %s", address(bridge));
@@ -674,10 +667,7 @@ contract Deploy is Deployer {
     function deployL1ERC721Bridge() public broadcast returns (address addr_) {
         console.log("Deploying L1ERC721Bridge implementation");
         address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
-        L1ERC721Bridge bridge = new L1ERC721Bridge{ salt: _implSalt() }({
-            _messenger: l1CrossDomainMessengerProxy,
-            _otherBridge: Predeploys.L2_ERC721_BRIDGE
-        });
+        L1ERC721Bridge bridge = new L1ERC721Bridge{ salt: _implSalt() }({ _messenger: l1CrossDomainMessengerProxy });
 
         save("L1ERC721Bridge", address(bridge));
         console.log("L1ERC721Bridge deployed at %s", address(bridge));
@@ -687,7 +677,8 @@ contract Deploy is Deployer {
         // are always proxies.
         Types.ContractSet memory contracts = _proxiesUnstrict();
         contracts.L1ERC721Bridge = address(bridge);
-        ChainAssertions.checkL1ERC721Bridge(contracts);
+
+        ChainAssertions.checkL1ERC721Bridge({ _contracts: contracts, _isProxy: false });
 
         addr_ = address(bridge);
     }
@@ -720,7 +711,7 @@ contract Deploy is Deployer {
         _upgradeAndCallViaSafe({
             _proxy: superchainConfigProxy,
             _implementation: superchainConfig,
-            _innerCallData: abi.encodeCall(SuperchainConfig.initialize, (cfg.superchainConfigGuardian()))
+            _innerCallData: abi.encodeCall(SuperchainConfig.initialize, (cfg.superchainConfigGuardian(), false))
         });
 
         ChainAssertions.checkSuperchainConfig({ _contracts: _proxiesUnstrict(), _cfg: cfg, _isPaused: false });
@@ -808,20 +799,21 @@ contract Deploy is Deployer {
     /// @notice Initialize the L1ERC721Bridge
     function initializeL1ERC721Bridge() public broadcast {
         console.log("Upgrading and initializing L1ERC721Bridge proxy");
-        ProxyAdmin proxyAdmin = ProxyAdmin(mustGetAddress("ProxyAdmin"));
         address l1ERC721BridgeProxy = mustGetAddress("L1ERC721BridgeProxy");
         address l1ERC721Bridge = mustGetAddress("L1ERC721Bridge");
+        address superchainConfigProxy = mustGetAddress("SuperchainConfigProxy");
 
-        _callViaSafe({
-            _target: address(proxyAdmin),
-            _data: abi.encodeCall(ProxyAdmin.upgrade, (payable(l1ERC721BridgeProxy), l1ERC721Bridge))
+        _upgradeAndCallViaSafe({
+            _proxy: payable(l1ERC721BridgeProxy),
+            _implementation: l1ERC721Bridge,
+            _innerCallData: abi.encodeCall(L1ERC721Bridge.initialize, (SuperchainConfig(superchainConfigProxy)))
         });
 
         L1ERC721Bridge bridge = L1ERC721Bridge(l1ERC721BridgeProxy);
         string memory version = bridge.version();
         console.log("L1ERC721Bridge version: %s", version);
 
-        ChainAssertions.checkL1ERC721Bridge(_proxies());
+        ChainAssertions.checkL1ERC721Bridge({ _contracts: _proxies(), _isProxy: true });
     }
 
     /// @notice Ininitialize the OptimismMintableERC20Factory
@@ -1052,7 +1044,7 @@ contract Deploy is Deployer {
             _factory: factory,
             _gameType: GameTypes.OUTPUT_ALPHABET,
             _absolutePrestate: outputAbsolutePrestate,
-            _faultVm: IBigStepper(new AlphabetVM(outputAbsolutePrestate)),
+            _faultVm: IBigStepper(new AlphabetVM2(outputAbsolutePrestate)),
             _maxGameDepth: cfg.faultGameMaxDepth()
         });
     }

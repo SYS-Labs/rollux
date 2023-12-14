@@ -2,7 +2,18 @@
   "address": "0x6e8fd67c9E74918be4A6A983a8DD5aa82D775EDe",
   "abi": [
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "contract L2OutputOracle",
+          "name": "_l2Oracle",
+          "type": "address"
+        },
+        {
+          "internalType": "contract SystemConfig",
+          "name": "_systemConfig",
+          "type": "address"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -279,24 +290,9 @@
     {
       "inputs": [
         {
-          "internalType": "contract L2OutputOracle",
-          "name": "_l2Oracle",
+          "internalType": "contract SuperchainConfig",
+          "name": "_superchainConfig",
           "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_guardian",
-          "type": "address"
-        },
-        {
-          "internalType": "contract SystemConfig",
-          "name": "_systemConfig",
-          "type": "address"
-        },
-        {
-          "internalType": "bool",
-          "name": "_paused",
-          "type": "bool"
         }
       ],
       "name": "initialize",
@@ -374,18 +370,11 @@
     },
     {
       "inputs": [],
-      "name": "pause",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "paused",
       "outputs": [
         {
           "internalType": "bool",
-          "name": "",
+          "name": "paused_",
           "type": "bool"
         }
       ],
@@ -505,10 +494,23 @@
     },
     {
       "inputs": [],
-      "name": "systemConfig",
+      "name": "spacer_53_0_1",
       "outputs": [
         {
-          "internalType": "contract SystemConfig",
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "superchainConfig",
+      "outputs": [
+        {
+          "internalType": "contract SuperchainConfig",
           "name": "",
           "type": "address"
         }
@@ -518,9 +520,15 @@
     },
     {
       "inputs": [],
-      "name": "unpause",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "name": "systemConfig",
+      "outputs": [
+        {
+          "internalType": "contract SystemConfig",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -603,12 +611,10 @@
           "_tx": "Withdrawal transaction to finalize."
         }
       },
-      "initialize(address,address,address,bool)": {
+      "guardian()": {},
+      "initialize(address)": {
         "params": {
-          "_guardian": "Address that can pause withdrawals.",
-          "_l2Oracle": "Address of the L2OutputOracle contract.",
-          "_paused": "Sets the contract's pausability state.",
-          "_systemConfig": "Address of the SystemConfig contract."
+          "_superchainConfig": "Address of the SuperchainConfig contract."
         }
       },
       "isOutputFinalized(uint256)": {
@@ -815,7 +821,7 @@
       {
         "astId": 1388,
         "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
-        "label": "paused",
+        "label": "spacer_53_0_1",
         "offset": 0,
         "slot": "53",
         "type": "t_bool"
@@ -823,7 +829,7 @@
       {
         "astId": 54063,
         "contract": "src/L1/OptimismPortal.sol:OptimismPortal",
-        "label": "l2Oracle",
+        "label": "superchainConfig",
         "offset": 1,
         "slot": "53",
         "type": "t_contract(L2OutputOracle)53996"
@@ -981,13 +987,13 @@
     "kind": "user",
     "methods": {
       "GUARDIAN()": {
-        "notice": "Getter for the Guardian"
+        "notice": "Getter function for the address of the guardian. This will be removed in the future, use `SuperchainConfig.guardian()` instead.Address of the guardian."
       },
       "L2_ORACLE()": {
-        "notice": "Getter for the L2OutputOracle"
+        "notice": "Address of the L2OutputOracle contract. This will be removed in the         future, use `l2Oracle` instead."
       },
       "SYSTEM_CONFIG()": {
-        "notice": "Getter for the SystemConfig"
+        "notice": "Address of the SystemConfig contract. This will be removed in the         future, use `systemConfig` instead."
       },
       "constructor": {
         "notice": "Constructs the OptimismPortal contract."
@@ -1005,16 +1011,16 @@
         "notice": "A list of withdrawal hashes which have been successfully finalized."
       },
       "guardian()": {
-        "notice": "Address that has the ability to pause and unpause withdrawals."
+        "notice": "Getter function for the address of the guardian. This will be removed in the future, use `SuperchainConfig.guardian()` instead.Address of the guardian."
       },
-      "initialize(address,address,address,bool)": {
+      "initialize(address)": {
         "notice": "Initializer."
       },
       "isOutputFinalized(uint256)": {
         "notice": "Determine if a given output is finalized.         Reverts if the call to L2_ORACLE.getL2Output reverts.         Returns a boolean otherwise."
       },
       "l2Oracle()": {
-        "notice": "Address of the L2OutputOracle contract."
+        "notice": "Getter function for the address of the L2OutputOracle on this chain.Address of the L2OutputOracle on this chain."
       },
       "l2Sender()": {
         "notice": "Address of the L2 account which initiated a withdrawal in this transaction.         If the of this variable is the default L2 sender address, then we are NOT inside of         a call to finalizeWithdrawalTransaction."
@@ -1025,11 +1031,8 @@
       "params()": {
         "notice": "EIP-1559 style gas parameters."
       },
-      "pause()": {
-        "notice": "Pauses withdrawals."
-      },
       "paused()": {
-        "notice": "Determines if cross domain messaging is paused.         When set to true, withdrawals are paused.         This may be removed in the future."
+        "notice": "Getter for the current paused status."
       },
       "proveWithdrawalTransaction((uint256,address,address,uint256,uint256,bytes),uint256,(bytes32,bytes32,bytes32,bytes32),bytes[])": {
         "notice": "Proves a withdrawal transaction."
@@ -1037,11 +1040,14 @@
       "provenWithdrawals(bytes32)": {
         "notice": "A mapping of withdrawal hashes to `ProvenWithdrawal` data."
       },
-      "systemConfig()": {
-        "notice": "Address of the SystemConfig contract."
+      "spacer_53_0_1()": {
+        "notice": "Spacer for backwards compatibility."
       },
-      "unpause()": {
-        "notice": "Unpauses withdrawals."
+      "superchainConfig()": {
+        "notice": "The address of the Superchain Config contract."
+      },
+      "systemConfig()": {
+        "notice": "Getter function for the address of the SystemConfig on this chain.Address of the SystemConfig on this chain."
       },
       "version()": {
         "notice": "Returns the full semver contract version."

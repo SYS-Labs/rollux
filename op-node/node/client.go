@@ -151,6 +151,9 @@ type L1EndpointConfig struct {
 	// BatchSize specifies the maximum batch-size, which also applies as L1 rate-limit burst amount (if set).
 	BatchSize int
 
+	// MaxConcurrency specifies the maximum number of concurrent requests to the L1 RPC.
+	MaxConcurrency int
+
 	// HttpPollInterval specifies the interval between polling for the latest L1 block,
 	// when the RPC is detected to be an HTTP type.
 	// It is recommended to use websockets or IPC for efficient following of the changing block.
@@ -168,6 +171,9 @@ func (cfg *L1EndpointConfig) Check() error {
 	}
 	if cfg.RateLimit < 0 {
 		return fmt.Errorf("rate limit cannot be negative")
+	}
+	if cfg.MaxConcurrency < 1 {
+		return fmt.Errorf("max concurrent requests cannot be less than 1, was %d", cfg.MaxConcurrency)
 	}
 	return nil
 }
@@ -187,8 +193,12 @@ func (cfg *L1EndpointConfig) Setup(ctx context.Context, log log.Logger, rollupCf
 	}
 	rpcCfg := sources.L1ClientDefaultConfig(rollupCfg, cfg.L1TrustRPC, cfg.L1RPCKind)
 	rpcCfg.MaxRequestsPerBatch = cfg.BatchSize
+<<<<<<< HEAD
 	// SYSCOIN
 	rpcCfg.SysPODAURL = cfg.SysPODAURL
+=======
+	rpcCfg.MaxConcurrentRequests = cfg.MaxConcurrency
+>>>>>>> upstream/develop
 	return l1Node, rpcCfg, nil
 }
 

@@ -82,7 +82,7 @@ func TestOutputRootSplitAdapter(t *testing.T) {
 				OutputRoot:    postClaim.Value,
 			}
 
-			_, err := adapter(context.Background(), preClaim, postClaim)
+			_, err := adapter(context.Background(), 5, preClaim, postClaim)
 			require.ErrorIs(t, err, creatorError)
 			require.Equal(t, createLocalContext(preClaim, postClaim), creator.localContext)
 			require.Equal(t, expectedAgreed, creator.agreed)
@@ -113,7 +113,7 @@ func TestOutputRootSplitAdapter_FromAbsolutePrestate(t *testing.T) {
 		OutputRoot:    postClaim.Value,
 	}
 
-	_, err := adapter(context.Background(), types.Claim{}, postClaim)
+	_, err := adapter(context.Background(), 5, types.Claim{}, postClaim)
 	require.ErrorIs(t, err, creatorError)
 	require.Equal(t, createLocalContext(types.Claim{}, postClaim), creator.localContext)
 	require.Equal(t, expectedAgreed, creator.agreed)
@@ -131,7 +131,10 @@ func setupAdapterTest(t *testing.T, topDepth int) (split.ProviderCreator, *captu
 			},
 		},
 	}
-	topProvider := NewTraceProviderFromInputs(testlog.Logger(t, log.LvlInfo), rollupClient, uint64(topDepth), prestateBlock, poststateBlock)
+	prestateProvider := &stubPrestateProvider{
+		absolutePrestate: prestateOutputRoot,
+	}
+	topProvider := NewTraceProviderFromInputs(testlog.Logger(t, log.LvlInfo), prestateProvider, rollupClient, uint64(topDepth), prestateBlock, poststateBlock)
 	adapter := OutputRootSplitAdapter(topProvider, creator.Create)
 	return adapter, creator
 }
@@ -142,7 +145,7 @@ type capturingCreator struct {
 	claimed      contracts.Proposal
 }
 
-func (c *capturingCreator) Create(_ context.Context, localContext common.Hash, agreed contracts.Proposal, claimed contracts.Proposal) (types.TraceProvider, error) {
+func (c *capturingCreator) Create(_ context.Context, localContext common.Hash, _ uint64, agreed contracts.Proposal, claimed contracts.Proposal) (types.TraceProvider, error) {
 	c.localContext = localContext
 	c.agreed = agreed
 	c.claimed = claimed
@@ -205,4 +208,16 @@ func TestCreateLocalContext(t *testing.T) {
 			require.Equal(t, crypto.Keccak256Hash(test.expected), localContext)
 		})
 	}
+}
+
+type stubPrestateProvider struct {
+	errorsOnAbsolutePrestateFetch bool
+	absolutePrestate              common.Hash
+}
+
+func (s *stubPrestateProvider) AbsolutePreStateCommitment(_ context.Context) (common.Hash, error) {
+	if s.errorsOnAbsolutePrestateFetch {
+		return common.Hash{}, errNoOutputAtBlock
+	}
+	return s.absolutePrestate, nil
 }

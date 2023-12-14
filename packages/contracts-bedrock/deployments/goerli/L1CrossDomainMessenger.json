@@ -2,7 +2,13 @@
   "address": "0x9b30CdC1aff7e7569E628834D00D2dd887F00174",
   "abi": [
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "contract OptimismPortal",
+          "name": "_portal",
+          "type": "address"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -238,8 +244,8 @@
     {
       "inputs": [
         {
-          "internalType": "contract OptimismPortal",
-          "name": "_portal",
+          "internalType": "contract SuperchainConfig",
+          "name": "_superchainConfig",
           "type": "address"
         }
       ],
@@ -256,6 +262,19 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -356,6 +375,19 @@
     },
     {
       "inputs": [],
+      "name": "superchainConfig",
+      "outputs": [
+        {
+          "internalType": "contract SuperchainConfig",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "version",
       "outputs": [
         {
@@ -442,6 +474,11 @@
           "_0": "Nonce of the next message to be sent, with added message version."
         }
       },
+      "paused()": {
+        "returns": {
+          "_0": "Whether or not the contract is paused."
+        }
+      },
       "relayMessage(uint256,address,address,uint256,uint256,bytes)": {
         "params": {
           "_message": "Message to send to the target.",
@@ -471,6 +508,7 @@
       }
     }
   },
+
   "userdoc": {
     "version": 1,
     "kind": "user",
@@ -680,12 +718,12 @@
         "label": "__gap",
         "offset": 0,
         "slot": "207",
-        "type": "t_array(t_uint256)42_storage"
+        "type": "t_array(t_uint256)44_storage"
       },
       {
         "astId": 52655,
         "contract": "src/L1/L1CrossDomainMessenger.sol:L1CrossDomainMessenger",
-        "label": "PORTAL",
+        "label": "superchainConfig",
         "offset": 0,
         "slot": "249",
         "type": "t_contract(OptimismPortal)54719"
@@ -697,10 +735,10 @@
         "label": "address",
         "numberOfBytes": "20"
       },
-      "t_array(t_uint256)42_storage": {
+      "t_array(t_uint256)44_storage": {
         "encoding": "inplace",
-        "label": "uint256[42]",
-        "numberOfBytes": "1344",
+        "label": "uint256[44]",
+        "numberOfBytes": "1408",
         "base": "t_uint256"
       },
       "t_array(t_uint256)49_storage": {
@@ -727,7 +765,7 @@
       },
       "t_contract(OptimismPortal)54719": {
         "encoding": "inplace",
-        "label": "contract OptimismPortal",
+        "label": "contract SuperchainConfig",
         "numberOfBytes": "20"
       },
       "t_mapping(t_bytes32,t_bool)": {
@@ -775,7 +813,7 @@
         "notice": "Address of the paired CrossDomainMessenger contract on the other chain."
       },
       "PORTAL()": {
-        "notice": "Address of the OptimismPortal. The public getter for this         is legacy and will be removed in the future. Use `portal()` instead."
+        "notice": "Address of the OptimismPortal. This will be removed in the         future, use `portal` instead."
       },
       "RELAY_CALL_OVERHEAD()": {
         "notice": "Gas reserved for performing the external call in `relayMessage`."
@@ -804,6 +842,9 @@
       "messageNonce()": {
         "notice": "Retrieves the next message nonce. Message version will be added to the upper two         bytes of the message nonce. Message version allows us to treat messages as having         different structures."
       },
+      "paused()": {
+        "notice": "This function should return true if the contract is paused.         On L1 this function will check the SuperchainConfig for its paused status.         On L2 this function should be a no-op."
+      },
       "portal()": {
         "notice": "Getter for the OptimismPortal address."
       },
@@ -815,6 +856,9 @@
       },
       "successfulMessages(bytes32)": {
         "notice": "Mapping of message hashes to boolean receipt values. Note that a message will only         be present in this mapping if it has successfully been relayed on this chain, and         can therefore not be relayed again."
+      },
+      "superchainConfig()": {
+        "notice": "Address of the SuperchainConfig contract."
       },
       "version()": {
         "notice": "Returns the full semver contract version."

@@ -22,6 +22,7 @@ In this repository, you'll find numerous core components of Rollux, the decentra
 - If you want to build on top of Rollux Mainnet, refer to the [Rollux Developers Docs](https://rollux.com/developers)
 - If you want to contribute to Rollux, check out the [Protocol Specs](./specs)
 - If you want to build your own OP Stack based blockchain, refer to the [OP Stack docs](https://stack.optimism.io)
+>>>>>>> upstream/develop
 
 ## Community
 
@@ -40,7 +41,6 @@ If you are reporting any vulnerabilites exclusive to the Rollux codebase, you sh
 Bounty hunters are encouraged to check out [the Optimism Immunefi bug bounty program](https://immunefi.com/bounty/optimism/).
 While this does not apply to any Rollux-specific discoveries, the Optimism Immunefi program offers up to $2,000,042 for in-scope critical vulnerabilities in the Optimism codebase.
 For vulnerabilities in any Rollux or SYS Labs websites, email servers or other non-critical infrastructure, please email SYS Labs at contact@syslabs.com. We appreciate detailed instructions for confirming the vulnerability.
-
 
 
 ## Bedrock-based

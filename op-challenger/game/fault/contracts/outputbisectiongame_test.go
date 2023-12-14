@@ -41,12 +41,20 @@ func TestGetSplitDepth(t *testing.T) {
 	require.Equal(t, expectedSplitDepth, splitDepth)
 }
 
+func TestGetGenesisOutputRoot(t *testing.T) {
+	stubRpc, contract := setupOutputBisectionGameTest(t)
+	expectedOutputRoot := common.HexToHash("0x1234")
+	stubRpc.SetResponse(fdgAddr, methodGenesisOutputRoot, batching.BlockLatest, nil, []interface{}{expectedOutputRoot})
+	genesisOutputRoot, err := contract.GetGenesisOutputRoot(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, expectedOutputRoot, genesisOutputRoot)
+}
+
 func TestOutputBisectionGame_UpdateOracleTx(t *testing.T) {
 	t.Run("Local", func(t *testing.T) {
 		stubRpc, game := setupOutputBisectionGameTest(t)
 		data := &faultTypes.PreimageOracleData{
 			IsLocal:      true,
-			LocalContext: common.Hash{0x02},
 			OracleKey:    common.Hash{0xbc}.Bytes(),
 			OracleData:   []byte{1, 2, 3, 4, 5, 6, 7},
 			OracleOffset: 16,
