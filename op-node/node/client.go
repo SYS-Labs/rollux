@@ -193,12 +193,10 @@ func (cfg *L1EndpointConfig) Setup(ctx context.Context, log log.Logger, rollupCf
 	}
 	rpcCfg := sources.L1ClientDefaultConfig(rollupCfg, cfg.L1TrustRPC, cfg.L1RPCKind)
 	rpcCfg.MaxRequestsPerBatch = cfg.BatchSize
-<<<<<<< HEAD
 	// SYSCOIN
 	rpcCfg.SysPODAURL = cfg.SysPODAURL
-=======
 	rpcCfg.MaxConcurrentRequests = cfg.MaxConcurrency
->>>>>>> upstream/develop
+
 	return l1Node, rpcCfg, nil
 }
 
