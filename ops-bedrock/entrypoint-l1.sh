@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -exu
 
 VERBOSITY=${GETH_VERBOSITY:-3}
@@ -11,6 +11,21 @@ CHAIN_ID=$(cat "$GENESIS_FILE_PATH" | jq -r .config.chainId)
 RPC_PORT="${RPC_PORT:-8545}"
 WS_PORT="${WS_PORT:-8546}"
 
+
+#=======
+#if [ ! -d "$GETH_KEYSTORE_DIR" ]; then
+#	echo "$GETH_KEYSTORE_DIR missing, running account import"
+#	echo -n "pwd" > "$GETH_DATA_DIR"/password
+#  echo -n "$BLOCK_SIGNER_PRIVATE_KEY" | sed 's/0x//' > "$GETH_DATA_DIR"/block-signer-key
+#  geth account import \
+#		--datadir="$GETH_DATA_DIR" \
+#		--password="$GETH_DATA_DIR"/password \
+#		"$GETH_DATA_DIR"/block-signer-key
+#else
+#	echo "$GETH_KEYSTORE_DIR exists."
+#fi
+#
+#>>>>>>> upstream/develop
 if [ ! -d "$GETH_CHAINDATA_DIR" ]; then
 	echo "$GETH_CHAINDATA_DIR missing, running init"
 	echo "Initializing genesis."
