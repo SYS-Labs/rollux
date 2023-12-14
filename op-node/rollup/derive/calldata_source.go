@@ -171,7 +171,7 @@ func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
 // This will return an empty array if no valid transactions are found.
 func DataFromEVMTransactions(ctx context.Context, fetcher L1TransactionFetcher, config DataSourceConfig, batcherAddr common.Address, receipts types.Receipts, txs types.Transactions, log log.Logger) []eth.Data {
 	out := make([]eth.Data, 0)
-	l1Signer := config.l1Signer()
+	l1Signer := config.l1Signer
 	for i, receipt := range receipts {
 		if to := txs[i].To(); to == nil || *to != config.batchInboxAddress {
 			continue
