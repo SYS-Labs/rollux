@@ -1,6 +1,8 @@
-package main
+package bindgen
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,8 +13,17 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
+type BindGenGeneratorBase struct {
+	MetadataOut         string
+	BindingsPackageName string
+	MonorepoBasePath    string
+	ContractsListPath   string
+	Logger              log.Logger
+}
+
 type contractsList struct {
-	Local []string `json:"local"`
+	Local  []string         `json:"local"`
+	Remote []RemoteContract `json:"remote"`
 }
 
 // readContractList reads a JSON file from the given `filePath` and unmarshals
@@ -111,20 +122,68 @@ func writeContractArtifacts(logger log.Logger, tempDirPath, contractName string,
 //
 // Note: This function relies on the external `abigen` tool, which should be
 // installed and available in the system's PATH.
-func genContractBindings(logger log.Logger, abiFilePath, bytecodeFilePath, goPackageName, contractName string) error {
+func genContractBindings(logger log.Logger, monorepoRootPath, abiFilePath, bytecodeFilePath, goPackageName, contractName string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("error getting cwd: %w", err)
 	}
 
 	outFilePath := path.Join(cwd, goPackageName, strings.ToLower(contractName)+".go")
-	logger.Debug("Generating contract bindings", "contractName", contractName, "outFilePath", outFilePath)
 
+	var existingOutput []byte
+	if _, err := os.Stat(outFilePath); err == nil {
+		existingOutput, err = os.ReadFile(outFilePath)
+		if err != nil {
+			return fmt.Errorf("error reading existing bindings output file, outFilePath: %s err: %w", outFilePath, err)
+		}
+	}
+
+	if monorepoRootPath != "" {
+		logger.Debug("Checking abigen version")
+
+		// Fetch installed abigen version (format: abigen version X.Y.Z-<stable/nightly>-<commit_sha>)
+		cmd := exec.Command("abigen", "--version")
+		var versionBuf bytes.Buffer
+		cmd.Stdout = bufio.NewWriter(&versionBuf)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("error fetching abigen version: %w", err)
+		}
+		abigenVersion := bytes.Trim(versionBuf.Bytes(), "\n")
+
+		// Fetch expected abigen version (format: vX.Y.Z)
+		expectedAbigenVersion, err := os.ReadFile(path.Join(monorepoRootPath, ".abigenrc"))
+		if err != nil {
+			return fmt.Errorf("error reading .abigenrc file: %w", err)
+		}
+		expectedAbigenVersion = bytes.Trim(expectedAbigenVersion, "\n")[1:]
+
+		if !bytes.Contains(abigenVersion, expectedAbigenVersion) {
+			return fmt.Errorf("abigen version mismatch, expected %s, got %s. Please run `pnpm install:abigen` in the monorepo root", expectedAbigenVersion, abigenVersion)
+		}
+	} else {
+		logger.Debug("No monorepo root path provided, skipping abigen version check")
+	}
+
+	logger.Debug("Generating contract bindings", "contractName", contractName, "outFilePath", outFilePath)
 	cmd := exec.Command("abigen", "--abi", abiFilePath, "--bin", bytecodeFilePath, "--pkg", goPackageName, "--type", contractName, "--out", outFilePath)
 	cmd.Stdout = os.Stdout
-
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running abigen for %s: %w", contractName, err)
+	}
+
+	if len(existingOutput) != 0 {
+		newOutput, err := os.ReadFile(outFilePath)
+		if err != nil {
+			return fmt.Errorf("error reading new file: %w", err)
+		}
+
+		if bytes.Equal(existingOutput, newOutput) {
+			logger.Debug("No changes detected in the contract bindings", "contractName", contractName)
+		} else {
+			logger.Warn("Changes detected in the contract bindings, old bindings have been overwritten", "contractName", contractName)
+		}
+	} else {
+		logger.Debug("No existing contract bindings found, skipping comparison", "contractName", contractName)
 	}
 
 	return nil

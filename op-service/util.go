@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"syscall"
@@ -30,6 +31,11 @@ func ValidateEnvVars(prefix string, flags []cli.Flag, log log.Logger) {
 	for _, envVar := range validateEnvVars(prefix, os.Environ(), cliFlagsToEnvVars(flags)) {
 		log.Warn("Unknown env var", "prefix", prefix, "env_var", envVar)
 	}
+}
+
+func FlagNameToEnvVarName(f string, prefix string) string {
+	f = strings.ReplaceAll(strings.ReplaceAll(strings.ToUpper(f), ".", "_"), "-", "_")
+	return fmt.Sprintf("%s_%s", prefix, f)
 }
 
 func cliFlagsToEnvVars(flags []cli.Flag) map[string]struct{} {
@@ -113,4 +119,26 @@ func CloseAction(fn func(ctx context.Context, shutdown <-chan struct{}) error) e
 		cancel()
 		return err
 	}
+}
+
+// FindMonorepoRoot will recursively search upwards for a go.mod file.
+// This depends on the structure of the monorepo having a go.mod file at the root.
+func FindMonorepoRoot(startDir string) (string, error) {
+	dir, err := filepath.Abs(startDir)
+	if err != nil {
+		return "", err
+	}
+	for {
+		modulePath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(modulePath); err == nil {
+			return dir, nil
+		}
+		parentDir := filepath.Dir(dir)
+		// Check if we reached the filesystem root
+		if parentDir == dir {
+			break
+		}
+		dir = parentDir
+	}
+	return "", fmt.Errorf("monorepo root not found")
 }

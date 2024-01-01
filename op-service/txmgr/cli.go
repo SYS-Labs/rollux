@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/urfave/cli/v2"
+	"math"
 	"math/big"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
+
+	"github.com/ethereum/go-ethereum/params"
 )
 
 const (
@@ -27,6 +30,7 @@ const (
 	NumConfirmationsFlagName          = "num-confirmations"
 	SafeAbortNonceTooLowCountFlagName = "safe-abort-nonce-too-low-count"
 	FeeLimitMultiplierFlagName        = "fee-limit-multiplier"
+	FeeLimitThresholdFlagName         = "txmgr.fee-limit-threshold"
 	ResubmissionTimeoutFlagName       = "resubmission-timeout"
 	NetworkTimeoutFlagName            = "network-timeout"
 	TxSendTimeoutFlagName             = "txmgr.send-timeout"
@@ -53,6 +57,7 @@ type DefaultFlagValues struct {
 	NumConfirmations          uint64
 	SafeAbortNonceTooLowCount uint64
 	FeeLimitMultiplier        uint64
+	FeeLimitThresholdGwei     float64
 	ResubmissionTimeout       time.Duration
 	NetworkTimeout            time.Duration
 	TxSendTimeout             time.Duration
@@ -65,6 +70,7 @@ var (
 		NumConfirmations:          uint64(10),
 		SafeAbortNonceTooLowCount: uint64(3),
 		FeeLimitMultiplier:        uint64(5),
+		FeeLimitThresholdGwei:     100.0,
 		ResubmissionTimeout:       48 * time.Second,
 		NetworkTimeout:            10 * time.Second,
 		TxSendTimeout:             0 * time.Second,
@@ -75,6 +81,7 @@ var (
 		NumConfirmations:          uint64(3),
 		SafeAbortNonceTooLowCount: uint64(3),
 		FeeLimitMultiplier:        uint64(5),
+		FeeLimitThresholdGwei:     100.0,
 		ResubmissionTimeout:       24 * time.Second,
 		NetworkTimeout:            10 * time.Second,
 		TxSendTimeout:             2 * time.Minute,
@@ -125,6 +132,12 @@ func CLIFlagsWithDefaults(envPrefix string, defaults DefaultFlagValues) []cli.Fl
 			Value:   defaults.FeeLimitMultiplier,
 			EnvVars: prefixEnvVars("TXMGR_FEE_LIMIT_MULTIPLIER"),
 		},
+		&cli.Float64Flag{
+			Name:    FeeLimitThresholdFlagName,
+			Usage:   "The minimum threshold (in GWei) at which fee bumping starts to be capped. Allows arbitrary fee bumps below this threshold.",
+			Value:   defaults.FeeLimitThresholdGwei,
+			EnvVars: prefixEnvVars("TXMGR_FEE_LIMIT_THRESHOLD"),
+		},
 		&cli.DurationFlag{
 
 			Name:  ResubmissionTimeoutFlagName,
@@ -171,6 +184,7 @@ type CLIConfig struct {
 	NumConfirmations          uint64
 	SafeAbortNonceTooLowCount uint64
 	FeeLimitMultiplier        uint64
+	FeeLimitThresholdGwei     float64
 	ResubmissionTimeout       time.Duration
 	ReceiptQueryInterval      time.Duration
 	NetworkTimeout            time.Duration
@@ -184,6 +198,7 @@ func NewCLIConfig(l1RPCURL string, defaults DefaultFlagValues) CLIConfig {
 		NumConfirmations:          defaults.NumConfirmations,
 		SafeAbortNonceTooLowCount: defaults.SafeAbortNonceTooLowCount,
 		FeeLimitMultiplier:        defaults.FeeLimitMultiplier,
+		FeeLimitThresholdGwei:     defaults.FeeLimitThresholdGwei,
 		ResubmissionTimeout:       defaults.ResubmissionTimeout,
 		NetworkTimeout:            defaults.NetworkTimeout,
 		TxSendTimeout:             defaults.TxSendTimeout,
@@ -236,6 +251,7 @@ func ReadCLIConfig(ctx *cli.Context) CLIConfig {
 		NumConfirmations:          ctx.Uint64(NumConfirmationsFlagName),
 		SafeAbortNonceTooLowCount: ctx.Uint64(SafeAbortNonceTooLowCountFlagName),
 		FeeLimitMultiplier:        ctx.Uint64(FeeLimitMultiplierFlagName),
+		FeeLimitThresholdGwei:     ctx.Float64(FeeLimitThresholdFlagName),
 		ResubmissionTimeout:       ctx.Duration(ResubmissionTimeoutFlagName),
 		ReceiptQueryInterval:      ctx.Duration(ReceiptQueryIntervalFlagName),
 		NetworkTimeout:            ctx.Duration(NetworkTimeoutFlagName),
@@ -276,10 +292,21 @@ func NewConfig(cfg CLIConfig, l log.Logger) (Config, error) {
 		return Config{}, fmt.Errorf("could not init signer: %w", err)
 	}
 
+	if thr := cfg.FeeLimitThresholdGwei; math.IsNaN(thr) || math.IsInf(thr, 0) {
+		return Config{}, fmt.Errorf("invalid fee limit threshold: %v", thr)
+	}
+
+	// convert float GWei value into integer Wei value
+	feeLimitThreshold, _ := new(big.Float).Mul(
+		big.NewFloat(cfg.FeeLimitThresholdGwei),
+		big.NewFloat(params.GWei)).
+		Int(nil)
+
 	return Config{
 		Backend:                   l1,
 		ResubmissionTimeout:       cfg.ResubmissionTimeout,
 		FeeLimitMultiplier:        cfg.FeeLimitMultiplier,
+		FeeLimitThreshold:         feeLimitThreshold,
 		ChainID:                   chainID,
 		TxSendTimeout:             cfg.TxSendTimeout,
 		TxNotInMempoolTimeout:     cfg.TxNotInMempoolTimeout,
@@ -303,6 +330,11 @@ type Config struct {
 
 	// The multiplier applied to fee suggestions to put a hard limit on fee increases.
 	FeeLimitMultiplier uint64
+
+	// Minimum threshold (in Wei) at which the FeeLimitMultiplier takes effect.
+	// On low-fee networks, like test networks, this allows for arbitrary fee bumps
+	// below this threshold.
+	FeeLimitThreshold *big.Int
 
 	// ChainID is the chain ID of the L1 chain.
 	ChainID *big.Int
