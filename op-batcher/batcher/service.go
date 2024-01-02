@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	opclient "github.com/ethereum-optimism/optimism/op-service/client"
 	"io"
 	"net"
 	_ "net/http/pprof"
@@ -190,8 +191,13 @@ func (bs *BatcherService) initChannelConfig(cfg *CLIConfig) error {
 	return nil
 }
 
+// SYSCOIN
 func (bs *BatcherService) initTxManager(cfg *CLIConfig) error {
-	txManager, err := txmgr.NewSimpleTxManager("batcher", bs.Log, bs.Metrics, cfg.TxMgrConfig, nil)
+	sysClient, err := opclient.NewSyscoinClient("")
+	if err != nil {
+		bs.Log.Warn("initTxManager", "msg", "Error in syscoin client connection")
+	}
+	txManager, err := txmgr.NewSimpleTxManager("batcher", bs.Log, bs.Metrics, cfg.TxMgrConfig, sysClient)
 	if err != nil {
 		return err
 	}
