@@ -56,7 +56,7 @@ func TestFetchReceipts(t *testing.T) {
 	oracle.Blocks[hash] = expectedInfo
 	oracle.Rcpts[hash] = expectedReceipts
 
-	info, rcpts, err := client.FetchReceipts(context.Background(), hash)
+	info, rcpts, _, err := client.FetchReceipts(context.Background(), hash)
 	require.NoError(t, err)
 	require.Equal(t, expectedInfo, info)
 	require.Equal(t, expectedReceipts, rcpts)
