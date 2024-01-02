@@ -8,13 +8,19 @@ volumes:
   l1_data:
   l2_data:
   op_log:
-  influxdb_data:
-  grafana_data:
-  grafana_dashboards:
-  prometheus_data:
 
 
 services:
+  op_stack_go_builder:  # Not an actual service, but builds the prerequisite go images
+    build:
+      context: ../
+      dockerfile: ops/docker/op-stack-go/Dockerfile
+      args:
+        GIT_COMMIT: "dev"
+        GIT_DATE: "0"
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-stack-go:devnet
+    entrypoint: ["echo", "build complete"]
+
   l2:
     build:
       context: .
@@ -36,10 +42,12 @@ services:
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
     env_file:
       - ./envs/op-node.env
+    environment:
+      GETH_MINER_RECOMMIT: 100ms
 
   op-node:
     depends_on:
-      - l1
+      - op_stack_go_builder
       - l2
     build:
       context: ../
@@ -49,7 +57,7 @@ services:
     stop_grace_period: 30s
     command: >
       op-node
-      --l1=ws://l1:8546
+      --l1=https://rpc.tanenbaum.io
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.enabled
@@ -88,7 +96,7 @@ services:
 
   op-proposer:
     depends_on:
-      - l1
+      - op_stack_go_builder
       - l2
       - op-node
     build:
@@ -116,7 +124,7 @@ services:
 
   op-batcher:
     depends_on:
-      - l1
+      - op_stack_go_builder
       - l2
       - op-node
     build:
