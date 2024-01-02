@@ -15,34 +15,6 @@ volumes:
 
 
 services:
-  op_stack_go_builder:  # Not an actual service, but builds the prerequisite go images
-    build:
-      context: ../
-      dockerfile: ops/docker/op-stack-go/Dockerfile
-      args:
-        GIT_COMMIT: "dev"
-        GIT_DATE: "0"
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-stack-go:devnet
-    entrypoint: ["echo", "build complete"]
-
-  l1:
-    build:
-      context: .
-      dockerfile: Dockerfile.l1
-    image: l1:${TAG}
-    stop_signal: SIGINT
-    stop_grace_period: 30s
-    ports:
-      - "127.0.0.1:8545:8545"   # local, rpc L1
-      #      - "7060:6060"            # ?
-    volumes:
-      - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l1_data:/db/.syscoin"
-      - "l1_data:/db"
-      - "${PWD}/../.devnet/genesis-l1.json:/genesis.json"
-      - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
-    environment:
-      GETH_MINER_RECOMMIT: 100ms
-
   l2:
     build:
       context: .
@@ -64,12 +36,9 @@ services:
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
     env_file:
       - ./envs/op-node.env
-    environment:
-      GETH_MINER_RECOMMIT: 100ms
 
   op-node:
     depends_on:
-      - op_stack_go_builder
       - l1
       - l2
     build:
@@ -119,7 +88,6 @@ services:
 
   op-proposer:
     depends_on:
-      - op_stack_go_builder
       - l1
       - l2
       - op-node
@@ -148,7 +116,6 @@ services:
 
   op-batcher:
     depends_on:
-      - op_stack_go_builder
       - l1
       - l2
       - op-node
@@ -188,29 +155,4 @@ services:
       - 192.168.9.45
     env_file:
       - ./envs/op-node.env
-
-
-  artifact-server:
-    depends_on:
-      - l1
-    image: nginx:1.25-alpine
-    ports:
-      - "8080:80"
-    volumes:
-      - "${PWD}/../.devnet/:/usr/share/nginx/html/:ro"
-    security_opt:
-      - "no-new-privileges:true"
-#  stateviz:
-#    build:
-#      context: ../
-#      dockerfile: ./ops-bedrock/Dockerfile.stateviz
-#    command:
-#      - stateviz
-#      - -addr=0.0.0.0:8080
-#      - -snapshot=/op_log/snapshot.log
-#      - -refresh=10s
-#    ports:
-#      - "9090:8080"
-#    volumes:
-#      - op_log:/op_log:ro
 

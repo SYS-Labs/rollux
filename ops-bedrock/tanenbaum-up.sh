@@ -29,15 +29,15 @@
 
 set -eu
 
-L1_URL="http://localhost:8545"
+L1_URL="https://rpc.tanenbaum.io"
 L2_URL="http://localhost:9545"
 OP_NODE="$PWD/op-node"
 CONTRACTS_BEDROCK="$PWD/packages/contracts-bedrock"
 CONTRACTS_GOVERNANCE="$PWD/packages/contracts-governance"
 NETWORK=tanenbaum
-DEVNET="$PWD/.devnet"
+DEVNET="$PWD/.nebula"
 TESTNET=1
-TAG="testnet-v1.0.0"
+TAG="nebula-v1.0.0"
 # Helper method that waits for a given URL to be up. Can't use
 # cURL's built-in retry logic because connection reset errors
 # are ignored unless you're using a very recent version of cURL
@@ -68,23 +68,13 @@ if [ ! -f "$DEVNET/done" ]; then
     cd "$OP_NODE"
     go run cmd/main.go genesis l2 \
         --l1-rpc https://rpc.tanenbaum.io \
-        --deployment-dir $CONTRACTS_BEDROCK/deployments/goerli \
-        --deploy-config $CONTRACTS_BEDROCK/deploy-config/goerli.json \
-        --outfile.l2 $DEVNET/genesis-l2.json \
+        --deployment-dir $CONTRACTS_BEDROCK/deployments/nebula \
+        --deploy-config $CONTRACTS_BEDROCK/deploy-config/nebula.json \
+        --outfile.l2 $DEVNET/genesis.json \
         --outfile.rollup $DEVNET/rollup.json
     touch "$DEVNET/done"
   )
 fi
-
-# Bring up L1.
-(
-  cd ops-bedrock
-  export TAG=$TAG
-  echo "Bringing up L1..."
-  DOCKER_BUILDKIT=1 docker-compose build --progress plain
-  docker-compose up -d l1
-  wait_up $L1_URL
-)
 
 # Bring up L2.
 (
