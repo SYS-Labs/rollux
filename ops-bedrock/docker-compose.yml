@@ -11,15 +11,15 @@ volumes:
 
 
 services:
-  op_stack_go_builder:  # Not an actual service, but builds the prerequisite go images
-    build:
-      context: ../
-      dockerfile: ops/docker/op-stack-go/Dockerfile
-      args:
-        GIT_COMMIT: "dev"
-        GIT_DATE: "0"
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-stack-go:devnet
-    entrypoint: ["echo", "build complete"]
+#  op_stack_go_builder:  # Not an actual service, but builds the prerequisite go images
+#    build:
+#      context: ../
+#      dockerfile: ops/docker/op-stack-go/Dockerfile
+#      args:
+#        GIT_COMMIT: "dev"
+#        GIT_DATE: "0"
+#    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-stack-go:devnet
+#    entrypoint: ["echo", "build complete"]
 
   l2:
     build:
@@ -47,7 +47,7 @@ services:
 
   op-node:
     depends_on:
-      - op_stack_go_builder
+#      - op_stack_go_builder
       - l2
     build:
       context: ../
@@ -96,7 +96,7 @@ services:
 
   op-proposer:
     depends_on:
-      - op_stack_go_builder
+#      - op_stack_go_builder
       - l2
       - op-node
     build:
@@ -124,7 +124,7 @@ services:
 
   op-batcher:
     depends_on:
-      - op_stack_go_builder
+#      - op_stack_go_builder
       - l2
       - op-node
     build:
