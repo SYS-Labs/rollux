@@ -148,10 +148,6 @@ tanenbaum-down:
 .PHONY: tanenbaum-down
 
 tanenbaum-clean:
-	rm -rf ./packages/contracts-bedrock/deployments/devnetL1
-	rm -rf ./packages/contracts-bedrock/deploy-config/devnetL1.json
-
-	rm -rf ./.devnet
 	cd ./ops-bedrock && docker compose down
 	docker image ls 'ops-bedrock*' --format='{{.Repository}}' | xargs -r docker rmi
 	docker volume ls --filter name=ops-bedrock --format='{{.Name}}' | xargs -r docker volume rm

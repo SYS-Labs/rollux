@@ -29,16 +29,16 @@
 
 set -eu
 
-L1_URL="http://localhost:8545"
+L1_URL="https://rpc.tanenbaum.io"
 L2_URL="http://localhost:9545"
 OP_NODE="$PWD/op-node"
 OPS_BEDROCK="$PWD/ops-bedrock"
 CONTRACTS_BEDROCK="$PWD/packages/contracts-bedrock"
 CONTRACTS_GOVERNANCE="$PWD/packages/contracts-governance"
 NETWORK=tanenbaum
-DEVNET="$PWD/.devnet"
+DEVNET="$PWD/.nebula"
 TESTNET=1
-TAG=testnet-v1.0.0
+TAG=nebula-v1.0.0
 # Helper method that waits for a given URL to be up. Can't use
 # cURL's built-in retry logic because connection reset errors
 # are ignored unless you're using a very recent version of cURL
@@ -58,34 +58,7 @@ function wait_up {
   done
   echo "Done!"
 }
-#mkdir -p ./.devnet
 
-# Regenerate the L1 genesis file if necessary. The existence of the genesis
-# file is used to determine if we need to recreate the devnet's state folder.
-if [ ! -f "$DEVNET/done" ]; then
-  echo "Regenerating genesis files"
-  (
-    cd "$OP_NODE"
-    go run cmd/main.go genesis l2 \
-        --l1-rpc https://rpc.tanenbaum.io \
-        --deployment-dir $CONTRACTS_BEDROCK/deployments/goerli \
-        --deploy-config $CONTRACTS_BEDROCK/deploy-config/goerli.json \
-        --outfile.l2 $DEVNET/genesis-l2.json \
-        --outfile.rollup $DEVNET/rollup.json
-    touch "$DEVNET/done"
-  )
-fi
-
-# Bring up L1.
-(
-  export TAG=$TAG
-  cd ops-bedrock
-  export DOCKER_BUILDKIT=1
-  echo "Bringing up L1..."
-  docker-compose -f p2p-docker-compose.yml build --progress plain
-  docker-compose -f p2p-docker-compose.yml up -d l1
-  wait_up $L1_URL
-)
 
 # Bring up L2.
 (
@@ -107,11 +80,3 @@ L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
 )
 
 echo "L2 ready."
-
-# Bring up Monitoring infrastructure; exporter, heartbeat, influxdb, prometheus and grafana
-(
-  export TAG=$TAG
-  cd ops-bedrock
-  echo "Bringing up monitoring infrastructure"
-  docker-compose -f p2p-docker-compose.yml up -d op-exporter prometheus grafana influxdb dashboard-sync
-)

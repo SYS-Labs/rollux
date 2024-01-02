@@ -32,10 +32,10 @@ config=$(cat << EOL
 
   "l1StartingBlockTag": "$blockhash",
 
-  "l1ChainID": 11155111,
-  "l2ChainID": 42069,
+  "l1ChainID": 5700,
+  "l2ChainID": 570000,
   "l2BlockTime": 2,
-  "l1BlockTime": 12,
+  "l1BlockTime": 150,
 
   "maxSequencerDrift": 600,
   "sequencerWindowSize": 3600,
@@ -70,8 +70,8 @@ config=$(cat << EOL
   "gasPriceOracleScalar": 1000000,
 
   "enableGovernance": true,
-  "governanceTokenSymbol": "OP",
-  "governanceTokenName": "Optimism",
+  "governanceTokenSymbol": "NEB",
+  "governanceTokenName": "Nebula",
   "governanceTokenOwner": "$GS_ADMIN_ADDRESS",
 
   "l2GenesisBlockGasLimit": "0x1c9c380",
@@ -91,4 +91,4 @@ EOL
 )
 
 # Write the config file
-echo "$config" > deploy-config/getting-started.json
+echo "$config" > deploy-config/nebula.json

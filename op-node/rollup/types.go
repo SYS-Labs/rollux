@@ -260,9 +260,9 @@ func (cfg *Config) Check() error {
 		return ErrMissingBatchInboxAddress
 	}
 	// SYSCOIN
-	if cfg.L2OutputOracleAddress == (common.Address{}) {
-		return errors.New("missing output oracle contract address")
-	}
+	//if cfg.L2OutputOracleAddress == (common.Address{}) {
+	//	return errors.New("missing output oracle contract address")
+	//}
 	if cfg.DepositContractAddress == (common.Address{}) {
 		return ErrMissingDepositContractAddress
 	}

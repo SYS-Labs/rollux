@@ -6,14 +6,9 @@ import portalArtifactsSepolia from '@eth-optimism/contracts-bedrock/deployments/
 import l2OutputOracleArtifactsMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/L2OutputOracleProxy.json'
 import l2OutputOracleArtifactsGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/L2OutputOracleProxy.json'
 import l2OutputOracleArtifactsSepolia from '@eth-optimism/contracts-bedrock/deployments/sepolia/L2OutputOracleProxy.json'
-import addressManagerArtifactMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/AddressManager.json'
-import addressManagerArtifactGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/AddressManager.json'
-import addressManagerArtifactSepolia from '@eth-optimism/contracts-bedrock/deployments/sepolia/AddressManager.json'
 import l1StandardBridgeArtifactMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/L1StandardBridgeProxy.json'
-import l1StandardBridgeArtifactGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/L1StandardBridgeProxy.json'
 import l1StandardBridgeArtifactSepolia from '@eth-optimism/contracts-bedrock/deployments/sepolia/L1StandardBridgeProxy.json'
 import l1CrossDomainMessengerArtifactMainnet from '@eth-optimism/contracts-bedrock/deployments/mainnet/L1CrossDomainMessengerProxy.json'
-import l1CrossDomainMessengerArtifactGoerli from '@eth-optimism/contracts-bedrock/deployments/goerli/L1CrossDomainMessengerProxy.json'
 import l1CrossDomainMessengerArtifactSepolia from '@eth-optimism/contracts-bedrock/deployments/sepolia/L1CrossDomainMessengerProxy.json'
 
 const portalAddresses = {
@@ -28,21 +23,14 @@ const l2OutputOracleAddresses = {
   sepolia: l2OutputOracleArtifactsSepolia.address,
 }
 
-const addressManagerAddresses = {
-  mainnet: addressManagerArtifactMainnet.address,
-  goerli: addressManagerArtifactGoerli.address,
-  sepolia: addressManagerArtifactSepolia.address,
-}
 
 const l1StandardBridgeAddresses = {
   mainnet: l1StandardBridgeArtifactMainnet.address,
-  goerli: l1StandardBridgeArtifactGoerli.address,
   sepolia: l1StandardBridgeArtifactSepolia.address,
 }
 
 const l1CrossDomainMessengerAddresses = {
   mainnet: l1CrossDomainMessengerArtifactMainnet.address,
-  goerli: l1CrossDomainMessengerArtifactGoerli.address,
   sepolia: l1CrossDomainMessengerArtifactSepolia.address,
 }
 
