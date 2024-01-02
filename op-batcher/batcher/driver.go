@@ -362,6 +362,7 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	}
 
 	// SYSCOIN Record TX Status
+	l.Log.Warn("Batch tx data", "data", txdata)
 	if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
 		l.recordFailedTx(txdata.ID(), err)
 	} else {
@@ -422,6 +423,7 @@ func (l *BatchSubmitter) handleReceipt(r txmgr.TxReceipt[txData]) {
 // This is a blocking method. It should not be called concurrently.
 // TODO: where to put concurrent transaction handling logic.
 func (l *BatchSubmitter) sendBlobTransaction(ctx context.Context, data []byte) (*types.Receipt, error) {
+	l.Log.Warn("sendBlobTransaction", "ctx", ctx, "data", data)
 	ctx, cancel := context.WithTimeout(ctx, 25*time.Minute)
 	defer cancel()
 	if receipt, err := l.txMgr.SendBlob(ctx, data); err != nil {
