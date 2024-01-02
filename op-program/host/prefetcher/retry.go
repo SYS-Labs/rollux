@@ -51,7 +51,7 @@ func (s *RetryingL1Source) FetchReceipts(ctx context.Context, blockHash common.H
 	var info eth.BlockInfo
 	var rcpts types.Receipts
 	var txs types.Transactions
-	err := backoff.DoCtx(ctx, maxAttempts, s.strategy, func() error {
+	err := retry.DoCtx(ctx, maxAttempts, s.strategy, func() error {
 		i, r, t, err := s.source.FetchReceipts(ctx, blockHash)
 		if err != nil {
 			s.logger.Warn("Failed to fetch receipts", "hash", blockHash, "err", err)

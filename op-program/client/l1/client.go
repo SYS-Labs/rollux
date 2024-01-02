@@ -78,7 +78,7 @@ func (o *OracleL1Client) InfoByHash(ctx context.Context, hash common.Hash) (eth.
 }
 
 // SYSCOIN
-func (o *OracleL1Client) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, types.Transactions, error) {
+func (o *OracleL1Client) FetchReceipts(ctx context.Context, blockHash common.Hash) (eth.BlockInfo, types.Receipts, error) {
 	info, rcpts := o.oracle.ReceiptsByBlockHash(blockHash)
 	// SYSCOIN
 	_, txs := o.oracle.TransactionsByBlockHash(blockHash)

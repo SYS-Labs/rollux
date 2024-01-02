@@ -63,3 +63,42 @@ func Do[T any](ctx context.Context, maxAttempts int, strategy Strategy, op func(
 		LastErr:  err,
 	}
 }
+
+// Operation represents an operation that will be retried
+// based on some backoff strategy if it fails.
+type Operation func() error
+
+func DoCtx(ctx context.Context, maxAttempts int, strategy Strategy, op Operation) error {
+	if maxAttempts < 1 {
+		return fmt.Errorf("need at least 1 attempt to run op, but have %d max attempts", maxAttempts)
+	}
+	var attempt int
+
+	reattemptCh := make(chan struct{}, 1)
+	doReattempt := func() {
+		reattemptCh <- struct{}{}
+	}
+	doReattempt()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-reattemptCh:
+			attempt++
+			err := op()
+			if err == nil {
+				return nil
+			}
+
+			if attempt == maxAttempts {
+				return &ErrFailedPermanently{
+					attempts: maxAttempts,
+					LastErr:  err,
+				}
+			}
+			time.AfterFunc(strategy.Duration(attempt-1), doReattempt)
+		}
+
+	}
+}
