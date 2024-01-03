@@ -23,10 +23,11 @@ services:
       #      - "7060:6060"            # ?
     volumes:
       - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l1_data:/db/.syscoin"
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-      - 192.168.9.45
+      - "l1_data:/db"
+      - "${PWD}/../.nebula/genesis.json:/genesis.json"
+      - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
+    environment:
+      GETH_MINER_RECOMMIT: 100ms
 
   op_stack_go_builder:  # Not an actual service, but builds the prerequisite go images
     build:
@@ -74,7 +75,7 @@ services:
     stop_grace_period: 30s
     command: >
       op-node
-      --l1=https://rpc.tanenbaum.io
+      --l1=ws://l1:8546
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.enabled
