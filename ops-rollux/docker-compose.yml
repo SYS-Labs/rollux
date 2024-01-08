@@ -54,9 +54,6 @@ services:
       --metrics.port=7300
       --pprof.enabled
       --rpc.enable-admin
-      --heartbeat.enabled
-      --heartbeat.moniker=sequencer
-      --heartbeat.url=https://heartbeat.rollux.com
       --sys-poda-url=https://poda.syscoin.org/vh/
     ports:
       - "9003:9003" # p2p
