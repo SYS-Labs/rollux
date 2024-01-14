@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"io"
 	"reflect"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	// SYSCOIN
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
@@ -66,8 +66,8 @@ func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1Transact
 }
 
 // OpenData returns a DataIter. This struct implements the `Next` function.
-func (ds *DataSourceFactory) OpenData(ctx context.Context, id eth.BlockID, batcherAddr common.Address) DataIter {
-	return NewDataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, id, batcherAddr)
+func (ds *DataSourceFactory) OpenData(ctx context.Context, ref eth.L1BlockRef, batcherAddr common.Address) DataIter {
+	return NewDataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ref, batcherAddr)
 
 }
 
@@ -88,7 +88,7 @@ type DataSource struct {
 	open bool
 	data []eth.Data
 	// Required to re-attempt fetching
-	id      eth.BlockID
+	ref     eth.L1BlockRef
 	dsCfg   DataSourceConfig
 	fetcher L1TransactionFetcher
 	log     log.Logger
@@ -99,16 +99,15 @@ type DataSource struct {
 	appendSequencerFunctionSig []byte
 }
 
-// NewDataSource creates a new calldata source. It suppresses errors in fetching the L1 block if they occur.
+// NewCalldataSource creates a new calldata source. It suppresses errors in fetching the L1 block if they occur.
 // If there is an error, it will attempt to fetch the result on the next call to `Next`.
-
-func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, fetcher L1TransactionFetcher, block eth.BlockID, batcherAddr common.Address) DataIter {
+func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, fetcher L1TransactionFetcher, ref eth.L1BlockRef, batcherAddr common.Address) DataIter {
 	// SYSCOIN info
-	_, receipts, txs, err := fetcher.FetchReceipts(ctx, block.Hash)
+	_, receipts, txs, err := fetcher.FetchReceipts(ctx, ref.Hash)
 	if err != nil {
 		return &DataSource{
 			open:                       false,
-			id:                         block,
+			ref:                        ref,
 			dsCfg:                      dsCfg,
 			fetcher:                    fetcher,
 			log:                        log,
@@ -118,11 +117,11 @@ func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, 
 		}
 	} else {
 		// SYSCOIN
-		dataSrc := DataFromEVMTransactions(ctx, fetcher, dsCfg, batcherAddr, receipts, txs, log.New("origin", block))
+		dataSrc := DataFromEVMTransactions(ctx, fetcher, dsCfg, batcherAddr, receipts, txs, log.New("origin", ref))
 		if dataSrc == nil {
 			return &DataSource{
 				open:                       false,
-				id:                         block,
+				ref:                        ref,
 				dsCfg:                      dsCfg,
 				fetcher:                    fetcher,
 				log:                        log,
@@ -144,8 +143,8 @@ func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, 
 func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
 	if !ds.open {
 		// SYSCOIN
-		if _, receipts, txs, err := ds.fetcher.FetchReceipts(ctx, ds.id.Hash); err == nil {
-			ds.data = DataFromEVMTransactions(ctx, ds.fetcher, ds.dsCfg, ds.batcherAddr, receipts, txs, log.New("origin", ds.id))
+		if _, receipts, txs, err := ds.fetcher.FetchReceipts(ctx, ds.ref.Hash); err == nil {
+			ds.data = DataFromEVMTransactions(ctx, ds.fetcher, ds.dsCfg, ds.batcherAddr, receipts, txs, log.New("origin", ds.ref))
 			// SYSCOIN
 			if ds.data == nil {
 				return nil, NewTemporaryError(fmt.Errorf("failed to open calldata cloud source"))

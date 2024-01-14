@@ -353,6 +353,11 @@ func (s *EthClient) FetchReceipts(ctx context.Context, blockHash common.Hash) (e
 		return nil, nil, nil, err
 	}
 
+	// SYSCOIN
+	//TODO: Check receipt validaton code
+	if err := validateReceipts(block, info.ReceiptHash(), txHashes, receipts); err != nil {
+		return info, nil, nil, err
+	}
 	return info, receipts, txs, nil
 }
 

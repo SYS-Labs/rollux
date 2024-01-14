@@ -35,7 +35,7 @@ Read through [CONTRIBUTING.md](./CONTRIBUTING.md) for a general overview of the 
 Use the [Developer Quick Start](./CONTRIBUTING.md#development-quick-start) to get your development environment set up to start working on the Rollux Monorepo.
 Then check out the list of [Good First Issues](https://github.com/sys-labs/rollux/contribute) to find something fun to work on!
 Use the [Developer Quick Start](./CONTRIBUTING.md#development-quick-start) to get your development environment set up to start working on the Optimism Monorepo.
-Then check out the list of [Good First Issues](https://github.com/ethereum-optimism/optimism/contribute) to find something fun to work on!
+Then check out the list of [Good First Issues](https://github.com/ethereum-optimism/optimism/labels/D-good-first-issue) to find something fun to work on!
 Typo fixes are welcome; however, please create a single commit with all of the typo fixes & batch as many fixes together in a PR as possible. Spammy PRs will be closed.
 
 ## Security Policy and Vulnerability Reporting
@@ -68,7 +68,6 @@ You can find detailed specifications for the Bedrock upgrade within the [specs f
 ├── <a href="./op-chain-ops">op-chain-ops</a>: State surgery utilities
 ├── <a href="./op-challenger">op-challenger</a>: Dispute game challenge agent
 ├── <a href="./op-e2e">op-e2e</a>: End-to-End testing of all bedrock components in Go
-├── <a href="./op-exporter">op-exporter</a>: Prometheus exporter client
 ├── <a href="./op-heartbeat">op-heartbeat</a>: Heartbeat monitor service
 ├── <a href="./op-node">op-node</a>: rollup consensus-layer client
 ├── <a href="./op-preimage">op-preimage</a>: Go bindings for Preimage Oracle
