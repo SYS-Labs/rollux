@@ -50,7 +50,7 @@ type DataSourceFactory struct {
 	appendSequencerFunctionSig []byte
 }
 
-func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher) *DataSourceFactory {
+func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, l1Blobs L1BlobsFetcher) *DataSourceFactory {
 	// SYSCOIN
 	batchInboxABI, err := bindings.BatchInboxMetaData.GetAbi()
 	if err != nil {
@@ -66,8 +66,8 @@ func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1Transact
 }
 
 // OpenData returns a DataIter. This struct implements the `Next` function.
-func (ds *DataSourceFactory) OpenData(ctx context.Context, ref eth.L1BlockRef, batcherAddr common.Address) DataIter {
-	return NewDataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ref, batcherAddr)
+func (ds *DataSourceFactory) OpenData(ctx context.Context, ref eth.L1BlockRef, batcherAddr common.Address) (DataIter, error) {
+	return NewDataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ref, batcherAddr), nil
 
 }
 
