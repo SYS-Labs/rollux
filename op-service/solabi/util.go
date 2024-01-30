@@ -41,8 +41,8 @@ func ReadHash(r io.Reader) (common.Hash, error) {
 	return h, err
 }
 
-func ReadEthBytes32(r io.Reader) (eth.Bytes32, error) {
-	var b eth.Bytes32
+func ReadEthBytes32(r io.Reader) ([]byte, error) {
+	var b []byte
 	_, err := io.ReadFull(r, b[:])
 	return b, err
 }
@@ -99,6 +99,11 @@ func WriteHash(w io.Writer, h common.Hash) error {
 }
 
 func WriteEthBytes32(w io.Writer, b eth.Bytes32) error {
+	_, err := w.Write(b[:])
+	return err
+}
+
+func WriteEthBytesAny(w io.Writer, b []byte) error {
 	_, err := w.Write(b[:])
 	return err
 }

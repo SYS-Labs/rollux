@@ -11,7 +11,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
 	"github.com/ethereum-optimism/optimism/op-batcher/rpc"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
-	"github.com/ethereum-optimism/optimism/op-node/sources"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 	opmetrics "github.com/ethereum-optimism/optimism/op-service/metrics"
 	oppprof "github.com/ethereum-optimism/optimism/op-service/pprof"
@@ -19,12 +18,12 @@ import (
 )
 
 type Config struct {
-	log        log.Logger
-	metr       metrics.Metricer
-	L1Client   *ethclient.Client
-	L2Client   *ethclient.Client
-	RollupNode *sources.RollupClient
-	TxManager  txmgr.TxManager
+	log      log.Logger
+	metr     metrics.Metricer
+	L1Client *ethclient.Client
+	L2Client *ethclient.Client
+	//RollupNode *sources.RollupClient
+	TxManager txmgr.TxManager
 
 	NetworkTimeout         time.Duration
 	PollInterval           time.Duration
@@ -39,9 +38,6 @@ type Config struct {
 
 // Check ensures that the [Config] is valid.
 func (c *Config) Check() error {
-	if err := c.Rollup.Check(); err != nil {
-		return err
-	}
 	if err := c.Channel.Check(); err != nil {
 		return err
 	}

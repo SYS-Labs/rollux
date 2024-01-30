@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum-optimism/optimism/op-node/rollup"
+	"github.com/ethereum/go-ethereum/common"
 	"io"
 	"math/big"
 	_ "net/http/pprof"
@@ -22,6 +24,17 @@ import (
 	// SYSCOIN
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 )
+
+type Bytes32 [32]byte
+
+func ToBytes32(b []byte) (Bytes32, error) {
+	var arr Bytes32
+	if len(b) != 32 {
+		return arr, errors.New("input slice must be exactly 32 bytes long")
+	}
+	copy(arr[:], b)
+	return arr, nil
+}
 
 // BatchSubmitter encapsulates a service responsible for submitting L2 tx
 // batches to L1 for availability.
@@ -65,11 +78,11 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 		return nil, err
 	}
 
-	rollupClient, err := opclient.DialRollupClientWithTimeout(ctx, cfg.RollupRpc, opclient.DefaultDialTimeout)
-	if err != nil {
-		l.Warn("dialRollupClientWithTimeout", "err", err)
-		return nil, err
-	}
+	//rollupClient, err := opclient.DialRollupClientWithTimeout(ctx, cfg.RollupRpc, opclient.DefaultDialTimeout)
+	//if err != nil {
+	//	l.Warn("dialRollupClientWithTimeout", "err", err)
+	//	return nil, err
+	//}
 
 	// SYSCOIN
 	syscoinClient, err := opclient.DialSyscoinClientWithTimeout(ctx)
@@ -78,29 +91,23 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 		return nil, err
 	}
 
-	rcfg, err := rollupClient.RollupConfig(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying rollup config: %w", err)
-	}
 	// SYSCOIN
 	txManager, err := txmgr.NewSimpleTxManager("batcher", l, m, cfg.TxMgrConfig, syscoinClient)
 	if err != nil {
 		l.Warn("txmgr.NewConfig", "err", err)
 		return nil, err
 	}
-
+	//RollupNode:             rollupClient,
 	batcherCfg := Config{
 		L1Client:               l1Client,
 		L2Client:               l2Client,
-		RollupNode:             rollupClient,
 		PollInterval:           cfg.PollInterval,
 		MaxPendingTransactions: cfg.MaxPendingTransactions,
 		NetworkTimeout:         cfg.TxMgrConfig.NetworkTimeout,
 		TxManager:              txManager,
-		Rollup:                 rcfg,
 		Channel: ChannelConfig{
-			SeqWindowSize:      rcfg.SeqWindowSize,
-			ChannelTimeout:     rcfg.ChannelTimeout,
+			SeqWindowSize:      288,
+			ChannelTimeout:     24,
 			MaxChannelDuration: cfg.MaxChannelDuration,
 			SubSafetyMargin:    cfg.SubSafetyMargin,
 			MaxFrameSize:       cfg.MaxL1TxSize - 1, // subtract 1 byte for version
@@ -203,12 +210,22 @@ func (l *BatchSubmitter) Stop(ctx context.Context) error {
 // If there is a reorg, it will reset the last stored block but not clear the internal state so
 // the state can be flushed to L1.
 func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
-	start, end, err := l.calculateL2BlockRangeToStore(ctx)
-	if err != nil {
-		l.log.Warn("Error calculating L2 block range", "err", err)
-		return err
-	} else if start.Number >= end.Number {
-		return errors.New("start number is >= end number")
+	//start, end, err := l.calculateL2BlockRangeToStore(ctx)
+	//if err != nil {
+	//	l.log.Warn("Error calculating L2 block range", "err", err)
+	//	return err
+	//} else if start.Number >= end.Number {
+	//	return errors.New("start number is >= end number")
+	//}
+	startHash := common.HexToHash("0x9e74aa0ee89625c151995beb2fcff7aa12931ce159aac0ae1577e7c43d331ab9")
+	endHash := common.HexToHash("0x77518264046e7ee70fea0575931dcd170e6aadedd8ccd1f85a0fb2a0a0aeb64a")
+	start := eth.BlockID{
+		Hash:   startHash,
+		Number: 7000000,
+	}
+	end := eth.BlockID{
+		Hash:   endHash,
+		Number: 7200000,
 	}
 
 	var latestBlock *types.Block
@@ -226,8 +243,28 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 		l.lastStoredBlock = eth.ToBlockID(block)
 		latestBlock = block
 	}
-
-	l2ref, err := derive.L2BlockToBlockRef(latestBlock, &l.Rollup.Genesis)
+	l1GenHash := common.HexToHash("0xbaaa9a7834d9b5e928eeb36942b96eb64167701e16b9da02a7a5f3aa9c0a216c")
+	l2GenHash := common.HexToHash("0x045514aee1f089c5acd01ee15995e39a406e92586495bfa4429aa93b9f6f1067")
+	l1Gen := eth.BlockID{
+		Hash:   l1GenHash,
+		Number: 247425,
+	}
+	l2Gen := eth.BlockID{
+		Hash:   l2GenHash,
+		Number: 0,
+	}
+	overheadBytes := common.Hex2Bytes("0x0000000000000000000000000000000000000000000000000000000000000834")
+	sysConfig := eth.SystemConfig{
+		BatcherAddr: common.HexToAddress("0x678255ae6b5c4ba0e6206a8e70b59b874f20bc9c"),
+		Overhead:    overheadBytes,
+	}
+	genesis := rollup.Genesis{
+		L1:           l1Gen,
+		L2:           l2Gen,
+		L2Time:       1678830392,
+		SystemConfig: sysConfig,
+	}
+	l2ref, err := derive.L2BlockToBlockRef(latestBlock, &genesis)
 	if err != nil {
 		l.log.Warn("Invalid L2 block loaded into state", "err", err)
 		return err
@@ -253,49 +290,6 @@ func (l *BatchSubmitter) loadBlockIntoState(ctx context.Context, blockNumber uin
 	l.log.Info("added L2 block to local state", "block", eth.ToBlockID(block), "tx_count", len(block.Transactions()), "time", block.Time())
 	return block, nil
 }
-
-// calculateL2BlockRangeToStore determines the range (start,end] that should be loaded into the local state.
-// It also takes care of initializing some local state (i.e. will modify l.lastStoredBlock in certain conditions)
-func (l *BatchSubmitter) calculateL2BlockRangeToStore(ctx context.Context) (eth.BlockID, eth.BlockID, error) {
-	ctx, cancel := context.WithTimeout(ctx, l.NetworkTimeout)
-	defer cancel()
-	syncStatus, err := l.RollupNode.SyncStatus(ctx)
-	// Ensure that we have the sync status
-	if err != nil {
-		return eth.BlockID{}, eth.BlockID{}, fmt.Errorf("failed to get sync status: %w", err)
-	}
-	if syncStatus.HeadL1 == (eth.L1BlockRef{}) {
-		return eth.BlockID{}, eth.BlockID{}, errors.New("empty sync status")
-	}
-
-	// Check last stored to see if it needs to be set on startup OR set if is lagged behind.
-	// It lagging implies that the op-node processed some batches that were submitted prior to the current instance of the batcher being alive.
-	if l.lastStoredBlock == (eth.BlockID{}) {
-		l.log.Info("Starting batch-submitter work at safe-head", "safe", syncStatus.SafeL2)
-		l.lastStoredBlock = syncStatus.SafeL2.ID()
-	} else if l.lastStoredBlock.Number < syncStatus.SafeL2.Number {
-		l.log.Warn("last submitted block lagged behind L2 safe head: batch submission will continue from the safe head now", "last", l.lastStoredBlock, "safe", syncStatus.SafeL2)
-		l.lastStoredBlock = syncStatus.SafeL2.ID()
-	}
-
-	// Check if we should even attempt to load any blocks. TODO: May not need this check
-	if syncStatus.SafeL2.Number >= syncStatus.UnsafeL2.Number {
-		return eth.BlockID{}, eth.BlockID{}, errors.New("L2 safe head ahead of L2 unsafe head")
-	}
-
-	return l.lastStoredBlock, syncStatus.UnsafeL2.ID(), nil
-}
-
-// The following things occur:
-// New L2 block (reorg or not)
-// L1 transaction is confirmed
-//
-// What the batcher does:
-// Ensure that channels are created & submitted as frames for an L2 range
-//
-// Error conditions:
-// Submitted batch, but it is not valid
-// Missed L2 block somehow.
 
 func (l *BatchSubmitter) loop() {
 	defer l.wg.Done()
@@ -386,32 +380,33 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 		return err
 	}
 	// Function name and parameter types
-	parsedABI, err := bindings.BatchInboxMetaData.GetAbi()
+	_, err = bindings.BatchInboxMetaData.GetAbi()
 	if err != nil {
 		l.log.Error("Failed to parse contract ABI: %v", err)
 		return err
 	}
 
 	// SYSCOIN Record TX Status
-	if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
-		l.recordFailedTx(txdata.ID(), err)
-	} else {
-		l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
-		// Create the transaction
-		// we avoid changing Receipt object and just reuse TxHash for VH
-		var arrayOfVHs [][32]byte
-		var array [32]byte
-		copy(array[:], receipt.TxHash.Bytes())
-		arrayOfVHs = append(arrayOfVHs, array)
-		packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, arrayOfVHs)
-		if err != nil {
-			l.log.Error("Failed to pack data for function call: %v", err)
-			l.recordFailedTx(txdata.ID(), err)
-			return err
-		}
-		txdata.frame.data = packedData
-		l.sendTransaction(txdata, queue, receiptsCh)
-	}
+	l.log.Info("BLOB", "SEE BLOB", txdata.Bytes())
+	//if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
+	//	l.recordFailedTx(txdata.ID(), err)
+	//} else {
+	//	l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
+	//	// Create the transaction
+	//	// we avoid changing Receipt object and just reuse TxHash for VH
+	//	var arrayOfVHs [][32]byte
+	//	var array [32]byte
+	//	copy(array[:], receipt.TxHash.Bytes())
+	//	arrayOfVHs = append(arrayOfVHs, array)
+	//	packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, arrayOfVHs)
+	//	if err != nil {
+	//		l.log.Error("Failed to pack data for function call: %v", err)
+	//		l.recordFailedTx(txdata.ID(), err)
+	//		return err
+	//	}
+	//	txdata.frame.data = packedData
+	//	//
+	//}
 	return nil
 }
 
@@ -426,9 +421,9 @@ func (l *BatchSubmitter) sendTransaction(txdata txData, queue *txmgr.Queue[txDat
 		l.log.Error("Failed to calculate intrinsic gas", "error", err)
 		return
 	}*/
-
+	batcherAddr := common.HexToAddress("0x678255ae6b5c4ba0e6206a8e70b59b874f20bc9c")
 	candidate := txmgr.TxCandidate{
-		To:     &l.Rollup.BatchInboxAddress,
+		To:     &batcherAddr,
 		TxData: data,
 		// SYSCOIN let L1 estimate gas due to precompile
 		GasLimit: 0,
@@ -460,6 +455,7 @@ func (l *BatchSubmitter) sendBlobTransaction(ctx context.Context, data []byte) (
 		return nil, err
 	} else {
 		l.log.Info("blob successfully published", "version_hash", receipt.TxHash)
+		l.log.Info("blob", "blobdata", data)
 		return receipt, nil
 	}
 }
@@ -494,3 +490,46 @@ func (l *BatchSubmitter) l1Tip(ctx context.Context) (eth.L1BlockRef, error) {
 	}
 	return eth.InfoToL1BlockRef(eth.HeaderBlockInfo(head)), nil
 }
+
+// calculateL2BlockRangeToStore determines the range (start,end] that should be loaded into the local state.
+// It also takes care of initializing some local state (i.e. will modify l.lastStoredBlock in certain conditions)
+//func (l *BatchSubmitter) calculateL2BlockRangeToStore(ctx context.Context) (eth.BlockID, eth.BlockID, error) {
+//	ctx, cancel := context.WithTimeout(ctx, l.NetworkTimeout)
+//	defer cancel()
+//	syncStatus, err := l.RollupNode.SyncStatus(ctx)
+//	// Ensure that we have the sync status
+//	if err != nil {
+//		return eth.BlockID{}, eth.BlockID{}, fmt.Errorf("failed to get sync status: %w", err)
+//	}
+//	if syncStatus.HeadL1 == (eth.L1BlockRef{}) {
+//		return eth.BlockID{}, eth.BlockID{}, errors.New("empty sync status")
+//	}
+//
+//	// Check last stored to see if it needs to be set on startup OR set if is lagged behind.
+//	// It lagging implies that the op-node processed some batches that were submitted prior to the current instance of the batcher being alive.
+//	if l.lastStoredBlock == (eth.BlockID{}) {
+//		l.log.Info("Starting batch-submitter work at safe-head", "safe", syncStatus.SafeL2)
+//		l.lastStoredBlock = syncStatus.SafeL2.ID()
+//	} else if l.lastStoredBlock.Number < syncStatus.SafeL2.Number {
+//		l.log.Warn("last submitted block lagged behind L2 safe head: batch submission will continue from the safe head now", "last", l.lastStoredBlock, "safe", syncStatus.SafeL2)
+//		l.lastStoredBlock = syncStatus.SafeL2.ID()
+//	}
+//
+//	// Check if we should even attempt to load any blocks. TODO: May not need this check
+//	if syncStatus.SafeL2.Number >= syncStatus.UnsafeL2.Number {
+//		return eth.BlockID{}, eth.BlockID{}, errors.New("L2 safe head ahead of L2 unsafe head")
+//	}
+//
+//	return l.lastStoredBlock, syncStatus.UnsafeL2.ID(), nil
+//}
+
+// The following things occur:
+// New L2 block (reorg or not)
+// L1 transaction is confirmed
+//
+// What the batcher does:
+// Ensure that channels are created & submitted as frames for an L2 range
+//
+// Error conditions:
+// Submitted batch, but it is not valid
+// Missed L2 block somehow.

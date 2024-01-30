@@ -42,8 +42,8 @@ type L1BlockInfo struct {
 	SequenceNumber uint64
 	// BatcherHash version 0 is just the address with 0 padding to the left.
 	BatcherAddr   common.Address
-	L1FeeOverhead eth.Bytes32
-	L1FeeScalar   eth.Bytes32
+	L1FeeOverhead []byte
+	L1FeeScalar   []byte
 }
 
 // Binary Format
@@ -84,10 +84,10 @@ func (info *L1BlockInfo) MarshalBinary() ([]byte, error) {
 	if err := solabi.WriteAddress(w, info.BatcherAddr); err != nil {
 		return nil, err
 	}
-	if err := solabi.WriteEthBytes32(w, info.L1FeeOverhead); err != nil {
+	if err := solabi.WriteEthBytesAny(w, info.L1FeeOverhead); err != nil {
 		return nil, err
 	}
-	if err := solabi.WriteEthBytes32(w, info.L1FeeScalar); err != nil {
+	if err := solabi.WriteEthBytesAny(w, info.L1FeeScalar); err != nil {
 		return nil, err
 	}
 	return w.Bytes(), nil

@@ -86,7 +86,6 @@ var (
 var requiredFlags = []cli.Flag{
 	L1EthRpcFlag,
 	L2EthRpcFlag,
-	RollupRpcFlag,
 }
 
 var optionalFlags = []cli.Flag{
@@ -97,6 +96,7 @@ var optionalFlags = []cli.Flag{
 	MaxL1TxSizeBytesFlag,
 	StoppedFlag,
 	SequencerHDPathFlag,
+	RollupRpcFlag,
 }
 
 func init() {
