@@ -286,9 +286,9 @@ type SystemConfig struct {
 	// BatcherAddr identifies the batch-sender address used in batch-inbox data-transaction filtering.
 	BatcherAddr common.Address `json:"batcherAddr"`
 	// Overhead identifies the L1 fee overhead, and is passed through opaquely to op-geth.
-	Overhead []byte `json:"overhead"`
+	Overhead Bytes32 `json:"overhead"`
 	// Scalar identifies the L1 fee scalar, and is passed through opaquely to op-geth.
-	Scalar []byte `json:"scalar"`
+	Scalar Bytes32 `json:"scalar"`
 	// GasLimit identifies the L2 block gas limit
 	GasLimit uint64 `json:"gasLimit"`
 	// More fields can be added for future SystemConfig versions.

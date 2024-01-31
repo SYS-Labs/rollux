@@ -41,8 +41,8 @@ func ReadHash(r io.Reader) (common.Hash, error) {
 	return h, err
 }
 
-func ReadEthBytes32(r io.Reader) ([]byte, error) {
-	var b []byte
+func ReadEthBytes32(r io.Reader) (eth.Bytes32, error) {
+	var b eth.Bytes32
 	_, err := io.ReadFull(r, b[:])
 	return b, err
 }

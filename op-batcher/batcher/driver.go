@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum-optimism/optimism/op-node/eth"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum/go-ethereum/common"
 	"io"
@@ -14,7 +15,6 @@ import (
 	"time"
 
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
-	"github.com/ethereum-optimism/optimism/op-node/eth"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
 	opclient "github.com/ethereum-optimism/optimism/op-service/client"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
@@ -25,15 +25,10 @@ import (
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 )
 
-type Bytes32 [32]byte
-
-func ToBytes32(b []byte) (Bytes32, error) {
-	var arr Bytes32
-	if len(b) != 32 {
-		return arr, errors.New("input slice must be exactly 32 bytes long")
-	}
-	copy(arr[:], b)
-	return arr, nil
+func ConvertToBytes32(slice []byte) eth.Bytes32 {
+	var b32 eth.Bytes32
+	copy(b32[:], slice)
+	return b32
 }
 
 // BatchSubmitter encapsulates a service responsible for submitting L2 tx
@@ -218,14 +213,14 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 	//	return errors.New("start number is >= end number")
 	//}
 	startHash := common.HexToHash("0x9e74aa0ee89625c151995beb2fcff7aa12931ce159aac0ae1577e7c43d331ab9")
-	endHash := common.HexToHash("0x77518264046e7ee70fea0575931dcd170e6aadedd8ccd1f85a0fb2a0a0aeb64a")
+	endHash := common.HexToHash("0x3260d4f747137145de41027a09715c2bf581f0d8aa46a92f6e5c3e75583b2c7e")
 	start := eth.BlockID{
 		Hash:   startHash,
 		Number: 7000000,
 	}
 	end := eth.BlockID{
 		Hash:   endHash,
-		Number: 7200000,
+		Number: 7000050,
 	}
 
 	var latestBlock *types.Block
@@ -254,9 +249,10 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 		Number: 0,
 	}
 	overheadBytes := common.Hex2Bytes("0x0000000000000000000000000000000000000000000000000000000000000834")
+	convertedOverheadBytes := ConvertToBytes32(overheadBytes)
 	sysConfig := eth.SystemConfig{
 		BatcherAddr: common.HexToAddress("0x678255ae6b5c4ba0e6206a8e70b59b874f20bc9c"),
-		Overhead:    overheadBytes,
+		Overhead:    convertedOverheadBytes,
 	}
 	genesis := rollup.Genesis{
 		L1:           l1Gen,
