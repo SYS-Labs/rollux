@@ -192,6 +192,7 @@ func (s *SyscoinClient) CreateBlob(data []byte) (common.Hash, error) {
 	if res.Error != nil {
 		return common.Hash{}, res.Error
 	}
+
 	return common.HexToHash(res.Result.VH), err
 }
 func (s *SyscoinClient) CreateOrLoadWallet(walletName string) error {

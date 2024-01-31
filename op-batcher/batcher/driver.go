@@ -384,25 +384,19 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 
 	// SYSCOIN Record TX Status
 	l.log.Info("BLOB", "SEE BLOB", txdata.Bytes())
-	//if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
-	//	l.recordFailedTx(txdata.ID(), err)
-	//} else {
-	//	l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
-	//	// Create the transaction
-	//	// we avoid changing Receipt object and just reuse TxHash for VH
-	//	var arrayOfVHs [][32]byte
-	//	var array [32]byte
-	//	copy(array[:], receipt.TxHash.Bytes())
-	//	arrayOfVHs = append(arrayOfVHs, array)
-	//	packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, arrayOfVHs)
-	//	if err != nil {
-	//		l.log.Error("Failed to pack data for function call: %v", err)
-	//		l.recordFailedTx(txdata.ID(), err)
-	//		return err
-	//	}
-	//	txdata.frame.data = packedData
-	//	//
-	//}
+	if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
+		l.recordFailedTx(txdata.ID(), err)
+	} else {
+		l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
+		// Create the transaction
+		// we avoid changing Receipt object and just reuse TxHash for VH
+		var arrayOfVHs [][32]byte
+		var array [32]byte
+		copy(array[:], receipt.TxHash.Bytes())
+		arrayOfVHs = append(arrayOfVHs, array)
+
+		//
+	}
 	return nil
 }
 
