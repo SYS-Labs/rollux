@@ -26,13 +26,18 @@ var (
 	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
-	_ = abi.ConvertType
 )
+
+// IDisputeGameFactoryGameSearchResult is an auto generated low-level Go binding around an user-defined struct.
+type IDisputeGameFactoryGameSearchResult struct {
+	Index    *big.Int
+	Metadata [32]byte
+}
 
 // DisputeGameFactoryMetaData contains all meta data concerning the DisputeGameFactory contract.
 var DisputeGameFactoryMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"create\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint8\",\"internalType\":\"GameType\"},{\"name\":\"_rootClaim\",\"type\":\"bytes32\",\"internalType\":\"Claim\"},{\"name\":\"_extraData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"proxy_\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"gameAtIndex\",\"inputs\":[{\"name\":\"_index\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"gameType_\",\"type\":\"uint8\",\"internalType\":\"GameType\"},{\"name\":\"timestamp_\",\"type\":\"uint64\",\"internalType\":\"Timestamp\"},{\"name\":\"proxy_\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gameCount\",\"inputs\":[],\"outputs\":[{\"name\":\"gameCount_\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gameImpls\",\"inputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"GameType\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"games\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint8\",\"internalType\":\"GameType\"},{\"name\":\"_rootClaim\",\"type\":\"bytes32\",\"internalType\":\"Claim\"},{\"name\":\"_extraData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"proxy_\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"},{\"name\":\"timestamp_\",\"type\":\"uint64\",\"internalType\":\"Timestamp\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getGameUUID\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint8\",\"internalType\":\"GameType\"},{\"name\":\"_rootClaim\",\"type\":\"bytes32\",\"internalType\":\"Claim\"},{\"name\":\"_extraData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"uuid_\",\"type\":\"bytes32\",\"internalType\":\"Hash\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"initBonds\",\"inputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"GameType\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"initialize\",\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setImplementation\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint8\",\"internalType\":\"GameType\"},{\"name\":\"_impl\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setInitBond\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint8\",\"internalType\":\"GameType\"},{\"name\":\"_initBond\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"version\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"DisputeGameCreated\",\"inputs\":[{\"name\":\"disputeProxy\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"gameType\",\"type\":\"uint8\",\"indexed\":true,\"internalType\":\"GameType\"},{\"name\":\"rootClaim\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"Claim\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ImplementationSet\",\"inputs\":[{\"name\":\"impl\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"gameType\",\"type\":\"uint8\",\"indexed\":true,\"internalType\":\"GameType\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"InitBondUpdated\",\"inputs\":[{\"name\":\"gameType\",\"type\":\"uint8\",\"indexed\":true,\"internalType\":\"GameType\"},{\"name\":\"newBond\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Initialized\",\"inputs\":[{\"name\":\"version\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"GameAlreadyExists\",\"inputs\":[{\"name\":\"uuid\",\"type\":\"bytes32\",\"internalType\":\"Hash\"}]},{\"type\":\"error\",\"name\":\"InsufficientBond\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NoImplementation\",\"inputs\":[{\"name\":\"gameType\",\"type\":\"uint8\",\"internalType\":\"GameType\"}]}]",
-	Bin: "0x60806040523480156200001157600080fd5b506200001e600062000024565b62000292565b600054610100900460ff1615808015620000455750600054600160ff909116105b8062000075575062000062306200016260201b62000a3c1760201c565b15801562000075575060005460ff166001145b620000de5760405162461bcd60e51b815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201526d191e481a5b9a5d1a585b1a5e995960921b60648201526084015b60405180910390fd5b6000805460ff19166001179055801562000102576000805461ff0019166101001790555b6200010c62000171565b6200011782620001d9565b80156200015e576000805461ff0019169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b5050565b6001600160a01b03163b151590565b600054610100900460ff16620001cd5760405162461bcd60e51b815260206004820152602b6024820152600080516020620012ff83398151915260448201526a6e697469616c697a696e6760a81b6064820152608401620000d5565b620001d76200022b565b565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b600054610100900460ff16620002875760405162461bcd60e51b815260206004820152602b6024820152600080516020620012ff83398151915260448201526a6e697469616c697a696e6760a81b6064820152608401620000d5565b620001d733620001d9565b61105d80620002a26000396000f3fe6080604052600436106100dd5760003560e01c8063bb8aa1fc1161007f578063c4d66de811610059578063c4d66de8146102ed578063dfa162d31461030d578063ed8bc95d14610350578063f2fde38b1461037d57600080fd5b8063bb8aa1fc1461021a578063c018126b14610278578063c49d52711461029857600080fd5b80634d1975b4116100bb5780634d1975b41461016f57806354fd4d5014610184578063715018a6146101da5780638da5cb5b146101ef57600080fd5b806326daafbe146100e25780633142e55e1461011557806345583b7a1461014d575b600080fd5b3480156100ee57600080fd5b506101026100fd366004610dd4565b61039d565b6040519081526020015b60405180910390f35b610128610123366004610dd4565b6103d6565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200161010c565b34801561015957600080fd5b5061016d610168366004610e7d565b610650565b005b34801561017b57600080fd5b50606854610102565b34801561019057600080fd5b506101cd6040518060400160405280600581526020017f302e302e3800000000000000000000000000000000000000000000000000000081525081565b60405161010c9190610eb4565b3480156101e657600080fd5b5061016d6106d7565b3480156101fb57600080fd5b5060335473ffffffffffffffffffffffffffffffffffffffff16610128565b34801561022657600080fd5b5061023a610235366004610f27565b6106eb565b6040805160ff909416845267ffffffffffffffff909216602084015273ffffffffffffffffffffffffffffffffffffffff169082015260600161010c565b34801561028457600080fd5b5061016d610293366004610f40565b61074d565b3480156102a457600080fd5b506102b86102b3366004610dd4565b610796565b6040805173ffffffffffffffffffffffffffffffffffffffff909316835267ffffffffffffffff90911660208301520161010c565b3480156102f957600080fd5b5061016d610308366004610f6a565b6107e9565b34801561031957600080fd5b50610128610328366004610f8e565b60656020526000908152604090205473ffffffffffffffffffffffffffffffffffffffff1681565b34801561035c57600080fd5b5061010261036b366004610f8e565b60666020526000908152604090205481565b34801561038957600080fd5b5061016d610398366004610f6a565b610985565b6000848484846040516020016103b69493929190610fa9565b604051602081830303815290604052805190602001209050949350505050565b60ff841660009081526065602052604081205473ffffffffffffffffffffffffffffffffffffffff1680610440576040517f44265d6f00000000000000000000000000000000000000000000000000000000815260ff871660048201526024015b60405180910390fd5b60ff861660009081526066602052604090205434101561048c576040517fe92c469f00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6104ef8585856040516020016104a493929190611007565b604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe081840301815291905273ffffffffffffffffffffffffffffffffffffffff831690610a58565b91508173ffffffffffffffffffffffffffffffffffffffff16638129fc1c346040518263ffffffff1660e01b81526004016000604051808303818588803b15801561053957600080fd5b505af115801561054d573d6000803e3d6000fd5b505050505060006105608787878761039d565b600081815260676020526040902054909150156105ac576040517f014f6fe500000000000000000000000000000000000000000000000000000000815260048101829052602401610437565b60004260b81b60f889901b178417600083815260676020526040808220839055606880546001810182559083527fa2153420d844928b4421650203c77babc8b33d7f2e7b450e2966db0c220977530183905551919250889160ff8b169173ffffffffffffffffffffffffffffffffffffffff8816917ffad0599ff449d8d9685eadecca8cb9e00924c5fd8367c1c09469824939e1ffec9190a4505050949350505050565b610658610b8c565b60ff821660008181526065602052604080822080547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff8616908117909155905190917f623713f72f6e427a8044bb8b3bd6834357cf285decbaa21bcc73c1d0632c4d8491a35050565b6106df610b8c565b6106e96000610c0d565b565b60008060006107406068858154811061070657610706611021565b906000526020600020015460f881901c9167ffffffffffffffff60b883901c169173ffffffffffffffffffffffffffffffffffffffff1690565b9196909550909350915050565b610755610b8c565b60ff8216600081815260666020526040808220849055518392917f3d3603f30a8e965cf76ec29fb1f0563457ec8a7114c12180c60e7be8384201f191a35050565b60008060006107a78787878761039d565b60009081526067602052604090205473ffffffffffffffffffffffffffffffffffffffff81169860b89190911c67ffffffffffffffff16975095505050505050565b600054610100900460ff16158080156108095750600054600160ff909116105b806108235750303b158015610823575060005460ff166001145b6108af576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201527f647920696e697469616c697a65640000000000000000000000000000000000006064820152608401610437565b600080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00166001179055801561090d57600080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00ff166101001790555b610915610c84565b61091e82610c0d565b801561098157600080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00ff169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b5050565b61098d610b8c565b73ffffffffffffffffffffffffffffffffffffffff8116610a30576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201527f64647265737300000000000000000000000000000000000000000000000000006064820152608401610437565b610a3981610c0d565b50565b73ffffffffffffffffffffffffffffffffffffffff163b151590565b60006002825101603f8101600a81036040518360581b8260e81b177f6100003d81600a3d39f3363d3d373d3d3d3d610000806035363936013d7300001781528660601b601e8201527f5af43d3d93803e603357fd5bf300000000000000000000000000000000000000603282015285519150603f8101602087015b60208410610b1057805182527fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe09093019260209182019101610ad3565b517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff602085900360031b1b16815260f085901b9083015282816000f0945084610b7d577febfef1880000000000000000000000000000000000000000000000000000000060005260206000fd5b90910160405250909392505050565b60335473ffffffffffffffffffffffffffffffffffffffff1633146106e9576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e65726044820152606401610437565b6033805473ffffffffffffffffffffffffffffffffffffffff8381167fffffffffffffffffffffffff0000000000000000000000000000000000000000831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b600054610100900460ff16610d1b576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602b60248201527f496e697469616c697a61626c653a20636f6e7472616374206973206e6f74206960448201527f6e697469616c697a696e670000000000000000000000000000000000000000006064820152608401610437565b6106e9600054610100900460ff16610db5576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602b60248201527f496e697469616c697a61626c653a20636f6e7472616374206973206e6f74206960448201527f6e697469616c697a696e670000000000000000000000000000000000000000006064820152608401610437565b6106e933610c0d565b803560ff81168114610dcf57600080fd5b919050565b60008060008060608587031215610dea57600080fd5b610df385610dbe565b935060208501359250604085013567ffffffffffffffff80821115610e1757600080fd5b818701915087601f830112610e2b57600080fd5b813581811115610e3a57600080fd5b886020828501011115610e4c57600080fd5b95989497505060200194505050565b73ffffffffffffffffffffffffffffffffffffffff81168114610a3957600080fd5b60008060408385031215610e9057600080fd5b610e9983610dbe565b91506020830135610ea981610e5b565b809150509250929050565b600060208083528351808285015260005b81811015610ee157858101830151858201604001528201610ec5565b81811115610ef3576000604083870101525b50601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016929092016040019392505050565b600060208284031215610f3957600080fd5b5035919050565b60008060408385031215610f5357600080fd5b610f5c83610dbe565b946020939093013593505050565b600060208284031215610f7c57600080fd5b8135610f8781610e5b565b9392505050565b600060208284031215610fa057600080fd5b610f8782610dbe565b60ff8516815283602082015260606040820152816060820152818360808301376000818301608090810191909152601f9092017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe01601019392505050565b838152818360208301376000910160200190815292915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fdfea164736f6c634300080f000a496e697469616c697a61626c653a20636f6e7472616374206973206e6f742069",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"create\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint32\",\"internalType\":\"GameType\"},{\"name\":\"_rootClaim\",\"type\":\"bytes32\",\"internalType\":\"Claim\"},{\"name\":\"_extraData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"proxy_\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"findLatestGames\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint32\",\"internalType\":\"GameType\"},{\"name\":\"_start\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_n\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"games_\",\"type\":\"tuple[]\",\"internalType\":\"structIDisputeGameFactory.GameSearchResult[]\",\"components\":[{\"name\":\"index\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"metadata\",\"type\":\"bytes32\",\"internalType\":\"GameId\"}]}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gameAtIndex\",\"inputs\":[{\"name\":\"_index\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"gameType_\",\"type\":\"uint32\",\"internalType\":\"GameType\"},{\"name\":\"timestamp_\",\"type\":\"uint64\",\"internalType\":\"Timestamp\"},{\"name\":\"proxy_\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gameCount\",\"inputs\":[],\"outputs\":[{\"name\":\"gameCount_\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"gameImpls\",\"inputs\":[{\"name\":\"\",\"type\":\"uint32\",\"internalType\":\"GameType\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"games\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint32\",\"internalType\":\"GameType\"},{\"name\":\"_rootClaim\",\"type\":\"bytes32\",\"internalType\":\"Claim\"},{\"name\":\"_extraData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"proxy_\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"},{\"name\":\"timestamp_\",\"type\":\"uint64\",\"internalType\":\"Timestamp\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getGameUUID\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint32\",\"internalType\":\"GameType\"},{\"name\":\"_rootClaim\",\"type\":\"bytes32\",\"internalType\":\"Claim\"},{\"name\":\"_extraData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"uuid_\",\"type\":\"bytes32\",\"internalType\":\"Hash\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"initBonds\",\"inputs\":[{\"name\":\"\",\"type\":\"uint32\",\"internalType\":\"GameType\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"initialize\",\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setImplementation\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint32\",\"internalType\":\"GameType\"},{\"name\":\"_impl\",\"type\":\"address\",\"internalType\":\"contractIDisputeGame\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setInitBond\",\"inputs\":[{\"name\":\"_gameType\",\"type\":\"uint32\",\"internalType\":\"GameType\"},{\"name\":\"_initBond\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"version\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"DisputeGameCreated\",\"inputs\":[{\"name\":\"disputeProxy\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"gameType\",\"type\":\"uint32\",\"indexed\":true,\"internalType\":\"GameType\"},{\"name\":\"rootClaim\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"Claim\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ImplementationSet\",\"inputs\":[{\"name\":\"impl\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"gameType\",\"type\":\"uint32\",\"indexed\":true,\"internalType\":\"GameType\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"InitBondUpdated\",\"inputs\":[{\"name\":\"gameType\",\"type\":\"uint32\",\"indexed\":true,\"internalType\":\"GameType\"},{\"name\":\"newBond\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Initialized\",\"inputs\":[{\"name\":\"version\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"GameAlreadyExists\",\"inputs\":[{\"name\":\"uuid\",\"type\":\"bytes32\",\"internalType\":\"Hash\"}]},{\"type\":\"error\",\"name\":\"InsufficientBond\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NoImplementation\",\"inputs\":[{\"name\":\"gameType\",\"type\":\"uint32\",\"internalType\":\"GameType\"}]}]",
+	Bin: "0x60806040523480156200001157600080fd5b506200001e600062000024565b62000292565b600054610100900460ff1615808015620000455750600054600160ff909116105b8062000075575062000062306200016260201b62000b721760201c565b15801562000075575060005460ff166001145b620000de5760405162461bcd60e51b815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201526d191e481a5b9a5d1a585b1a5e995960921b60648201526084015b60405180910390fd5b6000805460ff19166001179055801562000102576000805461ff0019166101001790555b6200010c62000171565b6200011782620001d9565b80156200015e576000805461ff0019169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b5050565b6001600160a01b03163b151590565b600054610100900460ff16620001cd5760405162461bcd60e51b815260206004820152602b6024820152600080516020620014f483398151915260448201526a6e697469616c697a696e6760a81b6064820152608401620000d5565b620001d76200022b565b565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b600054610100900460ff16620002875760405162461bcd60e51b815260206004820152602b6024820152600080516020620014f483398151915260448201526a6e697469616c697a696e6760a81b6064820152608401620000d5565b620001d733620001d9565b61125280620002a26000396000f3fe6080604052600436106100e85760003560e01c80636593dc6e1161008a57806396cd97201161005957806396cd972014610313578063bb8aa1fc14610333578063c4d66de814610394578063f2fde38b146103b457600080fd5b80636593dc6e14610293578063715018a6146102c057806382ecf2f6146102d55780638da5cb5b146102e857600080fd5b8063254bd683116100c6578063254bd6831461019c5780634d1975b4146101c957806354fd4d50146101e85780635f0150cb1461023e57600080fd5b806314f6b1a3146100ed5780631b685b9e1461010f5780631e3342401461017c575b600080fd5b3480156100f957600080fd5b5061010d610108366004610f2f565b6103d4565b005b34801561011b57600080fd5b5061015261012a366004610f66565b60656020526000908152604090205473ffffffffffffffffffffffffffffffffffffffff1681565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020015b60405180910390f35b34801561018857600080fd5b5061010d610197366004610f81565b61045e565b3480156101a857600080fd5b506101bc6101b7366004610fab565b6104aa565b6040516101739190610fde565b3480156101d557600080fd5b506068545b604051908152602001610173565b3480156101f457600080fd5b506102316040518060400160405280600581526020017f302e302e3900000000000000000000000000000000000000000000000000000081525081565b604051610173919061102d565b34801561024a57600080fd5b5061025e6102593660046110a0565b610597565b6040805173ffffffffffffffffffffffffffffffffffffffff909316835267ffffffffffffffff909116602083015201610173565b34801561029f57600080fd5b506101da6102ae366004610f66565b60666020526000908152604090205481565b3480156102cc57600080fd5b5061010d6105ea565b6101526102e33660046110a0565b6105fe565b3480156102f457600080fd5b5060335473ffffffffffffffffffffffffffffffffffffffff16610152565b34801561031f57600080fd5b506101da61032e3660046110a0565b610884565b34801561033f57600080fd5b5061035361034e366004611127565b6108bd565b6040805163ffffffff909416845267ffffffffffffffff909216602084015273ffffffffffffffffffffffffffffffffffffffff1690820152606001610173565b3480156103a057600080fd5b5061010d6103af366004611140565b61091f565b3480156103c057600080fd5b5061010d6103cf366004611140565b610abb565b6103dc610b8e565b63ffffffff821660008181526065602052604080822080547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff8616908117909155905190917fff513d80e2c7fa487608f70a618dfbc0cf415699dc69588c747e8c71566c88de91a35050565b610466610b8e565b63ffffffff8216600081815260666020526040808220849055518392917f74d6665c4b26d5596a5aa13d3014e0c06af4d322075a797f87b03cd4c5bc91ca91a35050565b606854606090831015806104bc575081155b610590575060408051600583901b8101602001909152825b83811161058e576000606882815481106104f0576104f061115d565b600091825260209091200154905060e081901c60ff808816908216036105655760018451018452604051806040016040528084815260200183815250846001865161053b919061118c565b8151811061054b5761054b61115d565b60200260200101819052508484511061056557505061058e565b50507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff016104d4565b505b9392505050565b60008060006105a887878787610884565b60009081526067602052604090205473ffffffffffffffffffffffffffffffffffffffff81169860a09190911c67ffffffffffffffff16975095505050505050565b6105f2610b8e565b6105fc6000610c0f565b565b63ffffffff841660009081526065602052604081205473ffffffffffffffffffffffffffffffffffffffff168061066e576040517f031c6de400000000000000000000000000000000000000000000000000000000815263ffffffff871660048201526024015b60405180910390fd5b63ffffffff86166000908152606660205260409020543410156106bd576040517fe92c469f00000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b6107208585856040516020016106d5939291906111ca565b604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe081840301815291905273ffffffffffffffffffffffffffffffffffffffff831690610c86565b91508173ffffffffffffffffffffffffffffffffffffffff16638129fc1c346040518263ffffffff1660e01b81526004016000604051808303818588803b15801561076a57600080fd5b505af115801561077e573d6000803e3d6000fd5b5050505050600061079187878787610884565b600081815260676020526040902054909150156107dd576040517f014f6fe500000000000000000000000000000000000000000000000000000000815260048101829052602401610665565b60004260a01b60e089901b178417600083815260676020526040808220839055606880546001810182559083527fa2153420d844928b4421650203c77babc8b33d7f2e7b450e2966db0c220977530183905551919250889163ffffffff8b169173ffffffffffffffffffffffffffffffffffffffff8816917f5b565efe82411da98814f356d0e7bcb8f0219b8d970307c5afb4a6903a8b2e359190a4505050949350505050565b60008484848460405160200161089d94939291906111e4565b604051602081830303815290604052805190602001209050949350505050565b6000806000610912606885815481106108d8576108d861115d565b906000526020600020015460e081901c9160a082901c67ffffffffffffffff169173ffffffffffffffffffffffffffffffffffffffff1690565b9196909550909350915050565b600054610100900460ff161580801561093f5750600054600160ff909116105b806109595750303b158015610959575060005460ff166001145b6109e5576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201527f647920696e697469616c697a65640000000000000000000000000000000000006064820152608401610665565b600080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff001660011790558015610a4357600080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00ff166101001790555b610a4b610dba565b610a5482610c0f565b8015610ab757600080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00ff169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b5050565b610ac3610b8e565b73ffffffffffffffffffffffffffffffffffffffff8116610b66576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201527f64647265737300000000000000000000000000000000000000000000000000006064820152608401610665565b610b6f81610c0f565b50565b73ffffffffffffffffffffffffffffffffffffffff163b151590565b60335473ffffffffffffffffffffffffffffffffffffffff1633146105fc576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e65726044820152606401610665565b6033805473ffffffffffffffffffffffffffffffffffffffff8381167fffffffffffffffffffffffff0000000000000000000000000000000000000000831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b60006002825101603f8101600a81036040518360581b8260e81b177f6100003d81600a3d39f3363d3d373d3d3d3d610000806035363936013d7300001781528660601b601e8201527f5af43d3d93803e603357fd5bf300000000000000000000000000000000000000603282015285519150603f8101602087015b60208410610d3e57805182527fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe09093019260209182019101610d01565b517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff602085900360031b1b16815260f085901b9083015282816000f0945084610dab577febfef1880000000000000000000000000000000000000000000000000000000060005260206000fd5b90910160405250909392505050565b600054610100900460ff16610e51576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602b60248201527f496e697469616c697a61626c653a20636f6e7472616374206973206e6f74206960448201527f6e697469616c697a696e670000000000000000000000000000000000000000006064820152608401610665565b6105fc600054610100900460ff16610eeb576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602b60248201527f496e697469616c697a61626c653a20636f6e7472616374206973206e6f74206960448201527f6e697469616c697a696e670000000000000000000000000000000000000000006064820152608401610665565b6105fc33610c0f565b803563ffffffff81168114610f0857600080fd5b919050565b73ffffffffffffffffffffffffffffffffffffffff81168114610b6f57600080fd5b60008060408385031215610f4257600080fd5b610f4b83610ef4565b91506020830135610f5b81610f0d565b809150509250929050565b600060208284031215610f7857600080fd5b61059082610ef4565b60008060408385031215610f9457600080fd5b610f9d83610ef4565b946020939093013593505050565b600080600060608486031215610fc057600080fd5b610fc984610ef4565b95602085013595506040909401359392505050565b602080825282518282018190526000919060409081850190868401855b8281101561102057815180518552860151868501529284019290850190600101610ffb565b5091979650505050505050565b600060208083528351808285015260005b8181101561105a5785810183015185820160400152820161103e565b8181111561106c576000604083870101525b50601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe016929092016040019392505050565b600080600080606085870312156110b657600080fd5b6110bf85610ef4565b935060208501359250604085013567ffffffffffffffff808211156110e357600080fd5b818701915087601f8301126110f757600080fd5b81358181111561110657600080fd5b88602082850101111561111857600080fd5b95989497505060200194505050565b60006020828403121561113957600080fd5b5035919050565b60006020828403121561115257600080fd5b813561059081610f0d565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b6000828210156111c5577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b500390565b838152818360208301376000910160200190815292915050565b63ffffffff8516815283602082015260606040820152816060820152818360808301376000818301608090810191909152601f9092017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0160101939250505056fea164736f6c634300080f000a496e697469616c697a61626c653a20636f6e7472616374206973206e6f742069",
 }
 
 // DisputeGameFactoryABI is the input ABI used to generate the binding from.
@@ -157,11 +162,11 @@ func NewDisputeGameFactoryFilterer(address common.Address, filterer bind.Contrac
 
 // bindDisputeGameFactory binds a generic wrapper to an already deployed contract.
 func bindDisputeGameFactory(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := DisputeGameFactoryMetaData.GetAbi()
+	parsed, err := abi.JSON(strings.NewReader(DisputeGameFactoryABI))
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -202,11 +207,42 @@ func (_DisputeGameFactory *DisputeGameFactoryTransactorRaw) Transact(opts *bind.
 	return _DisputeGameFactory.Contract.contract.Transact(opts, method, params...)
 }
 
+// FindLatestGames is a free data retrieval call binding the contract method 0x254bd683.
+//
+// Solidity: function findLatestGames(uint32 _gameType, uint256 _start, uint256 _n) view returns((uint256,bytes32)[] games_)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) FindLatestGames(opts *bind.CallOpts, _gameType uint32, _start *big.Int, _n *big.Int) ([]IDisputeGameFactoryGameSearchResult, error) {
+	var out []interface{}
+	err := _DisputeGameFactory.contract.Call(opts, &out, "findLatestGames", _gameType, _start, _n)
+
+	if err != nil {
+		return *new([]IDisputeGameFactoryGameSearchResult), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]IDisputeGameFactoryGameSearchResult)).(*[]IDisputeGameFactoryGameSearchResult)
+
+	return out0, err
+
+}
+
+// FindLatestGames is a free data retrieval call binding the contract method 0x254bd683.
+//
+// Solidity: function findLatestGames(uint32 _gameType, uint256 _start, uint256 _n) view returns((uint256,bytes32)[] games_)
+func (_DisputeGameFactory *DisputeGameFactorySession) FindLatestGames(_gameType uint32, _start *big.Int, _n *big.Int) ([]IDisputeGameFactoryGameSearchResult, error) {
+	return _DisputeGameFactory.Contract.FindLatestGames(&_DisputeGameFactory.CallOpts, _gameType, _start, _n)
+}
+
+// FindLatestGames is a free data retrieval call binding the contract method 0x254bd683.
+//
+// Solidity: function findLatestGames(uint32 _gameType, uint256 _start, uint256 _n) view returns((uint256,bytes32)[] games_)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) FindLatestGames(_gameType uint32, _start *big.Int, _n *big.Int) ([]IDisputeGameFactoryGameSearchResult, error) {
+	return _DisputeGameFactory.Contract.FindLatestGames(&_DisputeGameFactory.CallOpts, _gameType, _start, _n)
+}
+
 // GameAtIndex is a free data retrieval call binding the contract method 0xbb8aa1fc.
 //
-// Solidity: function gameAtIndex(uint256 _index) view returns(uint8 gameType_, uint64 timestamp_, address proxy_)
+// Solidity: function gameAtIndex(uint256 _index) view returns(uint32 gameType_, uint64 timestamp_, address proxy_)
 func (_DisputeGameFactory *DisputeGameFactoryCaller) GameAtIndex(opts *bind.CallOpts, _index *big.Int) (struct {
-	GameType  uint8
+	GameType  uint32
 	Timestamp uint64
 	Proxy     common.Address
 }, error) {
@@ -214,7 +250,7 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) GameAtIndex(opts *bind.Call
 	err := _DisputeGameFactory.contract.Call(opts, &out, "gameAtIndex", _index)
 
 	outstruct := new(struct {
-		GameType  uint8
+		GameType  uint32
 		Timestamp uint64
 		Proxy     common.Address
 	})
@@ -222,7 +258,7 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) GameAtIndex(opts *bind.Call
 		return *outstruct, err
 	}
 
-	outstruct.GameType = *abi.ConvertType(out[0], new(uint8)).(*uint8)
+	outstruct.GameType = *abi.ConvertType(out[0], new(uint32)).(*uint32)
 	outstruct.Timestamp = *abi.ConvertType(out[1], new(uint64)).(*uint64)
 	outstruct.Proxy = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
 
@@ -232,9 +268,9 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) GameAtIndex(opts *bind.Call
 
 // GameAtIndex is a free data retrieval call binding the contract method 0xbb8aa1fc.
 //
-// Solidity: function gameAtIndex(uint256 _index) view returns(uint8 gameType_, uint64 timestamp_, address proxy_)
+// Solidity: function gameAtIndex(uint256 _index) view returns(uint32 gameType_, uint64 timestamp_, address proxy_)
 func (_DisputeGameFactory *DisputeGameFactorySession) GameAtIndex(_index *big.Int) (struct {
-	GameType  uint8
+	GameType  uint32
 	Timestamp uint64
 	Proxy     common.Address
 }, error) {
@@ -243,9 +279,9 @@ func (_DisputeGameFactory *DisputeGameFactorySession) GameAtIndex(_index *big.In
 
 // GameAtIndex is a free data retrieval call binding the contract method 0xbb8aa1fc.
 //
-// Solidity: function gameAtIndex(uint256 _index) view returns(uint8 gameType_, uint64 timestamp_, address proxy_)
+// Solidity: function gameAtIndex(uint256 _index) view returns(uint32 gameType_, uint64 timestamp_, address proxy_)
 func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameAtIndex(_index *big.Int) (struct {
-	GameType  uint8
+	GameType  uint32
 	Timestamp uint64
 	Proxy     common.Address
 }, error) {
@@ -283,10 +319,10 @@ func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameCount() (*big.In
 	return _DisputeGameFactory.Contract.GameCount(&_DisputeGameFactory.CallOpts)
 }
 
-// GameImpls is a free data retrieval call binding the contract method 0xdfa162d3.
+// GameImpls is a free data retrieval call binding the contract method 0x1b685b9e.
 //
-// Solidity: function gameImpls(uint8 ) view returns(address)
-func (_DisputeGameFactory *DisputeGameFactoryCaller) GameImpls(opts *bind.CallOpts, arg0 uint8) (common.Address, error) {
+// Solidity: function gameImpls(uint32 ) view returns(address)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) GameImpls(opts *bind.CallOpts, arg0 uint32) (common.Address, error) {
 	var out []interface{}
 	err := _DisputeGameFactory.contract.Call(opts, &out, "gameImpls", arg0)
 
@@ -300,24 +336,24 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) GameImpls(opts *bind.CallOp
 
 }
 
-// GameImpls is a free data retrieval call binding the contract method 0xdfa162d3.
+// GameImpls is a free data retrieval call binding the contract method 0x1b685b9e.
 //
-// Solidity: function gameImpls(uint8 ) view returns(address)
-func (_DisputeGameFactory *DisputeGameFactorySession) GameImpls(arg0 uint8) (common.Address, error) {
+// Solidity: function gameImpls(uint32 ) view returns(address)
+func (_DisputeGameFactory *DisputeGameFactorySession) GameImpls(arg0 uint32) (common.Address, error) {
 	return _DisputeGameFactory.Contract.GameImpls(&_DisputeGameFactory.CallOpts, arg0)
 }
 
-// GameImpls is a free data retrieval call binding the contract method 0xdfa162d3.
+// GameImpls is a free data retrieval call binding the contract method 0x1b685b9e.
 //
-// Solidity: function gameImpls(uint8 ) view returns(address)
-func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameImpls(arg0 uint8) (common.Address, error) {
+// Solidity: function gameImpls(uint32 ) view returns(address)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GameImpls(arg0 uint32) (common.Address, error) {
 	return _DisputeGameFactory.Contract.GameImpls(&_DisputeGameFactory.CallOpts, arg0)
 }
 
-// Games is a free data retrieval call binding the contract method 0xc49d5271.
+// Games is a free data retrieval call binding the contract method 0x5f0150cb.
 //
-// Solidity: function games(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint64 timestamp_)
-func (_DisputeGameFactory *DisputeGameFactoryCaller) Games(opts *bind.CallOpts, _gameType uint8, _rootClaim [32]byte, _extraData []byte) (struct {
+// Solidity: function games(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint64 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) Games(opts *bind.CallOpts, _gameType uint32, _rootClaim [32]byte, _extraData []byte) (struct {
 	Proxy     common.Address
 	Timestamp uint64
 }, error) {
@@ -339,30 +375,30 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) Games(opts *bind.CallOpts, 
 
 }
 
-// Games is a free data retrieval call binding the contract method 0xc49d5271.
+// Games is a free data retrieval call binding the contract method 0x5f0150cb.
 //
-// Solidity: function games(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint64 timestamp_)
-func (_DisputeGameFactory *DisputeGameFactorySession) Games(_gameType uint8, _rootClaim [32]byte, _extraData []byte) (struct {
+// Solidity: function games(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint64 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactorySession) Games(_gameType uint32, _rootClaim [32]byte, _extraData []byte) (struct {
 	Proxy     common.Address
 	Timestamp uint64
 }, error) {
 	return _DisputeGameFactory.Contract.Games(&_DisputeGameFactory.CallOpts, _gameType, _rootClaim, _extraData)
 }
 
-// Games is a free data retrieval call binding the contract method 0xc49d5271.
+// Games is a free data retrieval call binding the contract method 0x5f0150cb.
 //
-// Solidity: function games(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint64 timestamp_)
-func (_DisputeGameFactory *DisputeGameFactoryCallerSession) Games(_gameType uint8, _rootClaim [32]byte, _extraData []byte) (struct {
+// Solidity: function games(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) view returns(address proxy_, uint64 timestamp_)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) Games(_gameType uint32, _rootClaim [32]byte, _extraData []byte) (struct {
 	Proxy     common.Address
 	Timestamp uint64
 }, error) {
 	return _DisputeGameFactory.Contract.Games(&_DisputeGameFactory.CallOpts, _gameType, _rootClaim, _extraData)
 }
 
-// GetGameUUID is a free data retrieval call binding the contract method 0x26daafbe.
+// GetGameUUID is a free data retrieval call binding the contract method 0x96cd9720.
 //
-// Solidity: function getGameUUID(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) pure returns(bytes32 uuid_)
-func (_DisputeGameFactory *DisputeGameFactoryCaller) GetGameUUID(opts *bind.CallOpts, _gameType uint8, _rootClaim [32]byte, _extraData []byte) ([32]byte, error) {
+// Solidity: function getGameUUID(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) pure returns(bytes32 uuid_)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) GetGameUUID(opts *bind.CallOpts, _gameType uint32, _rootClaim [32]byte, _extraData []byte) ([32]byte, error) {
 	var out []interface{}
 	err := _DisputeGameFactory.contract.Call(opts, &out, "getGameUUID", _gameType, _rootClaim, _extraData)
 
@@ -376,24 +412,24 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) GetGameUUID(opts *bind.Call
 
 }
 
-// GetGameUUID is a free data retrieval call binding the contract method 0x26daafbe.
+// GetGameUUID is a free data retrieval call binding the contract method 0x96cd9720.
 //
-// Solidity: function getGameUUID(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) pure returns(bytes32 uuid_)
-func (_DisputeGameFactory *DisputeGameFactorySession) GetGameUUID(_gameType uint8, _rootClaim [32]byte, _extraData []byte) ([32]byte, error) {
+// Solidity: function getGameUUID(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) pure returns(bytes32 uuid_)
+func (_DisputeGameFactory *DisputeGameFactorySession) GetGameUUID(_gameType uint32, _rootClaim [32]byte, _extraData []byte) ([32]byte, error) {
 	return _DisputeGameFactory.Contract.GetGameUUID(&_DisputeGameFactory.CallOpts, _gameType, _rootClaim, _extraData)
 }
 
-// GetGameUUID is a free data retrieval call binding the contract method 0x26daafbe.
+// GetGameUUID is a free data retrieval call binding the contract method 0x96cd9720.
 //
-// Solidity: function getGameUUID(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) pure returns(bytes32 uuid_)
-func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GetGameUUID(_gameType uint8, _rootClaim [32]byte, _extraData []byte) ([32]byte, error) {
+// Solidity: function getGameUUID(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) pure returns(bytes32 uuid_)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) GetGameUUID(_gameType uint32, _rootClaim [32]byte, _extraData []byte) ([32]byte, error) {
 	return _DisputeGameFactory.Contract.GetGameUUID(&_DisputeGameFactory.CallOpts, _gameType, _rootClaim, _extraData)
 }
 
-// InitBonds is a free data retrieval call binding the contract method 0xed8bc95d.
+// InitBonds is a free data retrieval call binding the contract method 0x6593dc6e.
 //
-// Solidity: function initBonds(uint8 ) view returns(uint256)
-func (_DisputeGameFactory *DisputeGameFactoryCaller) InitBonds(opts *bind.CallOpts, arg0 uint8) (*big.Int, error) {
+// Solidity: function initBonds(uint32 ) view returns(uint256)
+func (_DisputeGameFactory *DisputeGameFactoryCaller) InitBonds(opts *bind.CallOpts, arg0 uint32) (*big.Int, error) {
 	var out []interface{}
 	err := _DisputeGameFactory.contract.Call(opts, &out, "initBonds", arg0)
 
@@ -407,17 +443,17 @@ func (_DisputeGameFactory *DisputeGameFactoryCaller) InitBonds(opts *bind.CallOp
 
 }
 
-// InitBonds is a free data retrieval call binding the contract method 0xed8bc95d.
+// InitBonds is a free data retrieval call binding the contract method 0x6593dc6e.
 //
-// Solidity: function initBonds(uint8 ) view returns(uint256)
-func (_DisputeGameFactory *DisputeGameFactorySession) InitBonds(arg0 uint8) (*big.Int, error) {
+// Solidity: function initBonds(uint32 ) view returns(uint256)
+func (_DisputeGameFactory *DisputeGameFactorySession) InitBonds(arg0 uint32) (*big.Int, error) {
 	return _DisputeGameFactory.Contract.InitBonds(&_DisputeGameFactory.CallOpts, arg0)
 }
 
-// InitBonds is a free data retrieval call binding the contract method 0xed8bc95d.
+// InitBonds is a free data retrieval call binding the contract method 0x6593dc6e.
 //
-// Solidity: function initBonds(uint8 ) view returns(uint256)
-func (_DisputeGameFactory *DisputeGameFactoryCallerSession) InitBonds(arg0 uint8) (*big.Int, error) {
+// Solidity: function initBonds(uint32 ) view returns(uint256)
+func (_DisputeGameFactory *DisputeGameFactoryCallerSession) InitBonds(arg0 uint32) (*big.Int, error) {
 	return _DisputeGameFactory.Contract.InitBonds(&_DisputeGameFactory.CallOpts, arg0)
 }
 
@@ -483,24 +519,24 @@ func (_DisputeGameFactory *DisputeGameFactoryCallerSession) Version() (string, e
 	return _DisputeGameFactory.Contract.Version(&_DisputeGameFactory.CallOpts)
 }
 
-// Create is a paid mutator transaction binding the contract method 0x3142e55e.
+// Create is a paid mutator transaction binding the contract method 0x82ecf2f6.
 //
-// Solidity: function create(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) payable returns(address proxy_)
-func (_DisputeGameFactory *DisputeGameFactoryTransactor) Create(opts *bind.TransactOpts, _gameType uint8, _rootClaim [32]byte, _extraData []byte) (*types.Transaction, error) {
+// Solidity: function create(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) payable returns(address proxy_)
+func (_DisputeGameFactory *DisputeGameFactoryTransactor) Create(opts *bind.TransactOpts, _gameType uint32, _rootClaim [32]byte, _extraData []byte) (*types.Transaction, error) {
 	return _DisputeGameFactory.contract.Transact(opts, "create", _gameType, _rootClaim, _extraData)
 }
 
-// Create is a paid mutator transaction binding the contract method 0x3142e55e.
+// Create is a paid mutator transaction binding the contract method 0x82ecf2f6.
 //
-// Solidity: function create(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) payable returns(address proxy_)
-func (_DisputeGameFactory *DisputeGameFactorySession) Create(_gameType uint8, _rootClaim [32]byte, _extraData []byte) (*types.Transaction, error) {
+// Solidity: function create(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) payable returns(address proxy_)
+func (_DisputeGameFactory *DisputeGameFactorySession) Create(_gameType uint32, _rootClaim [32]byte, _extraData []byte) (*types.Transaction, error) {
 	return _DisputeGameFactory.Contract.Create(&_DisputeGameFactory.TransactOpts, _gameType, _rootClaim, _extraData)
 }
 
-// Create is a paid mutator transaction binding the contract method 0x3142e55e.
+// Create is a paid mutator transaction binding the contract method 0x82ecf2f6.
 //
-// Solidity: function create(uint8 _gameType, bytes32 _rootClaim, bytes _extraData) payable returns(address proxy_)
-func (_DisputeGameFactory *DisputeGameFactoryTransactorSession) Create(_gameType uint8, _rootClaim [32]byte, _extraData []byte) (*types.Transaction, error) {
+// Solidity: function create(uint32 _gameType, bytes32 _rootClaim, bytes _extraData) payable returns(address proxy_)
+func (_DisputeGameFactory *DisputeGameFactoryTransactorSession) Create(_gameType uint32, _rootClaim [32]byte, _extraData []byte) (*types.Transaction, error) {
 	return _DisputeGameFactory.Contract.Create(&_DisputeGameFactory.TransactOpts, _gameType, _rootClaim, _extraData)
 }
 
@@ -546,45 +582,45 @@ func (_DisputeGameFactory *DisputeGameFactoryTransactorSession) RenounceOwnershi
 	return _DisputeGameFactory.Contract.RenounceOwnership(&_DisputeGameFactory.TransactOpts)
 }
 
-// SetImplementation is a paid mutator transaction binding the contract method 0x45583b7a.
+// SetImplementation is a paid mutator transaction binding the contract method 0x14f6b1a3.
 //
-// Solidity: function setImplementation(uint8 _gameType, address _impl) returns()
-func (_DisputeGameFactory *DisputeGameFactoryTransactor) SetImplementation(opts *bind.TransactOpts, _gameType uint8, _impl common.Address) (*types.Transaction, error) {
+// Solidity: function setImplementation(uint32 _gameType, address _impl) returns()
+func (_DisputeGameFactory *DisputeGameFactoryTransactor) SetImplementation(opts *bind.TransactOpts, _gameType uint32, _impl common.Address) (*types.Transaction, error) {
 	return _DisputeGameFactory.contract.Transact(opts, "setImplementation", _gameType, _impl)
 }
 
-// SetImplementation is a paid mutator transaction binding the contract method 0x45583b7a.
+// SetImplementation is a paid mutator transaction binding the contract method 0x14f6b1a3.
 //
-// Solidity: function setImplementation(uint8 _gameType, address _impl) returns()
-func (_DisputeGameFactory *DisputeGameFactorySession) SetImplementation(_gameType uint8, _impl common.Address) (*types.Transaction, error) {
+// Solidity: function setImplementation(uint32 _gameType, address _impl) returns()
+func (_DisputeGameFactory *DisputeGameFactorySession) SetImplementation(_gameType uint32, _impl common.Address) (*types.Transaction, error) {
 	return _DisputeGameFactory.Contract.SetImplementation(&_DisputeGameFactory.TransactOpts, _gameType, _impl)
 }
 
-// SetImplementation is a paid mutator transaction binding the contract method 0x45583b7a.
+// SetImplementation is a paid mutator transaction binding the contract method 0x14f6b1a3.
 //
-// Solidity: function setImplementation(uint8 _gameType, address _impl) returns()
-func (_DisputeGameFactory *DisputeGameFactoryTransactorSession) SetImplementation(_gameType uint8, _impl common.Address) (*types.Transaction, error) {
+// Solidity: function setImplementation(uint32 _gameType, address _impl) returns()
+func (_DisputeGameFactory *DisputeGameFactoryTransactorSession) SetImplementation(_gameType uint32, _impl common.Address) (*types.Transaction, error) {
 	return _DisputeGameFactory.Contract.SetImplementation(&_DisputeGameFactory.TransactOpts, _gameType, _impl)
 }
 
-// SetInitBond is a paid mutator transaction binding the contract method 0xc018126b.
+// SetInitBond is a paid mutator transaction binding the contract method 0x1e334240.
 //
-// Solidity: function setInitBond(uint8 _gameType, uint256 _initBond) returns()
-func (_DisputeGameFactory *DisputeGameFactoryTransactor) SetInitBond(opts *bind.TransactOpts, _gameType uint8, _initBond *big.Int) (*types.Transaction, error) {
+// Solidity: function setInitBond(uint32 _gameType, uint256 _initBond) returns()
+func (_DisputeGameFactory *DisputeGameFactoryTransactor) SetInitBond(opts *bind.TransactOpts, _gameType uint32, _initBond *big.Int) (*types.Transaction, error) {
 	return _DisputeGameFactory.contract.Transact(opts, "setInitBond", _gameType, _initBond)
 }
 
-// SetInitBond is a paid mutator transaction binding the contract method 0xc018126b.
+// SetInitBond is a paid mutator transaction binding the contract method 0x1e334240.
 //
-// Solidity: function setInitBond(uint8 _gameType, uint256 _initBond) returns()
-func (_DisputeGameFactory *DisputeGameFactorySession) SetInitBond(_gameType uint8, _initBond *big.Int) (*types.Transaction, error) {
+// Solidity: function setInitBond(uint32 _gameType, uint256 _initBond) returns()
+func (_DisputeGameFactory *DisputeGameFactorySession) SetInitBond(_gameType uint32, _initBond *big.Int) (*types.Transaction, error) {
 	return _DisputeGameFactory.Contract.SetInitBond(&_DisputeGameFactory.TransactOpts, _gameType, _initBond)
 }
 
-// SetInitBond is a paid mutator transaction binding the contract method 0xc018126b.
+// SetInitBond is a paid mutator transaction binding the contract method 0x1e334240.
 //
-// Solidity: function setInitBond(uint8 _gameType, uint256 _initBond) returns()
-func (_DisputeGameFactory *DisputeGameFactoryTransactorSession) SetInitBond(_gameType uint8, _initBond *big.Int) (*types.Transaction, error) {
+// Solidity: function setInitBond(uint32 _gameType, uint256 _initBond) returns()
+func (_DisputeGameFactory *DisputeGameFactoryTransactorSession) SetInitBond(_gameType uint32, _initBond *big.Int) (*types.Transaction, error) {
 	return _DisputeGameFactory.Contract.SetInitBond(&_DisputeGameFactory.TransactOpts, _gameType, _initBond)
 }
 
@@ -679,15 +715,15 @@ func (it *DisputeGameFactoryDisputeGameCreatedIterator) Close() error {
 // DisputeGameFactoryDisputeGameCreated represents a DisputeGameCreated event raised by the DisputeGameFactory contract.
 type DisputeGameFactoryDisputeGameCreated struct {
 	DisputeProxy common.Address
-	GameType     uint8
+	GameType     uint32
 	RootClaim    [32]byte
 	Raw          types.Log // Blockchain specific contextual infos
 }
 
-// FilterDisputeGameCreated is a free log retrieval operation binding the contract event 0xfad0599ff449d8d9685eadecca8cb9e00924c5fd8367c1c09469824939e1ffec.
+// FilterDisputeGameCreated is a free log retrieval operation binding the contract event 0x5b565efe82411da98814f356d0e7bcb8f0219b8d970307c5afb4a6903a8b2e35.
 //
-// Solidity: event DisputeGameCreated(address indexed disputeProxy, uint8 indexed gameType, bytes32 indexed rootClaim)
-func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterDisputeGameCreated(opts *bind.FilterOpts, disputeProxy []common.Address, gameType []uint8, rootClaim [][32]byte) (*DisputeGameFactoryDisputeGameCreatedIterator, error) {
+// Solidity: event DisputeGameCreated(address indexed disputeProxy, uint32 indexed gameType, bytes32 indexed rootClaim)
+func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterDisputeGameCreated(opts *bind.FilterOpts, disputeProxy []common.Address, gameType []uint32, rootClaim [][32]byte) (*DisputeGameFactoryDisputeGameCreatedIterator, error) {
 
 	var disputeProxyRule []interface{}
 	for _, disputeProxyItem := range disputeProxy {
@@ -709,10 +745,10 @@ func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterDisputeGameCreated(
 	return &DisputeGameFactoryDisputeGameCreatedIterator{contract: _DisputeGameFactory.contract, event: "DisputeGameCreated", logs: logs, sub: sub}, nil
 }
 
-// WatchDisputeGameCreated is a free log subscription operation binding the contract event 0xfad0599ff449d8d9685eadecca8cb9e00924c5fd8367c1c09469824939e1ffec.
+// WatchDisputeGameCreated is a free log subscription operation binding the contract event 0x5b565efe82411da98814f356d0e7bcb8f0219b8d970307c5afb4a6903a8b2e35.
 //
-// Solidity: event DisputeGameCreated(address indexed disputeProxy, uint8 indexed gameType, bytes32 indexed rootClaim)
-func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchDisputeGameCreated(opts *bind.WatchOpts, sink chan<- *DisputeGameFactoryDisputeGameCreated, disputeProxy []common.Address, gameType []uint8, rootClaim [][32]byte) (event.Subscription, error) {
+// Solidity: event DisputeGameCreated(address indexed disputeProxy, uint32 indexed gameType, bytes32 indexed rootClaim)
+func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchDisputeGameCreated(opts *bind.WatchOpts, sink chan<- *DisputeGameFactoryDisputeGameCreated, disputeProxy []common.Address, gameType []uint32, rootClaim [][32]byte) (event.Subscription, error) {
 
 	var disputeProxyRule []interface{}
 	for _, disputeProxyItem := range disputeProxy {
@@ -759,9 +795,9 @@ func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchDisputeGameCreated(o
 	}), nil
 }
 
-// ParseDisputeGameCreated is a log parse operation binding the contract event 0xfad0599ff449d8d9685eadecca8cb9e00924c5fd8367c1c09469824939e1ffec.
+// ParseDisputeGameCreated is a log parse operation binding the contract event 0x5b565efe82411da98814f356d0e7bcb8f0219b8d970307c5afb4a6903a8b2e35.
 //
-// Solidity: event DisputeGameCreated(address indexed disputeProxy, uint8 indexed gameType, bytes32 indexed rootClaim)
+// Solidity: event DisputeGameCreated(address indexed disputeProxy, uint32 indexed gameType, bytes32 indexed rootClaim)
 func (_DisputeGameFactory *DisputeGameFactoryFilterer) ParseDisputeGameCreated(log types.Log) (*DisputeGameFactoryDisputeGameCreated, error) {
 	event := new(DisputeGameFactoryDisputeGameCreated)
 	if err := _DisputeGameFactory.contract.UnpackLog(event, "DisputeGameCreated", log); err != nil {
@@ -841,14 +877,14 @@ func (it *DisputeGameFactoryImplementationSetIterator) Close() error {
 // DisputeGameFactoryImplementationSet represents a ImplementationSet event raised by the DisputeGameFactory contract.
 type DisputeGameFactoryImplementationSet struct {
 	Impl     common.Address
-	GameType uint8
+	GameType uint32
 	Raw      types.Log // Blockchain specific contextual infos
 }
 
-// FilterImplementationSet is a free log retrieval operation binding the contract event 0x623713f72f6e427a8044bb8b3bd6834357cf285decbaa21bcc73c1d0632c4d84.
+// FilterImplementationSet is a free log retrieval operation binding the contract event 0xff513d80e2c7fa487608f70a618dfbc0cf415699dc69588c747e8c71566c88de.
 //
-// Solidity: event ImplementationSet(address indexed impl, uint8 indexed gameType)
-func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterImplementationSet(opts *bind.FilterOpts, impl []common.Address, gameType []uint8) (*DisputeGameFactoryImplementationSetIterator, error) {
+// Solidity: event ImplementationSet(address indexed impl, uint32 indexed gameType)
+func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterImplementationSet(opts *bind.FilterOpts, impl []common.Address, gameType []uint32) (*DisputeGameFactoryImplementationSetIterator, error) {
 
 	var implRule []interface{}
 	for _, implItem := range impl {
@@ -866,10 +902,10 @@ func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterImplementationSet(o
 	return &DisputeGameFactoryImplementationSetIterator{contract: _DisputeGameFactory.contract, event: "ImplementationSet", logs: logs, sub: sub}, nil
 }
 
-// WatchImplementationSet is a free log subscription operation binding the contract event 0x623713f72f6e427a8044bb8b3bd6834357cf285decbaa21bcc73c1d0632c4d84.
+// WatchImplementationSet is a free log subscription operation binding the contract event 0xff513d80e2c7fa487608f70a618dfbc0cf415699dc69588c747e8c71566c88de.
 //
-// Solidity: event ImplementationSet(address indexed impl, uint8 indexed gameType)
-func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchImplementationSet(opts *bind.WatchOpts, sink chan<- *DisputeGameFactoryImplementationSet, impl []common.Address, gameType []uint8) (event.Subscription, error) {
+// Solidity: event ImplementationSet(address indexed impl, uint32 indexed gameType)
+func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchImplementationSet(opts *bind.WatchOpts, sink chan<- *DisputeGameFactoryImplementationSet, impl []common.Address, gameType []uint32) (event.Subscription, error) {
 
 	var implRule []interface{}
 	for _, implItem := range impl {
@@ -912,9 +948,9 @@ func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchImplementationSet(op
 	}), nil
 }
 
-// ParseImplementationSet is a log parse operation binding the contract event 0x623713f72f6e427a8044bb8b3bd6834357cf285decbaa21bcc73c1d0632c4d84.
+// ParseImplementationSet is a log parse operation binding the contract event 0xff513d80e2c7fa487608f70a618dfbc0cf415699dc69588c747e8c71566c88de.
 //
-// Solidity: event ImplementationSet(address indexed impl, uint8 indexed gameType)
+// Solidity: event ImplementationSet(address indexed impl, uint32 indexed gameType)
 func (_DisputeGameFactory *DisputeGameFactoryFilterer) ParseImplementationSet(log types.Log) (*DisputeGameFactoryImplementationSet, error) {
 	event := new(DisputeGameFactoryImplementationSet)
 	if err := _DisputeGameFactory.contract.UnpackLog(event, "ImplementationSet", log); err != nil {
@@ -993,15 +1029,15 @@ func (it *DisputeGameFactoryInitBondUpdatedIterator) Close() error {
 
 // DisputeGameFactoryInitBondUpdated represents a InitBondUpdated event raised by the DisputeGameFactory contract.
 type DisputeGameFactoryInitBondUpdated struct {
-	GameType uint8
+	GameType uint32
 	NewBond  *big.Int
 	Raw      types.Log // Blockchain specific contextual infos
 }
 
-// FilterInitBondUpdated is a free log retrieval operation binding the contract event 0x3d3603f30a8e965cf76ec29fb1f0563457ec8a7114c12180c60e7be8384201f1.
+// FilterInitBondUpdated is a free log retrieval operation binding the contract event 0x74d6665c4b26d5596a5aa13d3014e0c06af4d322075a797f87b03cd4c5bc91ca.
 //
-// Solidity: event InitBondUpdated(uint8 indexed gameType, uint256 indexed newBond)
-func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterInitBondUpdated(opts *bind.FilterOpts, gameType []uint8, newBond []*big.Int) (*DisputeGameFactoryInitBondUpdatedIterator, error) {
+// Solidity: event InitBondUpdated(uint32 indexed gameType, uint256 indexed newBond)
+func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterInitBondUpdated(opts *bind.FilterOpts, gameType []uint32, newBond []*big.Int) (*DisputeGameFactoryInitBondUpdatedIterator, error) {
 
 	var gameTypeRule []interface{}
 	for _, gameTypeItem := range gameType {
@@ -1019,10 +1055,10 @@ func (_DisputeGameFactory *DisputeGameFactoryFilterer) FilterInitBondUpdated(opt
 	return &DisputeGameFactoryInitBondUpdatedIterator{contract: _DisputeGameFactory.contract, event: "InitBondUpdated", logs: logs, sub: sub}, nil
 }
 
-// WatchInitBondUpdated is a free log subscription operation binding the contract event 0x3d3603f30a8e965cf76ec29fb1f0563457ec8a7114c12180c60e7be8384201f1.
+// WatchInitBondUpdated is a free log subscription operation binding the contract event 0x74d6665c4b26d5596a5aa13d3014e0c06af4d322075a797f87b03cd4c5bc91ca.
 //
-// Solidity: event InitBondUpdated(uint8 indexed gameType, uint256 indexed newBond)
-func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchInitBondUpdated(opts *bind.WatchOpts, sink chan<- *DisputeGameFactoryInitBondUpdated, gameType []uint8, newBond []*big.Int) (event.Subscription, error) {
+// Solidity: event InitBondUpdated(uint32 indexed gameType, uint256 indexed newBond)
+func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchInitBondUpdated(opts *bind.WatchOpts, sink chan<- *DisputeGameFactoryInitBondUpdated, gameType []uint32, newBond []*big.Int) (event.Subscription, error) {
 
 	var gameTypeRule []interface{}
 	for _, gameTypeItem := range gameType {
@@ -1065,9 +1101,9 @@ func (_DisputeGameFactory *DisputeGameFactoryFilterer) WatchInitBondUpdated(opts
 	}), nil
 }
 
-// ParseInitBondUpdated is a log parse operation binding the contract event 0x3d3603f30a8e965cf76ec29fb1f0563457ec8a7114c12180c60e7be8384201f1.
+// ParseInitBondUpdated is a log parse operation binding the contract event 0x74d6665c4b26d5596a5aa13d3014e0c06af4d322075a797f87b03cd4c5bc91ca.
 //
-// Solidity: event InitBondUpdated(uint8 indexed gameType, uint256 indexed newBond)
+// Solidity: event InitBondUpdated(uint32 indexed gameType, uint256 indexed newBond)
 func (_DisputeGameFactory *DisputeGameFactoryFilterer) ParseInitBondUpdated(log types.Log) (*DisputeGameFactoryInitBondUpdated, error) {
 	event := new(DisputeGameFactoryInitBondUpdated)
 	if err := _DisputeGameFactory.contract.UnpackLog(event, "InitBondUpdated", log); err != nil {

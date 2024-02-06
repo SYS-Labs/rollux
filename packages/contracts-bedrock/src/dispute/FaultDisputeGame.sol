@@ -81,8 +81,8 @@ contract FaultDisputeGame is IFaultDisputeGame, Clone, ISemver {
     bool internal initialized;
 
     /// @notice Semantic version.
-    /// @custom:semver 0.0.24
-    string public constant version = "0.0.24";
+    /// @custom:semver 0.0.26
+    string public constant version = "0.0.26";
 
     /// @param _gameType The type ID of the game.
     /// @param _absolutePrestate The absolute prestate of the instruction trace.
@@ -389,12 +389,19 @@ contract FaultDisputeGame is IFaultDisputeGame, Clone, ISemver {
         // Uncontested claims are resolved implicitly unless they are the root claim. Pay out the bond to the claimant
         // and return early.
         if (challengeIndicesLen == 0 && _claimIndex != 0) {
-            _distributeBond(parent.claimant, parent);
+            // In the event that the parent claim is at the max depth, there will always be 0 subgames. If the
+            // `counteredBy` field is set and there are no subgames, this implies that the parent claim was successfully
+            // stepped against. In this case, we pay out the bond to the party that stepped against the parent claim.
+            // Otherwise, the parent claim is uncontested, and the bond is returned to the claimant.
+            address counteredBy = parent.counteredBy;
+            address recipient = counteredBy == address(0) ? parent.claimant : counteredBy;
+            _distributeBond(recipient, parent);
             return;
         }
 
         // Assume parent is honest until proven otherwise
         address countered = address(0);
+        Position leftmostCounter = Position.wrap(type(uint128).max);
         for (uint256 i = 0; i < challengeIndicesLen; ++i) {
             uint256 challengeIndex = challengeIndices[i];
 
@@ -403,10 +410,15 @@ contract FaultDisputeGame is IFaultDisputeGame, Clone, ISemver {
 
             ClaimData storage claim = claimData[challengeIndex];
 
-            // Ignore false claims
-            if (claim.counteredBy == address(0)) {
-                countered = msg.sender;
-                break;
+            // If the child subgame is uncountered and further left than the current left-most counter,
+            // update the parent subgame's `countered` address and the current `leftmostCounter`.
+            // The left-most correct counter is preferred in bond payouts in order to discourage attackers
+            // from countering invalid subgame roots via an invalid defense position. As such positions
+            // cannot be correctly countered.
+            // Note that correctly positioned defense, but invalid claimes can still be successfully countered.
+            if (claim.counteredBy == address(0) && leftmostCounter.raw() > claim.position.raw()) {
+                countered = claim.claimant;
+                leftmostCounter = claim.position;
             }
         }
 

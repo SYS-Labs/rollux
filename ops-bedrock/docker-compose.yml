@@ -177,6 +177,16 @@ services:
       - 192.168.9.45
     env_file:
       - ./envs/op-node.env
+  artifact-server:
+    depends_on:
+      - l1
+    image: nginx:1.25-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - "${PWD}/../.devnet/:/usr/share/nginx/html/:ro"
+    security_opt:
+      - "no-new-privileges:true"
 
 networks:
   default:

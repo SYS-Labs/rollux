@@ -43,6 +43,26 @@ var (
 		Destination: new(string),
 	}
 	/* Optional Flags */
+	BeaconAddr = &cli.StringFlag{
+		Name:     "l1.beacon",
+		Usage:    "Address of L1 Beacon-node HTTP endpoint to use.",
+		Required: false,
+		EnvVars:  prefixEnvVars("L1_BEACON"),
+	}
+	BeaconCheckIgnore = &cli.BoolFlag{
+		Name:     "l1.beacon.ignore",
+		Usage:    "When false, halts op-node startup if the healthcheck to the Beacon-node endpoint fails.",
+		Required: false,
+		Value:    false,
+		EnvVars:  prefixEnvVars("L1_BEACON_IGNORE"),
+	}
+	BeaconFetchAllSidecars = &cli.BoolFlag{
+		Name:     "l1.beacon.fetch-all-sidecars",
+		Usage:    "If true, all sidecars are fetched and filtered locally. Workaround for buggy Beacon nodes.",
+		Required: false,
+		Value:    false,
+		EnvVars:  prefixEnvVars("L1_BEACON_FETCH_ALL_SIDECARS"),
+	}
 	SyncModeFlag = &cli.GenericFlag{
 		Name:    "syncmode",
 		Usage:   fmt.Sprintf("IN DEVELOPMENT: Options are: %s", openum.EnumString(sync.ModeStrings)),
@@ -240,12 +260,37 @@ var (
 		EnvVars: prefixEnvVars("BETA_EXTRA_NETWORKS"),
 		Hidden:  true, // hidden, this is deprecated, the flag is not used anymore.
 	}
-	//BackupL2UnsafeSyncRPC = &cli.StringFlag{
-	//	Name:    "l2.backup-unsafe-sync-rpc",
-	//	Usage:   "Set the backup L2 unsafe sync RPC endpoint.",
-	//	EnvVars: prefixEnvVars("L2_BACKUP_UNSAFE_SYNC_RPC"),
-	//	Hidden:  true,
-	//}
+	BackupL2UnsafeSyncRPC = &cli.StringFlag{
+		Name:    "l2.backup-unsafe-sync-rpc",
+		Usage:   "Set the backup L2 unsafe sync RPC endpoint.",
+		EnvVars: prefixEnvVars("L2_BACKUP_UNSAFE_SYNC_RPC"),
+		Hidden:  true,
+	}
+	BackupL2UnsafeSyncRPCTrustRPC = &cli.StringFlag{
+		Name: "l2.backup-unsafe-sync-rpc.trustrpc",
+		Usage: "Like l1.trustrpc, configure if response data from the RPC needs to be verified, e.g. blockhash computation." +
+			"This does not include checks if the blockhash is part of the canonical chain.",
+		EnvVars: prefixEnvVars("L2_BACKUP_UNSAFE_SYNC_RPC_TRUST_RPC"),
+		Hidden:  true,
+	}
+	ConductorEnabledFlag = &cli.BoolFlag{
+		Name:    "conductor.enabled",
+		Usage:   "Enable the conductor service",
+		EnvVars: prefixEnvVars("CONDUCTOR_ENABLED"),
+		Value:   false,
+	}
+	ConductorRpcFlag = &cli.StringFlag{
+		Name:    "conductor.rpc",
+		Usage:   "Conductor service rpc endpoint",
+		EnvVars: prefixEnvVars("CONDUCTOR_RPC"),
+		Value:   "http://127.0.0.1:8547",
+	}
+	ConductorRpcTimeoutFlag = &cli.DurationFlag{
+		Name:    "conductor.rpc-timeout",
+		Usage:   "Conductor service rpc timeout",
+		EnvVars: prefixEnvVars("CONDUCTOR_RPC_TIMEOUT"),
+		Value:   time.Second * 1,
+	}
 )
 
 var requiredFlags = []cli.Flag{
@@ -255,6 +300,9 @@ var requiredFlags = []cli.Flag{
 }
 
 var optionalFlags = []cli.Flag{
+	BeaconAddr,
+	BeaconCheckIgnore,
+	BeaconFetchAllSidecars,
 	SyncModeFlag,
 	RPCListenAddr,
 	RPCListenPort,
@@ -288,6 +336,9 @@ var optionalFlags = []cli.Flag{
 	RollupHalt,
 	RollupLoadProtocolVersions,
 	L1RethDBPath,
+	ConductorEnabledFlag,
+	ConductorRpcFlag,
+	ConductorRpcTimeoutFlag,
 }
 
 var DeprecatedFlags = []cli.Flag{

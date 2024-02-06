@@ -29,7 +29,7 @@ for smart contracts. It can be installed with go using the commands:
 
 ```bash
 $ go get -u github.com/ethereum/go-ethereum
-$ cd $GOPATH/src/github.com/ethereum/go-ethereum/
+$ cd $GOPATH/pkg/mod/github.com/ethereum/go-ethereum/
 $ make devtools
 ```
 

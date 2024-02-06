@@ -14,7 +14,7 @@ contract AlphabetVM is IBigStepper {
 
     constructor(Claim _absolutePrestate) {
         ABSOLUTE_PRESTATE = _absolutePrestate;
-        oracle = new PreimageOracle();
+        oracle = new PreimageOracle(0, 0);
     }
 
     /// @inheritdoc IBigStepper
@@ -23,9 +23,9 @@ contract AlphabetVM is IBigStepper {
         bytes calldata,
         bytes32 _localContext
     )
-        external
-        view
-        returns (bytes32 postState_)
+    external
+    view
+    returns (bytes32 postState_)
     {
         uint256 traceIndex;
         uint256 claim;

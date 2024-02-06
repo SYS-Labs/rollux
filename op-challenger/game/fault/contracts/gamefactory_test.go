@@ -13,9 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	factoryAddr = common.HexToAddress("0x24112842371dFC380576ebb09Ae16Cb6B6caD7CB")
-)
+var factoryAddr = common.HexToAddress("0x24112842371dFC380576ebb09Ae16Cb6B6caD7CB")
 
 func TestDisputeGameFactorySimpleGetters(t *testing.T) {
 	blockHash := common.Hash{0xbb, 0xcd}
@@ -76,6 +74,50 @@ func TestLoadGame(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expected, actual)
 	}
+}
+
+func TestGetAllGames(t *testing.T) {
+	blockHash := common.Hash{0xbb, 0xce}
+	stubRpc, factory := setupDisputeGameFactoryTest(t)
+	game0 := types.GameMetadata{
+		GameType:  0,
+		Timestamp: 1234,
+		Proxy:     common.Address{0xaa},
+	}
+	game1 := types.GameMetadata{
+		GameType:  1,
+		Timestamp: 5678,
+		Proxy:     common.Address{0xbb},
+	}
+	game2 := types.GameMetadata{
+		GameType:  99,
+		Timestamp: 9988,
+		Proxy:     common.Address{0xcc},
+	}
+
+	expectedGames := []types.GameMetadata{game0, game1, game2}
+	stubRpc.SetResponse(factoryAddr, methodGameCount, batching.BlockByHash(blockHash), nil, []interface{}{big.NewInt(int64(len(expectedGames)))})
+	for idx, expected := range expectedGames {
+		expectGetGame(stubRpc, idx, blockHash, expected)
+	}
+	actualGames, err := factory.GetAllGames(context.Background(), blockHash)
+	require.NoError(t, err)
+	require.Equal(t, expectedGames, actualGames)
+}
+
+func TestGetGameImpl(t *testing.T) {
+	stubRpc, factory := setupDisputeGameFactoryTest(t)
+	gameType := uint32(3)
+	gameImplAddr := common.Address{0xaa}
+	stubRpc.SetResponse(
+		factoryAddr,
+		"gameImpls",
+		batching.BlockLatest,
+		[]interface{}{gameType},
+		[]interface{}{gameImplAddr})
+	actual, err := factory.GetGameImpl(context.Background(), gameType)
+	require.NoError(t, err)
+	require.Equal(t, gameImplAddr, actual)
 }
 
 func expectGetGame(stubRpc *batchingTest.AbiBasedRpc, idx int, blockHash common.Hash, game types.GameMetadata) {

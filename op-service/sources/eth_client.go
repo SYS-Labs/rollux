@@ -141,7 +141,7 @@ type EthClient struct {
 
 	// cache payloads by hash
 	// common.Hash -> *eth.ExecutionPayload
-	payloadsCache *caching.LRUCache[common.Hash, *eth.ExecutionPayload]
+	payloadsCache *caching.LRUCache[common.Hash, *eth.ExecutionPayloadEnvelope]
 }
 
 // NewEthClient returns an [EthClient], wrapping an RPC with bindings to fetch ethereum data with added error logging,
@@ -175,7 +175,7 @@ func NewEthClient(client opclient.RPC, log log.Logger, metrics caching.Metrics, 
 		//receiptsCache:           caching.NewLRUCache[common.Hash, types.Receipts](metrics, "receipts", config.ReceiptsCacheSize),
 		transactionsCache: caching.NewLRUCache[common.Hash, types.Transactions](metrics, "txs", config.TransactionsCacheSize),
 		headersCache:      caching.NewLRUCache[common.Hash, eth.BlockInfo](metrics, "headers", config.HeadersCacheSize),
-		payloadsCache:     caching.NewLRUCache[common.Hash, *eth.ExecutionPayload](metrics, "payloads", config.PayloadsCacheSize),
+		payloadsCache:     caching.NewLRUCache[common.Hash, *eth.ExecutionPayloadEnvelope](metrics, "payloads", config.PayloadsCacheSize),
 	}, nil
 }
 
@@ -217,7 +217,7 @@ func (n numberID) CheckID(id eth.BlockID) error {
 }
 
 func (s *EthClient) headerCall(ctx context.Context, method string, id rpcBlockID) (eth.BlockInfo, error) {
-	var header *rpcHeader
+	var header *RPCHeader
 	err := s.client.CallContext(ctx, &header, method, id.Arg(), false) // headers are just blocks without txs
 	if err != nil {
 		return nil, err
@@ -237,7 +237,7 @@ func (s *EthClient) headerCall(ctx context.Context, method string, id rpcBlockID
 }
 
 func (s *EthClient) blockCall(ctx context.Context, method string, id rpcBlockID) (eth.BlockInfo, types.Transactions, error) {
-	var block *rpcBlock
+	var block *RPCBlock
 	err := s.client.CallContext(ctx, &block, method, id.Arg(), true)
 	if err != nil {
 		return nil, nil, err
@@ -257,8 +257,8 @@ func (s *EthClient) blockCall(ctx context.Context, method string, id rpcBlockID)
 	return info, txs, nil
 }
 
-func (s *EthClient) payloadCall(ctx context.Context, method string, id rpcBlockID) (*eth.ExecutionPayload, error) {
-	var block *rpcBlock
+func (s *EthClient) payloadCall(ctx context.Context, method string, id rpcBlockID) (*eth.ExecutionPayloadEnvelope, error) {
+	var block *RPCBlock
 	err := s.client.CallContext(ctx, &block, method, id.Arg(), true)
 	if err != nil {
 		return nil, err
@@ -266,15 +266,15 @@ func (s *EthClient) payloadCall(ctx context.Context, method string, id rpcBlockI
 	if block == nil {
 		return nil, ethereum.NotFound
 	}
-	payload, err := block.ExecutionPayload(s.trustRPC)
+	envelope, err := block.ExecutionPayloadEnvelope(s.trustRPC)
 	if err != nil {
 		return nil, err
 	}
-	if err := id.CheckID(payload.ID()); err != nil {
+	if err := id.CheckID(envelope.ExecutionPayload.ID()); err != nil {
 		return nil, fmt.Errorf("fetched payload does not match requested ID: %w", err)
 	}
-	s.payloadsCache.Add(payload.BlockHash, payload)
-	return payload, nil
+	s.payloadsCache.Add(envelope.ExecutionPayload.BlockHash, envelope)
+	return envelope, nil
 }
 
 // ChainID fetches the chain id of the internal RPC.
@@ -323,18 +323,18 @@ func (s *EthClient) InfoAndTxsByLabel(ctx context.Context, label eth.BlockLabel)
 	return s.blockCall(ctx, "eth_getBlockByNumber", label)
 }
 
-func (s *EthClient) PayloadByHash(ctx context.Context, hash common.Hash) (*eth.ExecutionPayload, error) {
+func (s *EthClient) PayloadByHash(ctx context.Context, hash common.Hash) (*eth.ExecutionPayloadEnvelope, error) {
 	if payload, ok := s.payloadsCache.Get(hash); ok {
 		return payload, nil
 	}
 	return s.payloadCall(ctx, "eth_getBlockByHash", hashID(hash))
 }
 
-func (s *EthClient) PayloadByNumber(ctx context.Context, number uint64) (*eth.ExecutionPayload, error) {
+func (s *EthClient) PayloadByNumber(ctx context.Context, number uint64) (*eth.ExecutionPayloadEnvelope, error) {
 	return s.payloadCall(ctx, "eth_getBlockByNumber", numberID(number))
 }
 
-func (s *EthClient) PayloadByLabel(ctx context.Context, label eth.BlockLabel) (*eth.ExecutionPayload, error) {
+func (s *EthClient) PayloadByLabel(ctx context.Context, label eth.BlockLabel) (*eth.ExecutionPayloadEnvelope, error) {
 	return s.payloadCall(ctx, "eth_getBlockByNumber", label)
 }
 

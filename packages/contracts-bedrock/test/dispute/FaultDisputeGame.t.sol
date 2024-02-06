@@ -41,7 +41,7 @@ contract FaultDisputeGame_Init is DisputeGameFactory_Init {
         uint256 genesisBlockNumber,
         Hash genesisOutputRoot
     )
-        public
+    public
     {
         // Set the time to a realistic date.
         vm.warp(1690906994);
@@ -53,14 +53,14 @@ contract FaultDisputeGame_Init is DisputeGameFactory_Init {
 
         // Deploy an implementation of the fault game
         gameImpl = new FaultDisputeGame({
-            _gameType: GAME_TYPE,
-            _absolutePrestate: absolutePrestate,
-            _genesisBlockNumber: genesisBlockNumber,
-            _genesisOutputRoot: genesisOutputRoot,
-            _maxGameDepth: 2 ** 3,
-            _splitDepth: 2 ** 2,
-            _gameDuration: Duration.wrap(7 days),
-            _vm: _vm
+        _gameType: GAME_TYPE,
+        _absolutePrestate: absolutePrestate,
+        _genesisBlockNumber: genesisBlockNumber,
+        _genesisOutputRoot: genesisOutputRoot,
+        _maxGameDepth: 2 ** 3,
+        _splitDepth: 2 ** 2,
+        _gameDuration: Duration.wrap(7 days),
+        _vm: _vm
         });
         // Register the game implementation with the factory.
         factory.setImplementation(GAME_TYPE, gameImpl);
@@ -101,11 +101,11 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
 
         super.setUp();
         super.init({
-            rootClaim: ROOT_CLAIM,
-            absolutePrestate: absolutePrestate,
-            l2BlockNumber: 0x10,
-            genesisBlockNumber: 0,
-            genesisOutputRoot: Hash.wrap(bytes32(0))
+        rootClaim: ROOT_CLAIM,
+        absolutePrestate: absolutePrestate,
+        l2BlockNumber: 0x10,
+        genesisBlockNumber: 0,
+        genesisOutputRoot: Hash.wrap(bytes32(0))
         });
     }
 
@@ -123,14 +123,14 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
         _splitDepth = bound(_splitDepth, 2 ** 3, type(uint256).max);
         vm.expectRevert(InvalidSplitDepth.selector);
         new FaultDisputeGame({
-            _gameType: GAME_TYPE,
-            _absolutePrestate: absolutePrestate,
-            _genesisBlockNumber: 0,
-            _genesisOutputRoot: Hash.wrap(bytes32(0)),
-            _maxGameDepth: 2 ** 3,
-            _splitDepth: _splitDepth,
-            _gameDuration: Duration.wrap(7 days),
-            _vm: alphabetVM
+        _gameType: GAME_TYPE,
+        _absolutePrestate: absolutePrestate,
+        _genesisBlockNumber: 0,
+        _genesisOutputRoot: Hash.wrap(bytes32(0)),
+        _maxGameDepth: 2 ** 3,
+        _splitDepth: _splitDepth,
+        _gameDuration: Duration.wrap(7 days),
+        _vm: alphabetVM
         });
     }
 
@@ -213,13 +213,13 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
     function test_initialize_correctData_succeeds() public {
         // Assert that the root claim is initialized correctly.
         (
-            uint32 parentIndex,
-            address counteredBy,
-            address claimant,
-            uint128 bond,
-            Claim claim,
-            Position position,
-            Clock clock
+        uint32 parentIndex,
+        address counteredBy,
+        address claimant,
+        uint128 bond,
+        Claim claim,
+        Position position,
+        Clock clock
         ) = gameProxy.claimData(0);
         assertEq(parentIndex, type(uint32).max);
         assertEq(counteredBy, address(0));
@@ -384,13 +384,13 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
 
         // Grab the claim data of the attack.
         (
-            uint32 parentIndex,
-            address counteredBy,
-            address claimant,
-            uint128 bond,
-            Claim claim,
-            Position position,
-            Clock clock
+        uint32 parentIndex,
+        address counteredBy,
+        address claimant,
+        uint128 bond,
+        Claim claim,
+        Position position,
+        Clock clock
         ) = gameProxy.claimData(1);
 
         // Assert correctness of the attack claim's data.
@@ -627,6 +627,71 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
         // Ensure that bonds were paid out correctly.
         assertEq(address(this).balance, 100 ether);
         assertEq(address(gameProxy).balance, 0);
+
+        // Ensure that the init bond for the game is 0, in case we change it in the test suite in the future.
+        assertEq(factory.initBonds(GAME_TYPE), 0);
+    }
+
+    /// @dev Static unit test asserting that resolve pays out bonds on step, output bisection, and execution trace
+    /// moves with 2 actors and a dishonest root claim.
+    function test_resolve_bondPayoutsSeveralActors_succeeds() public {
+        // Give the test contract and bob some ether
+        address bob = address(0xb0b);
+        vm.deal(address(this), 100 ether);
+        vm.deal(bob, 100 ether);
+
+        // Make claims all the way down the tree, trading off between bob and the test contract.
+        gameProxy.attack{ value: 1 ether }(0, _dummyClaim());
+
+        vm.prank(bob);
+        gameProxy.attack{ value: 1 ether }(1, _dummyClaim());
+
+        gameProxy.attack{ value: 1 ether }(2, _dummyClaim());
+
+        vm.prank(bob);
+        gameProxy.attack{ value: 1 ether }(3, _dummyClaim());
+
+        gameProxy.attack{ value: 1 ether }(4, _changeClaimStatus(_dummyClaim(), VMStatuses.PANIC));
+
+        vm.prank(bob);
+        gameProxy.attack{ value: 1 ether }(5, _dummyClaim());
+
+        gameProxy.attack{ value: 1 ether }(6, _dummyClaim());
+
+        vm.prank(bob);
+        gameProxy.attack{ value: 1 ether }(7, _dummyClaim());
+
+        gameProxy.addLocalData(LocalPreimageKey.STARTING_L2_BLOCK_NUMBER, 8, 0);
+        gameProxy.step(8, true, absolutePrestateData, hex"");
+
+        // Ensure that the step successfully countered the leaf claim.
+        (, address counteredBy,,,,,) = gameProxy.claimData(8);
+        assertEq(counteredBy, address(this));
+
+        // Ensure we bonded the correct amounts
+        uint256 bonded = ((gameProxy.claimDataLen() - 1) / 2) * 1 ether;
+        assertEq(address(this).balance, 100 ether - bonded);
+        assertEq(bob.balance, 100 ether - bonded);
+        assertEq(address(gameProxy).balance, bonded * 2);
+
+        // Resolve all claims
+        vm.warp(block.timestamp + 3 days + 12 hours + 1 seconds);
+        for (uint256 i = gameProxy.claimDataLen(); i > 0; i--) {
+            (bool success,) = address(gameProxy).call(abi.encodeCall(gameProxy.resolveClaim, (i - 1)));
+            success;
+        }
+        gameProxy.resolve();
+
+        gameProxy.claimCredit(address(this));
+        gameProxy.claimCredit(bob);
+
+        // Ensure that bonds were paid out correctly.
+        assertEq(address(this).balance, 100 ether + bonded);
+        assertEq(bob.balance, 100 ether - bonded);
+        assertEq(address(gameProxy).balance, 0);
+
+        // Ensure that the init bond for the game is 0, in case we change it in the test suite in the future.
+        assertEq(factory.initBonds(GAME_TYPE), 0);
     }
 
     /// @dev Static unit test asserting that credit may not be drained past allowance through reentrancy.
@@ -703,7 +768,7 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
 
         // Expected local data
         bytes32[5] memory data =
-            [gameProxy.l1Head().raw(), startingClaim, disputedClaim, bytes32(0), bytes32(block.chainid << 0xC0)];
+        [gameProxy.l1Head().raw(), startingClaim, disputedClaim, bytes32(0), bytes32(block.chainid << 0xC0)];
 
         for (uint256 i = 1; i <= 5; i++) {
             uint256 expectedLen = i > 3 ? 8 : 32;
@@ -744,11 +809,11 @@ contract FaultDisputeGame_Test is FaultDisputeGame_Init {
 
         // Expected local data
         bytes32[5] memory data = [
-            gameProxy.l1Head().raw(),
-            startingClaim,
-            disputedClaim,
-            bytes32(uint256(1) << 0xC0),
-            bytes32(block.chainid << 0xC0)
+        gameProxy.l1Head().raw(),
+        startingClaim,
+        disputedClaim,
+        bytes32(uint256(1) << 0xC0),
+        bytes32(block.chainid << 0xC0)
         ];
 
         for (uint256 i = 1; i <= 5; i++) {
@@ -826,13 +891,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 16,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.DEFENDER_WINS
+        _rootClaim: 16,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.DEFENDER_WINS
         });
     }
 
@@ -864,13 +929,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 16,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.DEFENDER_WINS
+        _rootClaim: 16,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.DEFENDER_WINS
         });
     }
 
@@ -902,13 +967,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 17,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.CHALLENGER_WINS
+        _rootClaim: 17,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.CHALLENGER_WINS
         });
     }
 
@@ -937,13 +1002,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 16,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.DEFENDER_WINS
+        _rootClaim: 16,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.DEFENDER_WINS
         });
     }
 
@@ -972,13 +1037,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 17,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.CHALLENGER_WINS
+        _rootClaim: 17,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.CHALLENGER_WINS
         });
     }
 
@@ -1009,13 +1074,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 16,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.DEFENDER_WINS
+        _rootClaim: 16,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.DEFENDER_WINS
         });
     }
 
@@ -1046,13 +1111,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 0xFF,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.CHALLENGER_WINS
+        _rootClaim: 0xFF,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.CHALLENGER_WINS
         });
     }
 
@@ -1083,13 +1148,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 16,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.DEFENDER_WINS
+        _rootClaim: 16,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.DEFENDER_WINS
         });
     }
 
@@ -1120,13 +1185,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 0xFF,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.CHALLENGER_WINS
+        _rootClaim: 0xFF,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.CHALLENGER_WINS
         });
     }
 
@@ -1158,13 +1223,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 16,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.DEFENDER_WINS
+        _rootClaim: 16,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.DEFENDER_WINS
         });
     }
 
@@ -1196,13 +1261,13 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
 
         // Run the actor test
         _actorTest({
-            _rootClaim: 0xFF,
-            _absolutePrestateData: 0,
-            _honestTrace: honestTrace,
-            _honestL2Outputs: honestL2Outputs,
-            _dishonestTrace: dishonestTrace,
-            _dishonestL2Outputs: dishonestL2Outputs,
-            _expectedStatus: GameStatus.CHALLENGER_WINS
+        _rootClaim: 0xFF,
+        _absolutePrestateData: 0,
+        _honestTrace: honestTrace,
+        _honestL2Outputs: honestL2Outputs,
+        _dishonestTrace: dishonestTrace,
+        _dishonestL2Outputs: dishonestL2Outputs,
+        _expectedStatus: GameStatus.CHALLENGER_WINS
         });
     }
 
@@ -1220,20 +1285,20 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
         uint256[] memory _dishonestL2Outputs,
         GameStatus _expectedStatus
     )
-        internal
+    internal
     {
         // Setup the environment
         bytes memory absolutePrestateData =
-            _setup({ _absolutePrestateData: _absolutePrestateData, _rootClaim: _rootClaim });
+        _setup({ _absolutePrestateData: _absolutePrestateData, _rootClaim: _rootClaim });
 
         // Create actors
         _createActors({
-            _honestTrace: _honestTrace,
-            _honestPreStateData: absolutePrestateData,
-            _honestL2Outputs: _honestL2Outputs,
-            _dishonestTrace: _dishonestTrace,
-            _dishonestPreStateData: absolutePrestateData,
-            _dishonestL2Outputs: _dishonestL2Outputs
+        _honestTrace: _honestTrace,
+        _honestPreStateData: absolutePrestateData,
+        _honestL2Outputs: _honestL2Outputs,
+        _dishonestTrace: _dishonestTrace,
+        _dishonestPreStateData: absolutePrestateData,
+        _dishonestL2Outputs: _dishonestL2Outputs
         });
 
         // Exhaust all moves from both actors
@@ -1249,19 +1314,19 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
         uint256 _absolutePrestateData,
         uint256 _rootClaim
     )
-        internal
-        returns (bytes memory absolutePrestateData_)
+    internal
+    returns (bytes memory absolutePrestateData_)
     {
         absolutePrestateData_ = abi.encode(_absolutePrestateData);
         Claim absolutePrestateExec =
-            _changeClaimStatus(Claim.wrap(keccak256(absolutePrestateData_)), VMStatuses.UNFINISHED);
+        _changeClaimStatus(Claim.wrap(keccak256(absolutePrestateData_)), VMStatuses.UNFINISHED);
         Claim rootClaim = Claim.wrap(bytes32(uint256(_rootClaim)));
         super.init({
-            rootClaim: rootClaim,
-            absolutePrestate: absolutePrestateExec,
-            l2BlockNumber: _rootClaim,
-            genesisBlockNumber: 0,
-            genesisOutputRoot: Hash.wrap(bytes32(0))
+        rootClaim: rootClaim,
+        absolutePrestate: absolutePrestateExec,
+        l2BlockNumber: _rootClaim,
+        genesisBlockNumber: 0,
+        genesisOutputRoot: Hash.wrap(bytes32(0))
         });
     }
 
@@ -1274,19 +1339,19 @@ contract FaultDispute_1v1_Actors_Test is FaultDisputeGame_Init {
         bytes memory _dishonestPreStateData,
         uint256[] memory _dishonestL2Outputs
     )
-        internal
+    internal
     {
         honest = new HonestDisputeActor({
-            _gameProxy: gameProxy,
-            _l2Outputs: _honestL2Outputs,
-            _trace: _honestTrace,
-            _preStateData: _honestPreStateData
+        _gameProxy: gameProxy,
+        _l2Outputs: _honestL2Outputs,
+        _trace: _honestTrace,
+        _preStateData: _honestPreStateData
         });
         dishonest = new HonestDisputeActor({
-            _gameProxy: gameProxy,
-            _l2Outputs: _dishonestL2Outputs,
-            _trace: _dishonestTrace,
-            _preStateData: _dishonestPreStateData
+        _gameProxy: gameProxy,
+        _l2Outputs: _dishonestL2Outputs,
+        _trace: _dishonestTrace,
+        _preStateData: _dishonestPreStateData
         });
 
         vm.label(address(honest), "HonestActor");
@@ -1346,8 +1411,8 @@ contract ClaimCreditReenter {
 }
 
 /// @dev Helper to change the VM status byte of a claim.
-function _changeClaimStatus(Claim _claim, VMStatus _status) pure returns (Claim out_) {
-    assembly {
-        out_ := or(and(not(shl(248, 0xFF)), _claim), shl(248, _status))
+    function _changeClaimStatus(Claim _claim, VMStatus _status) pure returns (Claim out_) {
+        assembly {
+            out_ := or(and(not(shl(248, 0xFF)), _claim), shl(248, _status))
+        }
     }
-}

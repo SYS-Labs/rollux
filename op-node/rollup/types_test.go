@@ -219,7 +219,7 @@ func TestValidateL2Config(t *testing.T) {
 	config.Genesis.L2.Number = 100
 	config.Genesis.L2.Hash = [32]byte{0x01}
 	mockClient := mockL2Client{chainID: big.NewInt(100), Hash: common.Hash{0x01}}
-	err := config.ValidateL2Config(context.TODO(), &mockClient)
+	err := config.ValidateL2Config(context.TODO(), &mockClient, false)
 	assert.NoError(t, err)
 }
 
@@ -229,10 +229,10 @@ func TestValidateL2ConfigInvalidChainIdFails(t *testing.T) {
 	config.Genesis.L2.Number = 100
 	config.Genesis.L2.Hash = [32]byte{0x01}
 	mockClient := mockL2Client{chainID: big.NewInt(100), Hash: common.Hash{0x01}}
-	err := config.ValidateL2Config(context.TODO(), &mockClient)
+	err := config.ValidateL2Config(context.TODO(), &mockClient, false)
 	assert.Error(t, err)
 	config.L2ChainID = big.NewInt(99)
-	err = config.ValidateL2Config(context.TODO(), &mockClient)
+	err = config.ValidateL2Config(context.TODO(), &mockClient, false)
 	assert.Error(t, err)
 }
 
@@ -242,11 +242,24 @@ func TestValidateL2ConfigInvalidGenesisHashFails(t *testing.T) {
 	config.Genesis.L2.Number = 100
 	config.Genesis.L2.Hash = [32]byte{0x00}
 	mockClient := mockL2Client{chainID: big.NewInt(100), Hash: common.Hash{0x01}}
-	err := config.ValidateL2Config(context.TODO(), &mockClient)
+	err := config.ValidateL2Config(context.TODO(), &mockClient, false)
 	assert.Error(t, err)
 	config.Genesis.L2.Hash = [32]byte{0x02}
-	err = config.ValidateL2Config(context.TODO(), &mockClient)
+	err = config.ValidateL2Config(context.TODO(), &mockClient, false)
 	assert.Error(t, err)
+}
+
+func TestValidateL2ConfigInvalidGenesisHashSkippedWhenRequested(t *testing.T) {
+	config := randConfig()
+	config.L2ChainID = big.NewInt(100)
+	config.Genesis.L2.Number = 100
+	config.Genesis.L2.Hash = [32]byte{0x00}
+	mockClient := mockL2Client{chainID: big.NewInt(100), Hash: common.Hash{0x01}}
+	err := config.ValidateL2Config(context.TODO(), &mockClient, true)
+	assert.NoError(t, err)
+	config.Genesis.L2.Hash = [32]byte{0x02}
+	err = config.ValidateL2Config(context.TODO(), &mockClient, true)
+	assert.NoError(t, err)
 }
 
 func TestCheckL2ChainID(t *testing.T) {
@@ -393,6 +406,54 @@ func TestConfig_Check(t *testing.T) {
 			test.modifier(cfg)
 			err := cfg.Check()
 			assert.Same(t, err, test.expectedErr)
+		})
+	}
+
+	forkTests := []struct {
+		name        string
+		modifier    func(cfg *Config)
+		expectedErr error
+	}{
+		{
+			name: "PriorForkMissing",
+			modifier: func(cfg *Config) {
+				ecotoneTime := uint64(1)
+				cfg.EcotoneTime = &ecotoneTime
+			},
+			expectedErr: fmt.Errorf("fork ecotone set (to 1), but prior fork delta missing"),
+		},
+		{
+			name: "PriorForkHasHigherOffset",
+			modifier: func(cfg *Config) {
+				regolithTime := uint64(2)
+				canyonTime := uint64(1)
+				cfg.RegolithTime = &regolithTime
+				cfg.CanyonTime = &canyonTime
+			},
+			expectedErr: fmt.Errorf("fork canyon set to 1, but prior fork regolith has higher offset 2"),
+		},
+		{
+			name: "PriorForkOK",
+			modifier: func(cfg *Config) {
+				regolithTime := uint64(1)
+				canyonTime := uint64(2)
+				deltaTime := uint64(3)
+				ecotoneTime := uint64(4)
+				cfg.RegolithTime = &regolithTime
+				cfg.CanyonTime = &canyonTime
+				cfg.DeltaTime = &deltaTime
+				cfg.EcotoneTime = &ecotoneTime
+			},
+			expectedErr: nil,
+		},
+	}
+
+	for _, test := range forkTests {
+		t.Run(test.name, func(t *testing.T) {
+			cfg := randConfig()
+			test.modifier(cfg)
+			err := cfg.Check()
+			assert.Equal(t, err, test.expectedErr)
 		})
 	}
 }

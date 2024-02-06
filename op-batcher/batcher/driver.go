@@ -405,6 +405,7 @@ func (l *BatchSubmitter) sendTransaction(txdata txData, queue *txmgr.Queue[txDat
 			// or configuration issue.
 			return fmt.Errorf("could not create blob tx candidate: %w", err)
 		}
+		l.Metr.RecordBlobUsedBytes(len(data))
 	} else {
 		candidate = l.calldataTxCandidate(data)
 	}
@@ -422,6 +423,7 @@ func (l *BatchSubmitter) sendTransaction(txdata txData, queue *txmgr.Queue[txDat
 }
 
 func (l *BatchSubmitter) blobTxCandidate(data []byte) (*txmgr.TxCandidate, error) {
+	l.Log.Info("building Blob transaction candidate", "size", len(data))
 	var b eth.Blob
 	if err := b.FromData(data); err != nil {
 		return nil, fmt.Errorf("data could not be converted to blob: %w", err)
@@ -435,6 +437,7 @@ func (l *BatchSubmitter) blobTxCandidate(data []byte) (*txmgr.TxCandidate, error
 }
 
 func (l *BatchSubmitter) calldataTxCandidate(data []byte) *txmgr.TxCandidate {
+	l.Log.Info("building Calldata transaction candidate", "size", len(data))
 	return &txmgr.TxCandidate{
 		To:     &l.RollupConfig.BatchInboxAddress,
 		TxData: data,

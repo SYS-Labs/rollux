@@ -17,6 +17,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
 	"github.com/ethereum-optimism/optimism/op-batcher/rpc"
+	"github.com/ethereum-optimism/optimism/op-node/chaincfg"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-service/cliapp"
 	"github.com/ethereum-optimism/optimism/op-service/dial"
@@ -132,7 +133,7 @@ func (bs *BatcherService) initRPCClients(ctx context.Context, cfg *CLIConfig) er
 	if strings.Contains(cfg.RollupRpc, ",") && strings.Contains(cfg.L2EthRpc, ",") {
 		rollupUrls := strings.Split(cfg.RollupRpc, ",")
 		ethUrls := strings.Split(cfg.L2EthRpc, ",")
-		endpointProvider, err = dial.NewActiveL2EndpointProvider(ctx, ethUrls, rollupUrls, dial.DefaultActiveSequencerFollowerCheckDuration, dial.DefaultDialTimeout, bs.Log)
+		endpointProvider, err = dial.NewActiveL2EndpointProvider(ctx, ethUrls, rollupUrls, cfg.ActiveSequencerCheckDuration, dial.DefaultDialTimeout, bs.Log)
 	} else {
 		endpointProvider, err = dial.NewStaticL2EndpointProvider(ctx, bs.Log, cfg.L2EthRpc, cfg.RollupRpc)
 	}
@@ -173,6 +174,7 @@ func (bs *BatcherService) initRollupConfig(ctx context.Context) error {
 	if err := bs.RollupConfig.Check(); err != nil {
 		return fmt.Errorf("invalid rollup config: %w", err)
 	}
+	bs.RollupConfig.LogDescription(bs.Log, chaincfg.L2ChainIDToNetworkDisplayName)
 	return nil
 }
 
@@ -198,9 +200,23 @@ func (bs *BatcherService) initChannelConfig(cfg *CLIConfig) error {
 	}
 	bs.ChannelConfig.MaxFrameSize-- // subtract 1 byte for version
 
+	if bs.UseBlobs && !bs.RollupConfig.IsEcotone(uint64(time.Now().Unix())) {
+		bs.Log.Error("Cannot use Blob data before Ecotone!") // log only, the batcher may not be actively running.
+	}
+	if !bs.UseBlobs && bs.RollupConfig.IsEcotone(uint64(time.Now().Unix())) {
+		bs.Log.Warn("Ecotone upgrade is active, but batcher is not configured to use Blobs!")
+	}
+
 	if err := bs.ChannelConfig.Check(); err != nil {
 		return fmt.Errorf("invalid channel configuration: %w", err)
 	}
+	bs.Log.Info("Initialized channel-config",
+		"use_blobs", bs.UseBlobs,
+		"max_frame_size", bs.ChannelConfig.MaxFrameSize,
+		"max_channel_duration", bs.ChannelConfig.MaxChannelDuration,
+		"channel_timeout", bs.ChannelConfig.ChannelTimeout,
+		"batch_type", bs.ChannelConfig.BatchType,
+		"sub_safety_margin", bs.ChannelConfig.SubSafetyMargin)
 	return nil
 }
 
@@ -319,6 +335,12 @@ func (bs *BatcherService) Stop(ctx context.Context) error {
 	}
 	bs.Log.Info("Stopping batcher")
 
+	// close the TxManager first, so that new work is denied, in-flight work is cancelled as early as possible
+	// (transactions which are expected to be confirmed are still waited for)
+	if bs.TxManager != nil {
+		bs.TxManager.Close()
+	}
+
 	var result error
 	if bs.driver != nil {
 		if err := bs.driver.StopBatchSubmittingIfRunning(ctx); err != nil {
@@ -341,9 +363,6 @@ func (bs *BatcherService) Stop(ctx context.Context) error {
 		if err := bs.balanceMetricer.Close(); err != nil {
 			result = errors.Join(result, fmt.Errorf("failed to close balance metricer: %w", err))
 		}
-	}
-	if bs.TxManager != nil {
-		bs.TxManager.Close()
 	}
 
 	if bs.metricsSrv != nil {

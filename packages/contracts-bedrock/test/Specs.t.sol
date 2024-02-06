@@ -6,6 +6,7 @@ import { Executables } from "scripts/Executables.sol";
 import { console2 as console } from "forge-std/console2.sol";
 import { ProtocolVersions } from "src/L1/ProtocolVersions.sol";
 import { OptimismPortal } from "src/L1/OptimismPortal.sol";
+import { OptimismPortal2 } from "src/L1/OptimismPortal2.sol";
 import { SystemConfig } from "src/L1/SystemConfig.sol";
 
 /// @title Specification_Test
@@ -76,9 +77,10 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("RELAY_RESERVED_GAS()") });
         _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("baseGas(bytes,uint32)") });
         _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("failedMessages(bytes32)") });
-        _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("initialize(address)") });
+        _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("initialize(address,address)") });
         _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("messageNonce()") });
         _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("paused()") });
+        _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("otherMessenger()") });
         _addSpec({ _name: "L1CrossDomainMessenger", _sel: _getSel("portal()") });
         _addSpec({
             _name: "L1CrossDomainMessenger",
@@ -110,7 +112,7 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "L1ERC721Bridge", _sel: _getSel("version()") });
         _addSpec({ _name: "L1ERC721Bridge", _sel: _getSel("superchainConfig()") });
         _addSpec({ _name: "L1ERC721Bridge", _sel: _getSel("paused()") });
-        _addSpec({ _name: "L1ERC721Bridge", _sel: _getSel("initialize(address)") });
+        _addSpec({ _name: "L1ERC721Bridge", _sel: _getSel("initialize(address,address)") });
 
         // L1StandardBridge
         _addSpec({ _name: "L1StandardBridge", _sel: _getSel("MESSENGER()") });
@@ -154,7 +156,7 @@ contract Specification_Test is CommonTest {
             _auth: Role.MESSENGER,
             _pausable: true
         });
-        _addSpec({ _name: "L1StandardBridge", _sel: _getSel("initialize(address)") });
+        _addSpec({ _name: "L1StandardBridge", _sel: _getSel("initialize(address,address)") });
         _addSpec({ _name: "L1StandardBridge", _sel: _getSel("l2TokenBridge()") });
         _addSpec({ _name: "L1StandardBridge", _sel: _getSel("messenger()") });
         _addSpec({ _name: "L1StandardBridge", _sel: _getSel("otherBridge()") });
@@ -175,7 +177,10 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "L2OutputOracle", _sel: _getSel("getL2Output(uint256)") });
         _addSpec({ _name: "L2OutputOracle", _sel: _getSel("getL2OutputAfter(uint256)") });
         _addSpec({ _name: "L2OutputOracle", _sel: _getSel("getL2OutputIndexAfter(uint256)") });
-        _addSpec({ _name: "L2OutputOracle", _sel: _getSel("initialize(uint256,uint256)") });
+        _addSpec({
+            _name: "L2OutputOracle",
+            _sel: _getSel("initialize(uint256,uint256,uint256,uint256,address,address,uint256)")
+        });
         _addSpec({ _name: "L2OutputOracle", _sel: _getSel("l2BlockTime()") });
         _addSpec({ _name: "L2OutputOracle", _sel: _getSel("latestBlockNumber()") });
         _addSpec({ _name: "L2OutputOracle", _sel: _getSel("latestOutputIndex()") });
@@ -205,7 +210,7 @@ contract Specification_Test is CommonTest {
         });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("finalizedWithdrawals(bytes32)") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("guardian()") });
-        _addSpec({ _name: "OptimismPortal", _sel: _getSel("initialize(address)") });
+        _addSpec({ _name: "OptimismPortal", _sel: _getSel("initialize(address,address,address)") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("isOutputFinalized(uint256)") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("l2Oracle()") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("l2Sender()") });
@@ -217,6 +222,35 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("superchainConfig()") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("systemConfig()") });
         _addSpec({ _name: "OptimismPortal", _sel: _getSel("version()") });
+
+        // OptimismPortal2
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("GUARDIAN()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("SYSTEM_CONFIG()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("depositTransaction(address,uint256,uint64,bool,bytes)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("donateETH()") });
+        _addSpec({
+            _name: "OptimismPortal2",
+            _sel: OptimismPortal2.finalizeWithdrawalTransaction.selector,
+            _pausable: true
+        });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("finalizedWithdrawals(bytes32)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("guardian()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("initialize(address,address,address)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("l2Sender()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("minimumGasLimit(uint64)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("params()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("paused()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: OptimismPortal2.proveWithdrawalTransaction.selector, _pausable: true });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("provenWithdrawals(bytes32)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("superchainConfig()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("systemConfig()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("version()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("disputeGameFactory()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("disputeGameBlacklist(address)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("respectedGameType()") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("blacklistDisputeGame(address)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("deleteProvenWithdrawal(bytes32)") });
+        _addSpec({ _name: "OptimismPortal2", _sel: _getSel("setRespectedGameType(uint32)") });
 
         // ProtocolVersions
         _addSpec({ _name: "ProtocolVersions", _sel: _getSel("RECOMMENDED_SLOT()") });
@@ -255,6 +289,7 @@ contract Specification_Test is CommonTest {
 
         // SystemConfig
         _addSpec({ _name: "SystemConfig", _sel: _getSel("UNSAFE_BLOCK_SIGNER_SLOT()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("START_BLOCK_SLOT()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("VERSION()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("batcherHash()") });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("gasLimit()") });
@@ -277,6 +312,21 @@ contract Specification_Test is CommonTest {
         _addSpec({ _name: "SystemConfig", _sel: _getSel("transferOwnership(address)"), _auth: Role.SYSTEMCONFIGOWNER });
         _addSpec({ _name: "SystemConfig", _sel: SystemConfig.unsafeBlockSigner.selector });
         _addSpec({ _name: "SystemConfig", _sel: _getSel("version()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("l1CrossDomainMessenger()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("l1ERC721Bridge()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("l1StandardBridge()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("l2OutputOracle()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("optimismPortal()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("optimismMintableERC20Factory()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("batchInbox()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("startBlock()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("L1_CROSS_DOMAIN_MESSENGER_SLOT()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("L1_ERC_721_BRIDGE_SLOT()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("L1_STANDARD_BRIDGE_SLOT()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("L2_OUTPUT_ORACLE_SLOT()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("OPTIMISM_PORTAL_SLOT()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("OPTIMISM_MINTABLE_ERC20_FACTORY_SLOT()") });
+        _addSpec({ _name: "SystemConfig", _sel: _getSel("BATCH_INBOX_SLOT()") });
 
         // ProxyAdmin
         _addSpec({ _name: "ProxyAdmin", _sel: _getSel("addressManager()") });

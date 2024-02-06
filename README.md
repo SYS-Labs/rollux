@@ -22,7 +22,12 @@ In this repository, you'll find numerous core components of Rollux, the decentra
 - If you want to build on top of Rollux Mainnet, refer to the [Rollux Developers Docs](https://rollux.com/developers)
 - If you want to contribute to Rollux, check out the [Protocol Specs](./specs)
 - If you want to build your own OP Stack based blockchain, refer to the [OP Stack docs](https://stack.optimism.io)
->>>>>>> upstream/develop
+- If you want to build on top of OP Mainnet, refer to the [Optimism Documentation](https://docs.optimism.io)
+- If you want to build your own OP Stack based blockchain, refer to the [OP Stack Guide](https://docs.optimism.io/stack/getting-started)
+
+## Specification
+
+If you're interested in the technical details of how Optimism works, refer to the [Optimism Protocol Specification](https://github.com/ethereum-optimism/specs).
 
 ## Community
 
@@ -88,7 +93,6 @@ You can find detailed specifications for the Bedrock upgrade within the [specs f
 │   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Optimism easier
 │   └── <a href="./packages/sdk">sdk</a>: provides a set of tools for interacting with Rollux
 ├── <a href="./proxyd">proxyd</a>: Configurable RPC request router and proxy
-└── <a href="./specs">specs</a>: Specs of the rollup starting at the Bedrock upgrade
 </pre>
 
 ## Branching Model
