@@ -41,6 +41,9 @@
     "SafeProxyFactory",
     "DelayedVetoable",
     "ISemver",
+    "Semver",
+    "BatchInbox",
+    "L2BatchInbox",
     "StorageSetter",
     "SuperchainConfig"
   ],
