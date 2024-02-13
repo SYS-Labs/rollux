@@ -24,8 +24,8 @@
   "l2_chain_id": 570570,
   "regolith_time": 0,
   "canyon_time": 0,
-  "batch_inbox_address": "0xff00000000000000000000000000000000042069",
-  "output_oracle_address": "0x0000000000000000000000000000000000000000",
+  "batch_inbox_address": "0x33Fb3361D291ba5530dD0A6D84789f8A6Aa1CE7E",
+  "output_oracle_address": "0x75A681E8467Dbf3DADb3e8b2210cB9b049955bBE",
   "deposit_contract_address": "0xd079717c6f8c2ff0471b648fa854f5ba2632c296",
   "l1_system_config_address": "0xa729ee1ebc6ada8493d584bb24803c6c582a7fbb",
   "protocol_versions_address": "0x0000000000000000000000000000000000000000"
