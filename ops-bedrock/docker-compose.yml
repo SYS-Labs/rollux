@@ -40,7 +40,7 @@ services:
       - "8060:6060"
     volumes:
       - "l2_data:/db"
-      - "${PWD}/../.devnet/genesis-l2.json:/genesis.json"
+      - "${PWD}/../.nebula/genesis.json:/genesis.json"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
     entrypoint: # pass the L2 specific flags by overriding the entry-point and adding extra arguments
       - "/bin/sh"
@@ -99,7 +99,7 @@ services:
     volumes:
       - "${PWD}/p2p-node-key.txt:/config/p2p-node-key.txt"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
-      - "${PWD}/../.devnet/rollup.json:/rollup.json"
+      - "${PWD}/../.nebula/rollup.json:/rollup.json"
       - "${HOME}/${COMPOSE_PROJECT_NAME}-data/op_log:/op_log"
     dns:
       - 8.8.8.8
@@ -123,6 +123,8 @@ services:
       - "6062:6060"
       - "7302:7300"
       - "6546:8545"
+    env_file:
+      - ./envs/op-node.env
     environment:
       OP_PROPOSER_L1_ETH_RPC: https://rpc.tanenbaum.io
       OP_PROPOSER_ROLLUP_RPC: http://op-node:8545

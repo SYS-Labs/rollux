@@ -4,7 +4,7 @@ RUN apk add --no-cache jq
 ENV RPC_PORT="${RPC_PORT:-8545}"
 ENV WS_PORT="${WS_PORT:-8546}"
 ENV SYSRPC_PORT="${SYSRPC_PORT:-8370}"
-ENV TESTNET="${TESTNET:-0}"
+ENV TESTNET="${TESTNET:-1}"
 ENV SYSCOIN_DATA=/db/.syscoin
 ENV SYSCOIN_PREFIX=/opt/syscoin
 COPY --from=syscoin-alpine ${SYSCOIN_PREFIX}/bin/syscoind /usr/local/bin/syscoind
