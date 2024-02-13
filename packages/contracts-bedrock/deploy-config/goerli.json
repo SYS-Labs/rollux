@@ -6,7 +6,7 @@
   "l1StartingBlockTag": "0xbaaa9a7834d9b5e928eeb36942b96eb64167701e16b9da02a7a5f3aa9c0a216c",
   "l1ChainID": 5700,
   "l2ChainID": 57000,
-//  "superchainConfigGuardian": "0xBc1233d0C3e6B5d53Ab455cF65A6623F6dCd7e4f", # TODO: by abdul. confirm this for rollux
+  "superchainConfigGuardian": "0xBc1233d0C3e6B5d53Ab455cF65A6623F6dCd7e4f",
   "l2BlockTime": 2,
   "l1BlockTime": 150,
 
@@ -39,7 +39,7 @@
   "l1FeeVaultWithdrawalNetwork": 0,
   "sequencerFeeVaultWithdrawalNetwork": 0,
   "enableGovernance": true,
-//  "l2OutputOracleStartingBlockNumber": 4061224, # TODO: by abdul. confirm this for rollux
+  "l2OutputOracleStartingBlockNumber": 4061224,
   "baseFeeVaultRecipient": "0x2fA8986FBf4F9999FBC0CF3f955aDED88444c3EA",
   "l1FeeVaultRecipient": "0xeBA2B8b07622b1eaBC80180A836664F1F7E16800",
   "sequencerFeeVaultRecipient": "0x5FBe15a6568140dB42B01092bC415a9B92ca4f58",

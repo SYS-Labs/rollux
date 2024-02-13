@@ -271,7 +271,7 @@ contract Deploy is Deployer {
 
         // Deploy the BatchInbox contract
         // Replace <MESSENGER_ADDRESS> with the actual address
-        address payable messengerAddress = payable(address(0xB1E6128d88214b24a38AD589aFadd53b4c2c92a5));
+        address payable messengerAddress = payable(address(0x0B908F7ceE98eBB59D16b37573A18bd875b160Bf));
 
         BatchInbox batchInbox = new BatchInbox(messengerAddress);
 
