@@ -58,23 +58,7 @@ function wait_up {
   echo "Done!"
 }
 
-mkdir -p ./.devnet
 
-# Regenerate the L1 genesis file if necessary. The existence of the genesis
-# file is used to determine if we need to recreate the devnet's state folder.
-if [ ! -f "$DEVNET/done" ]; then
-  echo "Regenerating genesis files"
-  (
-    cd "$OP_NODE"
-    go run cmd/main.go genesis l2 \
-        --l1-rpc https://rpc.tanenbaum.io \
-        --deployment-dir $CONTRACTS_BEDROCK/deployments/nebula \
-        --deploy-config $CONTRACTS_BEDROCK/deploy-config/nebula.json \
-        --outfile.l2 $DEVNET/genesis.json \
-        --outfile.rollup $DEVNET/rollup.json
-    touch "$DEVNET/done"
-  )
-fi
 
 # Bring up L2.
 (
