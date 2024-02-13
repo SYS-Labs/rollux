@@ -24,10 +24,10 @@ contract Bridge_Initializer is CommonTest {
         L1Token = new ERC20("Native L1 Token", "L1T");
 
         LegacyL2Token = new LegacyMintableERC20({
-            _l2Bridge: address(l2StandardBridge),
-            _l1Token: address(L1Token),
-            _name: string.concat("LegacyL2-", L1Token.name()),
-            _symbol: string.concat("LegacyL2-", L1Token.symbol())
+        _l2Bridge: address(l2StandardBridge),
+        _l1Token: address(L1Token),
+        _name: string.concat("LegacyL2-", L1Token.name()),
+        _symbol: string.concat("LegacyL2-", L1Token.symbol())
         });
         vm.label(address(LegacyL2Token), "LegacyMintableERC20");
 

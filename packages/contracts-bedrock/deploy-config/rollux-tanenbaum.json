@@ -1,33 +1,5 @@
-#!/usr/bin/env bash
-
-# This script is used to generate the getting-started.json configuration file
-# used in the Getting Started quickstart guide on the docs site. Avoids the
-# need to have the getting-started.json committed to the repo since it's an
-# invalid JSON file when not filled in, which is annoying.
-
-reqenv() {
-    if [ -z "${!1}" ]; then
-        echo "Error: environment variable '$1' is undefined"
-        exit 1
-    fi
-}
-
-# Check required environment variables
-reqenv "GS_ADMIN_ADDRESS"
-reqenv "GS_BATCHER_ADDRESS"
-reqenv "GS_PROPOSER_ADDRESS"
-reqenv "GS_SEQUENCER_ADDRESS"
-reqenv "L1_RPC_URL"
-
-# Get the finalized block timestamp and hash
-block=$(cast block finalized --rpc-url "$L1_RPC_URL")
-timestamp=$(echo "$block" | awk '/timestamp/ { print $2 }')
-blockhash=$(echo "$block" | awk '/hash/ { print $2 }')
-
-# Generate the config file
-config=$(cat << EOL
 {
-  "l1StartingBlockTag": "$blockhash",
+  "l1StartingBlockTag": "0xa3c0e1807cbb0ea86383ee01a6769121bfad3b6d745460b5141269d9b3661ea9",
 
   "l1ChainID": 5700,
   "l2ChainID": 570570,
@@ -38,25 +10,25 @@ config=$(cat << EOL
   "sequencerWindowSize": 3600,
   "channelTimeout": 300,
 
-  "p2pSequencerAddress": "$GS_SEQUENCER_ADDRESS",
+  "p2pSequencerAddress": "0xD9b7F1467EDb7247f026D2A719bad1A59EDdBFB0",
   "batchInboxAddress": "0xff00000000000000000000000000000000042069",
-  "batchSenderAddress": "$GS_BATCHER_ADDRESS",
+  "batchSenderAddress": "0xdC5D6b20cf58A15Ea8460B39912142dC0e3F6964",
 
   "l2OutputOracleSubmissionInterval": 120,
   "l2OutputOracleStartingBlockNumber": 0,
-  "l2OutputOracleStartingTimestamp": $timestamp,
+  "l2OutputOracleStartingTimestamp": 1707744603,
 
-  "l2OutputOracleProposer": "$GS_PROPOSER_ADDRESS",
-  "l2OutputOracleChallenger": "$GS_ADMIN_ADDRESS",
+  "l2OutputOracleProposer": "0x3D6E6DC3DC468679492FA869aD76D6B0F6D4fDC9",
+  "l2OutputOracleChallenger": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
 
   "finalizationPeriodSeconds": 12,
 
-  "proxyAdminOwner": "$GS_ADMIN_ADDRESS",
-  "baseFeeVaultRecipient": "$GS_ADMIN_ADDRESS",
-  "l1FeeVaultRecipient": "$GS_ADMIN_ADDRESS",
-  "sequencerFeeVaultRecipient": "$GS_ADMIN_ADDRESS",
-  "finalSystemOwner": "$GS_ADMIN_ADDRESS",
-  "superchainConfigGuardian": "$GS_ADMIN_ADDRESS",
+  "proxyAdminOwner": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
+  "baseFeeVaultRecipient": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
+  "l1FeeVaultRecipient": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
+  "sequencerFeeVaultRecipient": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
+  "finalSystemOwner": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
+  "superchainConfigGuardian": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
 
   "baseFeeVaultMinimumWithdrawalAmount": "0x8ac7230489e80000",
   "l1FeeVaultMinimumWithdrawalAmount": "0x8ac7230489e80000",
@@ -71,7 +43,7 @@ config=$(cat << EOL
   "enableGovernance": true,
   "governanceTokenSymbol": "NEB",
   "governanceTokenName": "Nebula",
-  "governanceTokenOwner": "$GS_ADMIN_ADDRESS",
+  "governanceTokenOwner": "0x7dB1bbb08C4Fd561f00a1d981d8F3E995C0F3df3",
 
   "l2GenesisBlockGasLimit": "0x1c9c380",
   "l2GenesisBlockBaseFeePerGas": "0x3b9aca00",
@@ -96,12 +68,9 @@ config=$(cat << EOL
   "faultGameGenesisOutputRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "faultGameSplitDepth": 14,
 
+
+  "fundDevAccounts": true,
   "preimageOracleMinProposalSize": 1800000,
   "preimageOracleChallengePeriod": 86400,
   "preimageOracleCancunActivationTimestamp": 0
 }
-EOL
-)
-
-# Write the config file
-echo "$config" > deploy-config/rollux-tanenbaum.json

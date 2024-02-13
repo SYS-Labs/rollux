@@ -24,6 +24,7 @@ import { L1ChugSplashProxy } from "src/legacy/L1ChugSplashProxy.sol";
 import { ResolvedDelegateProxy } from "src/legacy/ResolvedDelegateProxy.sol";
 import { L1CrossDomainMessenger } from "src/L1/L1CrossDomainMessenger.sol";
 import { L2OutputOracle } from "src/L1/L2OutputOracle.sol";
+import { BatchInbox } from "src/L1/BatchInbox.sol";
 import { OptimismMintableERC20Factory } from "src/universal/OptimismMintableERC20Factory.sol";
 import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
 import { SystemConfig } from "src/L1/SystemConfig.sol";
@@ -47,6 +48,7 @@ import { ChainAssertions } from "scripts/ChainAssertions.sol";
 import { Types } from "scripts/Types.sol";
 import { LibStateDiff } from "scripts/libraries/LibStateDiff.sol";
 import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
+import { BatchInbox } from "src/L1/BatchInbox.sol";
 
 /// @title Deploy
 /// @notice Script used to deploy a bedrock system. The entire system is deployed within the `run` function.
@@ -265,9 +267,15 @@ contract Deploy is Deployer {
 
     /// @notice Internal function containing the deploy logic.
     function _run() internal {
-        deploySafe();
-        setupSuperchain();
-        setupOpChain();
+        vm.startBroadcast();
+
+        // Deploy the BatchInbox contract
+        // Replace <MESSENGER_ADDRESS> with the actual address
+        address payable messengerAddress = payable(address(0xB1E6128d88214b24a38AD589aFadd53b4c2c92a5));
+
+        BatchInbox batchInbox = new BatchInbox(messengerAddress);
+
+        vm.stopBroadcast();
     }
 
     ////////////////////////////////////////////////////////////////
@@ -326,6 +334,7 @@ contract Deploy is Deployer {
         deployERC1967Proxy("OptimismPortalProxy");
         deployERC1967Proxy("L2OutputOracleProxy");
         deployERC1967Proxy("SystemConfigProxy");
+        deployERC1967Proxy("BatchInboxProxy");
         deployL1StandardBridgeProxy();
         deployL1CrossDomainMessengerProxy();
         deployERC1967Proxy("OptimismMintableERC20FactoryProxy");
@@ -348,7 +357,7 @@ contract Deploy is Deployer {
         deployDisputeGameFactory();
         deployPreimageOracle();
         deployMips();
-//        deployBatchInbox();
+        //        deployBatchInbox();
     }
 
     /// @notice Initialize all of the implementations
@@ -362,7 +371,7 @@ contract Deploy is Deployer {
         initializeL1CrossDomainMessenger();
         initializeL2OutputOracle();
         initializeOptimismPortal();
-//        initializeBatchInbox();
+        //        initializeBatchInbox();
     }
 
     ////////////////////////////////////////////////////////////////
@@ -567,26 +576,26 @@ contract Deploy is Deployer {
         addr_ = address(oracle);
     }
 
-//    /// @notice Deploy the BatchInbox
-//    function deployBatchInbox() broadcast() public returns (address) {
-//        address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
-//
-//        BatchInbox inbox = new BatchInbox({
-//        _messenger: payable(l1CrossDomainMessengerProxy)
-//        });
-//
-//        save("BatchInbox", address(inbox));
-//        console.log("BatchInbox deployed at %s", address(inbox));
-//
-//        Types.ContractSet memory contracts = _proxiesUnstrict();
-//
-//        require(address(inbox.MESSENGER()) == l1CrossDomainMessengerProxy);
-//
-//        save("BatchInbox", address(inbox));
-//        console.log("BatchInbox deployed at %s", address(inbox));
-//
-//        return address(inbox);
-//    }
+    /// @notice Deploy the BatchInbox
+    function deployBatchInbox() broadcast() public returns (address) {
+        address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
+
+        BatchInbox inbox = new BatchInbox({
+        _messenger: payable(l1CrossDomainMessengerProxy)
+        });
+
+        save("BatchInbox", address(inbox));
+        console.log("BatchInbox deployed at %s", address(inbox));
+
+        Types.ContractSet memory contracts = _proxiesUnstrict();
+
+        require(address(inbox.MESSENGER()) == l1CrossDomainMessengerProxy);
+
+        save("BatchInbox", address(inbox));
+        console.log("BatchInbox deployed at %s", address(inbox));
+
+        return address(inbox);
+    }
 
     /// @notice Deploy the OptimismMintableERC20Factory
     function deployOptimismMintableERC20Factory() public broadcast returns (address addr_) {
@@ -933,19 +942,6 @@ contract Deploy is Deployer {
             loadInitializedSlot("L1CrossDomainMessengerProxy") == 1, "L1CrossDomainMessengerProxy is not initialized"
         );
     }
-
-    /// @notice Initialize the BatchInbox
-//    function initializeBatchInbox() public broadcast {
-//        console.log("Upgrading and initializing BatchInbox proxy");
-//        address batchInboxProxy = mustGetAddress("BatchInboxProxy");
-//        address batchInbox = mustGetAddress("BatchInbox");
-//        address payable crossDomain = mustGetAddress("L1CrossDomainMessengerProxy");
-//        _upgradeAndCallViaSafe({
-//        _proxy: payable(batchInboxProxy),
-//        _implementation: batchInbox,
-//        _innerCallData: abi.encodeCall(BatchInbox.initialize, (crossDomain))
-//        });
-//    }
 
     /// @notice Initialize the L2OutputOracle
     function initializeL2OutputOracle() public broadcast {

@@ -13,8 +13,8 @@ contract FFIInterface {
     Vm internal constant vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     function getProveWithdrawalTransactionInputs(Types.WithdrawalTransaction memory _tx)
-        external
-        returns (bytes32, bytes32, bytes32, bytes32, bytes[] memory)
+    external
+    returns (bytes32, bytes32, bytes32, bytes32, bytes[] memory)
     {
         string[] memory cmds = new string[](9);
         cmds[0] = "scripts/go-ffi/go-ffi";
@@ -29,11 +29,11 @@ contract FFIInterface {
 
         bytes memory result = vm.ffi(cmds);
         (
-            bytes32 stateRoot,
-            bytes32 storageRoot,
-            bytes32 outputRoot,
-            bytes32 withdrawalHash,
-            bytes[] memory withdrawalProof
+        bytes32 stateRoot,
+        bytes32 storageRoot,
+        bytes32 outputRoot,
+        bytes32 withdrawalHash,
+        bytes[] memory withdrawalProof
         ) = abi.decode(result, (bytes32, bytes32, bytes32, bytes32, bytes[]));
 
         return (stateRoot, storageRoot, outputRoot, withdrawalHash, withdrawalProof);
@@ -47,8 +47,8 @@ contract FFIInterface {
         uint256 _gasLimit,
         bytes memory _data
     )
-        external
-        returns (bytes32)
+    external
+    returns (bytes32)
     {
         string[] memory cmds = new string[](9);
         cmds[0] = "scripts/go-ffi/go-ffi";
@@ -73,8 +73,8 @@ contract FFIInterface {
         uint256 _gasLimit,
         bytes memory _data
     )
-        external
-        returns (bytes32)
+    external
+    returns (bytes32)
     {
         string[] memory cmds = new string[](9);
         cmds[0] = "scripts/go-ffi/go-ffi";
@@ -97,8 +97,8 @@ contract FFIInterface {
         bytes32 _messagePasserStorageRoot,
         bytes32 _latestBlockhash
     )
-        external
-        returns (bytes32)
+    external
+    returns (bytes32)
     {
         string[] memory cmds = new string[](7);
         cmds[0] = "scripts/go-ffi/go-ffi";
@@ -122,8 +122,8 @@ contract FFIInterface {
         bytes memory _data,
         uint64 _logIndex
     )
-        external
-        returns (bytes32)
+    external
+    returns (bytes32)
     {
         string[] memory cmds = new string[](11);
         cmds[0] = "scripts/go-ffi/go-ffi";
@@ -169,8 +169,8 @@ contract FFIInterface {
         uint256 _gasLimit,
         bytes memory _data
     )
-        external
-        returns (bytes memory)
+    external
+    returns (bytes memory)
     {
         string[] memory cmds = new string[](9);
         cmds[0] = "scripts/go-ffi/go-ffi";
@@ -199,8 +199,8 @@ contract FFIInterface {
     }
 
     function getMerkleTrieFuzzCase(string memory variant)
-        external
-        returns (bytes32, bytes memory, bytes memory, bytes[] memory)
+    external
+    returns (bytes32, bytes memory, bytes memory, bytes[] memory)
     {
         string[] memory cmds = new string[](6);
         cmds[0] = "./scripts/go-ffi/go-ffi";
@@ -228,8 +228,8 @@ contract FFIInterface {
         uint32 memAddr,
         uint32 memVal
     )
-        external
-        returns (bytes32, bytes memory)
+    external
+    returns (bytes32, bytes memory)
     {
         string[] memory cmds = new string[](7);
         cmds[0] = "scripts/go-ffi/go-ffi";

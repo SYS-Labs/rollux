@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 library Chains {
     uint256 internal constant Mainnet = 1;
     uint256 internal constant OPMainnet = 10;
-    uint256 internal constant Goerli = 5;
+    uint256 internal constant Goerli = 5700;
     uint256 internal constant OPGoerli = 420;
     uint256 internal constant Sepolia = 5700;
     uint256 internal constant OPSepolia = 11155420;
