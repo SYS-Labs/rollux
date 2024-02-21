@@ -2,75 +2,101 @@ package derive
 
 import (
 	"context"
-	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"fmt"
+	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
+
+	"github.com/ethereum-optimism/optimism/op-node/rollup"
+	plasma "github.com/ethereum-optimism/optimism/op-plasma"
+	"github.com/ethereum-optimism/optimism/op-service/eth"
 )
 
-// TODO: refactor derivation
-//
-// import (
-//
-//	"context"
-//	"fmt"
-//
-//	"github.com/ethereum/go-ethereum/common"
-//	"github.com/ethereum/go-ethereum/core/types"
-//	"github.com/ethereum/go-ethereum/log"
-//
-//	"github.com/ethereum-optimism/optimism/op-node/rollup"
-//	"github.com/ethereum-optimism/optimism/op-service/eth"
-//
-// )
-//
-//	type DataIter interface {
-//		Next(ctx context.Context) (eth.Data, error)
-//	}
-//
-//	type L1TransactionFetcher interface {
-//		InfoAndTxsByHash(ctx context.Context, hash common.Hash) (eth.BlockInfo, types.Transactions, error)
-//	}
 type L1BlobsFetcher interface {
 	// GetBlobs fetches blobs that were confirmed in the given L1 block with the given indexed hashes.
 	GetBlobs(ctx context.Context, ref eth.L1BlockRef, hashes []eth.IndexedBlobHash) ([]*eth.Blob, error)
 }
 
-//// DataSourceFactory reads raw transactions from a given block & then filters for
-//// batch submitter transactions.
-//// This is not a stage in the pipeline, but a wrapper for another stage in the pipeline
-//type DataSourceFactory struct {
-//	log          log.Logger
-//	dsCfg        DataSourceConfig
-//	fetcher      L1TransactionFetcher
-//	blobsFetcher L1BlobsFetcher
-//	ecotoneTime  *uint64
-//}
-//
-//func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, blobsFetcher L1BlobsFetcher) *DataSourceFactory {
-//	config := DataSourceConfig{
-//		l1Signer:          cfg.L1Signer(),
-//		batchInboxAddress: cfg.BatchInboxAddress,
-//	}
-//	return &DataSourceFactory{log: log, dsCfg: config, fetcher: fetcher, blobsFetcher: blobsFetcher, ecotoneTime: cfg.EcotoneTime}
-//}
+type PlasmaInputFetcher interface {
+	// GetInput fetches the input for the given commitment at the given block number from the DA storage service.
+	GetInput(ctx context.Context, commitment []byte, blockNumber uint64) (plasma.Input, error)
+}
 
-//// OpenData returns the appropriate data source for the L1 block `ref`.
-//func (ds *DataSourceFactory) OpenData(ctx context.Context, ref eth.L1BlockRef, batcherAddr common.Address) (DataIter, error) {
-//	if ds.ecotoneTime != nil && ref.Time >= *ds.ecotoneTime {
-//		if ds.blobsFetcher == nil {
-//			return nil, fmt.Errorf("ecotone upgrade active but beacon endpoint not configured")
-//		}
-//		return NewBlobDataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ds.blobsFetcher, ref, batcherAddr), nil
-//	}
-//	return NewCalldataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ref, batcherAddr), nil
-//}
+// DataSourceFactory reads raw transactions from a given block & then filters for
+// batch submitter transactions.
+// This is not a stage in the pipeline, but a wrapper for another stage in the pipeline
+type DataSourceFactory struct {
+	log           log.Logger
+	dsCfg         DataSourceConfig
+	fetcher       L1TransactionFetcher
+	blobsFetcher  L1BlobsFetcher
+	plasmaFetcher PlasmaInputFetcher
+	ecotoneTime   *uint64
 
-//// DataSourceConfig regroups the mandatory rollup.Config fields needed for DataFromEVMTransactions.
-//type DataSourceConfig struct {
-//	l1Signer          types.Signer
-//	batchInboxAddress common.Address
-//}
+	// SYSCOIN
+	batchInboxABI              *abi.ABI
+	appendSequencerFunctionSig []byte
+}
+
+func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, blobsFetcher L1BlobsFetcher, plasmaFetcher PlasmaInputFetcher) *DataSourceFactory {
+	// SYSCOIN
+	batchInboxABI, err := bindings.BatchInboxMetaData.GetAbi()
+	if err != nil {
+		log.Error("Failed to parse contract ABI: %v", err)
+		return nil
+	}
+	appendSequencerFunctionSig := crypto.Keccak256([]byte(appendSequencerBatchMethodFunction))[:4]
+
+	config := DataSourceConfig{
+		l1Signer:                   cfg.L1Signer(),
+		batchInboxAddress:          cfg.BatchInboxAddress,
+		plasmaEnabled:              cfg.IsPlasmaEnabled(),
+		batchInboxABI:              batchInboxABI,
+		appendSequencerFunctionSig: appendSequencerFunctionSig,
+	}
+	return &DataSourceFactory{
+		log:           log,
+		dsCfg:         config,
+		fetcher:       fetcher,
+		blobsFetcher:  blobsFetcher,
+		plasmaFetcher: plasmaFetcher,
+		ecotoneTime:   cfg.EcotoneTime,
+	}
+}
+
+// OpenData returns the appropriate data source for the L1 block `ref`.
+func (ds *DataSourceFactory) OpenData(ctx context.Context, ref eth.L1BlockRef, batcherAddr common.Address) (DataIter, error) {
+	// Creates a data iterator from blob or calldata source so we can forward it to the plasma source
+	// if enabled as it still requires an L1 data source for fetching input commmitments.
+	var src DataIter
+	if ds.ecotoneTime != nil && ref.Time >= *ds.ecotoneTime {
+		if ds.blobsFetcher == nil {
+			return nil, fmt.Errorf("ecotone upgrade active but beacon endpoint not configured")
+		}
+		src = NewBlobDataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ds.blobsFetcher, ref, batcherAddr)
+	} else {
+		src = NewCalldataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ref, batcherAddr)
+	}
+	if ds.dsCfg.plasmaEnabled {
+		// plasma([calldata | blobdata](l1Ref)) -> data
+		return NewPlasmaDataSource(ds.log, src, ds.plasmaFetcher, ref.ID()), nil
+	}
+	return src, nil
+}
+
+// DataSourceConfig regroups the mandatory rollup.Config fields needed for DataFromEVMTransactions.
+type DataSourceConfig struct {
+	l1Signer          types.Signer
+	batchInboxAddress common.Address
+	plasmaEnabled     bool
+
+	// SYSCOIN
+	batchInboxABI              *abi.ABI
+	appendSequencerFunctionSig []byte
+}
 
 // isValidBatchTx returns true if:
 //  1. the transaction has a To() address that matches the batch inbox address, and

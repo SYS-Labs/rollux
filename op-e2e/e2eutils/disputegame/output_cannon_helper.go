@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/cannon"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/outputs"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/outputs/source"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/split"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
 	"github.com/ethereum-optimism/optimism/op-challenger/metrics"
@@ -40,7 +41,7 @@ func (g *OutputCannonGameHelper) StartChallenger(
 		challenger.WithGameAddress(g.addr),
 	}
 	opts = append(opts, options...)
-	c := challenger.NewChallenger(g.t, ctx, g.system.NodeEndpoint("l1"), name, opts...)
+	c := challenger.NewChallenger(g.t, ctx, g.system, name, opts...)
 	g.t.Cleanup(func() {
 		_ = c.Close()
 	})
@@ -50,9 +51,9 @@ func (g *OutputCannonGameHelper) StartChallenger(
 func (g *OutputCannonGameHelper) CreateHonestActor(ctx context.Context, l2Node string, options ...challenger.Option) *OutputHonestHelper {
 	opts := g.defaultChallengerOptions(l2Node)
 	opts = append(opts, options...)
-	cfg := challenger.NewChallengerConfig(g.t, g.system.NodeEndpoint("l1"), opts...)
+	cfg := challenger.NewChallengerConfig(g.t, g.system, opts...)
 
-	logger := testlog.Logger(g.t, log.LvlInfo).New("role", "HonestHelper", "game", g.addr)
+	logger := testlog.Logger(g.t, log.LevelInfo).New("role", "HonestHelper", "game", g.addr)
 	l2Client := g.system.NodeClient(l2Node)
 	caller := batching.NewMultiCaller(g.system.NodeClient("l1").Client(), batching.DefaultBatchSize)
 	contract, err := contracts.NewFaultDisputeGameContract(g.addr, caller)
@@ -63,9 +64,10 @@ func (g *OutputCannonGameHelper) CreateHonestActor(ctx context.Context, l2Node s
 	dir := filepath.Join(cfg.Datadir, "honest")
 	splitDepth := g.SplitDepth(ctx)
 	rollupClient := g.system.RollupClient(l2Node)
-	prestateProvider := outputs.NewPrestateProvider(ctx, logger, rollupClient, prestateBlock)
+	outputRootProvider := source.NewUnrestrictedOutputSource(rollupClient)
+	prestateProvider := outputs.NewPrestateProvider(outputRootProvider, prestateBlock)
 	accessor, err := outputs.NewOutputCannonTraceAccessor(
-		logger, metrics.NoopMetrics, cfg, l2Client, contract, prestateProvider, rollupClient, dir, splitDepth, prestateBlock, poststateBlock)
+		logger, metrics.NoopMetrics, cfg, l2Client, contract, prestateProvider, outputRootProvider, dir, splitDepth, prestateBlock, poststateBlock)
 	g.require.NoError(err, "Failed to create output cannon trace accessor")
 	return &OutputHonestHelper{
 		t:            g.t,
@@ -209,16 +211,17 @@ func (g *OutputCannonGameHelper) ChallengeToPreimageLoad(ctx context.Context, ou
 
 	// Now the preimage is available wait for the step call to succeed.
 	leafClaim.WaitForCountered(ctx)
+	g.LogGameData(ctx)
 }
 
 func (g *OutputCannonGameHelper) createCannonTraceProvider(ctx context.Context, l2Node string, outputRootClaim *ClaimHelper, options ...challenger.Option) *cannon.CannonTraceProviderForTest {
 	splitDepth := g.SplitDepth(ctx)
 	g.require.EqualValues(outputRootClaim.Depth(), splitDepth+1, "outputRootClaim must be the root of an execution game")
 
-	logger := testlog.Logger(g.t, log.LvlInfo).New("role", "CannonTraceProvider", "game", g.addr)
+	logger := testlog.Logger(g.t, log.LevelInfo).New("role", "CannonTraceProvider", "game", g.addr)
 	opt := g.defaultChallengerOptions(l2Node)
 	opt = append(opt, options...)
-	cfg := challenger.NewChallengerConfig(g.t, g.system.NodeEndpoint("l1"), opt...)
+	cfg := challenger.NewChallengerConfig(g.t, g.system, opt...)
 
 	caller := batching.NewMultiCaller(g.system.NodeClient("l1").Client(), batching.DefaultBatchSize)
 	l2Client := g.system.NodeClient(l2Node)
@@ -228,8 +231,9 @@ func (g *OutputCannonGameHelper) createCannonTraceProvider(ctx context.Context, 
 	prestateBlock, poststateBlock, err := contract.GetBlockRange(ctx)
 	g.require.NoError(err, "Failed to load block range")
 	rollupClient := g.system.RollupClient(l2Node)
-	prestateProvider := outputs.NewPrestateProvider(ctx, logger, rollupClient, prestateBlock)
-	outputProvider := outputs.NewTraceProviderFromInputs(logger, prestateProvider, rollupClient, splitDepth, prestateBlock, poststateBlock)
+	outputRootProvider := source.NewUnrestrictedOutputSource(rollupClient)
+	prestateProvider := outputs.NewPrestateProvider(outputRootProvider, prestateBlock)
+	outputProvider := outputs.NewTraceProviderFromInputs(logger, prestateProvider, outputRootProvider, splitDepth, prestateBlock, poststateBlock)
 
 	selector := split.NewSplitProviderSelector(outputProvider, splitDepth, func(ctx context.Context, depth types.Depth, pre types.Claim, post types.Claim) (types.TraceProvider, error) {
 		agreed, disputed, err := outputs.FetchProposals(ctx, outputProvider, pre, post)

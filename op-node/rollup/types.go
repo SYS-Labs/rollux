@@ -112,6 +112,9 @@ type Config struct {
 
 	// L1 block timestamp to start reading blobs as batch data-source. Optional.
 	BlobsEnabledL1Timestamp *uint64 `json:"blobs_data,omitempty"`
+
+	// L1 DataAvailabilityChallenge contract proxy address
+	DAChallengeAddress common.Address `json:"da_challenge_address,omitempty"`
 }
 
 // ValidateL1Config checks L1 config variables for errors.
@@ -358,6 +361,51 @@ func (c *Config) IsFjord(timestamp uint64) bool {
 // IsInterop returns true if the Interop hardfork is active at or past the given timestamp.
 func (c *Config) IsInterop(timestamp uint64) bool {
 	return c.InteropTime != nil && timestamp >= *c.InteropTime
+}
+
+// ForkchoiceUpdatedVersion returns the EngineAPIMethod suitable for the chain hard fork version.
+func (c *Config) ForkchoiceUpdatedVersion(attr *eth.PayloadAttributes) eth.EngineAPIMethod {
+	if attr == nil {
+		// Don't begin payload build process.
+		return eth.FCUV3
+	}
+	ts := uint64(attr.Timestamp)
+	if c.IsEcotone(ts) {
+		// Cancun
+		return eth.FCUV3
+	} else if c.IsCanyon(ts) {
+		// Shanghai
+		return eth.FCUV2
+	} else {
+		// According to Ethereum engine API spec, we can use fcuV2 here,
+		// but upstream Geth v1.13.11 does not accept V2 before Shanghai.
+		return eth.FCUV1
+	}
+}
+
+// NewPayloadVersion returns the EngineAPIMethod suitable for the chain hard fork version.
+func (c *Config) NewPayloadVersion(timestamp uint64) eth.EngineAPIMethod {
+	if c.IsEcotone(timestamp) {
+		// Cancun
+		return eth.NewPayloadV3
+	} else {
+		return eth.NewPayloadV2
+	}
+}
+
+// GetPayloadVersion returns the EngineAPIMethod suitable for the chain hard fork version.
+func (c *Config) GetPayloadVersion(timestamp uint64) eth.EngineAPIMethod {
+	if c.IsEcotone(timestamp) {
+		// Cancun
+		return eth.GetPayloadV3
+	} else {
+		return eth.GetPayloadV2
+	}
+}
+
+// IsPlasmaEnabled returns true if a DA Challenge proxy Address is provided in the rollup config.
+func (c *Config) IsPlasmaEnabled() bool {
+	return c.DAChallengeAddress != (common.Address{})
 }
 
 // Description outputs a banner describing the important parts of rollup configuration in a human-readable form.

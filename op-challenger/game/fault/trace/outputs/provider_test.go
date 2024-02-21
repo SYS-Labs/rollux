@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/outputs/source"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-service/testlog"
@@ -121,8 +122,8 @@ func setupWithTestData(t *testing.T, prestateBlock, poststateBlock uint64, custo
 		inputGameDepth = customGameDepth[0]
 	}
 	return &OutputTraceProvider{
-		logger:         testlog.Logger(t, log.LvlInfo),
-		rollupClient:   &rollupClient,
+		logger:         testlog.Logger(t, log.LevelInfo),
+		rollupProvider: source.NewUnrestrictedOutputSource(&rollupClient),
 		prestateBlock:  prestateBlock,
 		poststateBlock: poststateBlock,
 		gameDepth:      inputGameDepth,

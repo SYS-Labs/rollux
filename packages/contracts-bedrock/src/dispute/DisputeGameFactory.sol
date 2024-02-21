@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity 0.8.15;
 
 import { ClonesWithImmutableArgs } from "@cwia/ClonesWithImmutableArgs.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -24,8 +24,8 @@ contract DisputeGameFactory is OwnableUpgradeable, IDisputeGameFactory, ISemver 
     using ClonesWithImmutableArgs for address;
 
     /// @notice Semantic version.
-    /// @custom:semver 0.0.9
-    string public constant version = "0.0.9";
+    /// @custom:semver 0.2.0
+    string public constant version = "0.2.0";
 
     /// @inheritdoc IDisputeGameFactory
     mapping(GameType => IDisputeGame) public gameImpls;
@@ -102,8 +102,11 @@ contract DisputeGameFactory is OwnableUpgradeable, IDisputeGameFactory, ISemver 
         // If the required initialization bond is not met, revert.
         if (msg.value < initBonds[_gameType]) revert InsufficientBond();
 
+        // Get the hash of the parent block.
+        bytes32 parentHash = blockhash(block.number - 1);
+
         // Clone the implementation contract and initialize it with the given parameters.
-        proxy_ = IDisputeGame(address(impl).clone(abi.encodePacked(_rootClaim, _extraData)));
+        proxy_ = IDisputeGame(address(impl).clone(abi.encodePacked(_rootClaim, parentHash, _extraData)));
         proxy_.initialize{ value: msg.value }();
 
         // Compute the unique identifier for the dispute game.
@@ -156,7 +159,7 @@ contract DisputeGameFactory is OwnableUpgradeable, IDisputeGameFactory, ISemver 
         // Perform a reverse linear search for the `_n` most recent games of type `_gameType`.
         for (uint256 i = _start; i >= 0 && i <= _start;) {
             GameId id = _disputeGameList[i];
-            (GameType gameType,,) = id.unpack();
+            (GameType gameType, Timestamp timestamp, IDisputeGame proxy) = id.unpack();
 
             if (gameType.raw() == _gameType.raw()) {
                 // Increase the size of the `games_` array by 1.
@@ -166,7 +169,15 @@ contract DisputeGameFactory is OwnableUpgradeable, IDisputeGameFactory, ISemver 
                     mstore(games_, add(mload(games_), 0x01))
                 }
 
-                games_[games_.length - 1] = GameSearchResult({ index: i, metadata: id });
+                bytes memory extraData = proxy.extraData();
+                Claim rootClaim = proxy.rootClaim();
+                games_[games_.length - 1] = GameSearchResult({
+                    index: i,
+                    metadata: id,
+                    timestamp: timestamp,
+                    rootClaim: rootClaim,
+                    extraData: extraData
+                });
                 if (games_.length >= _n) break;
             }
 

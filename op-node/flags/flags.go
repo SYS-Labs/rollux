@@ -7,6 +7,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/ethereum-optimism/optimism/op-node/rollup/sync"
+	plasma "github.com/ethereum-optimism/optimism/op-plasma"
 	openum "github.com/ethereum-optimism/optimism/op-service/enum"
 	opflags "github.com/ethereum-optimism/optimism/op-service/flags"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
@@ -48,6 +49,12 @@ var (
 		Usage:    "Address of L1 Beacon-node HTTP endpoint to use.",
 		Required: false,
 		EnvVars:  prefixEnvVars("L1_BEACON"),
+	}
+	BeaconArchiverAddr = &cli.StringFlag{
+		Name:     "l1.beacon-archiver",
+		Usage:    "Address of L1 Beacon-node compatible HTTP endpoint to use. This is used to fetch blobs that the --l1.beacon does not have (i.e expired blobs).",
+		Required: false,
+		EnvVars:  prefixEnvVars("L1_BEACON_ARCHIVER"),
 	}
 	BeaconCheckIgnore = &cli.BoolFlag{
 		Name:     "l1.beacon.ignore",
@@ -301,6 +308,7 @@ var requiredFlags = []cli.Flag{
 
 var optionalFlags = []cli.Flag{
 	BeaconAddr,
+	BeaconArchiverAddr,
 	BeaconCheckIgnore,
 	BeaconFetchAllSidecars,
 	SyncModeFlag,
@@ -359,6 +367,7 @@ func init() {
 	optionalFlags = append(optionalFlags, oppprof.CLIFlags(EnvVarPrefix)...)
 	optionalFlags = append(optionalFlags, DeprecatedFlags...)
 	optionalFlags = append(optionalFlags, opflags.CLIFlags(EnvVarPrefix)...)
+	optionalFlags = append(optionalFlags, plasma.CLIFlags(EnvVarPrefix)...)
 	Flags = append(requiredFlags, optionalFlags...)
 }
 

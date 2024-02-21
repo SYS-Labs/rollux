@@ -348,7 +348,7 @@ func (s *EthClient) FetchReceipts(ctx context.Context, blockHash common.Hash) (e
 	}
 
 	txHashes, block := eth.TransactionsToHashes(txs), eth.ToBlockID(info)
-	receipts, err := s.recProvider.FetchReceipts(ctx, block, txHashes)
+	receipts, err := s.recProvider.FetchReceipts(ctx, info, txHashes)
 	if err != nil {
 		return nil, nil, nil, err
 	}
