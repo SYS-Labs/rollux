@@ -67,7 +67,7 @@ func newClientsFromCLI(ctx *cli.Context) (*batching.MultiCaller, txmgr.TxManager
 	defer l1Client.Close()
 	sysClient, err := opclient.NewSyscoinClient("")
 	if err != nil {
-		fmt.Errorf("initTxManager", "msg", "Error in syscoin client connection")
+		return nil, nil, fmt.Errorf("initTxManagerError in syscoin client connection : %w", err)
 	}
 	caller := batching.NewMultiCaller(l1Client.Client(), batching.DefaultBatchSize)
 	txMgrConfig := txmgr.ReadCLIConfig(ctx)
