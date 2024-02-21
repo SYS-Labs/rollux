@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"io"
 	"reflect"
 
@@ -15,8 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ethereum-optimism/optimism/op-service/eth"
-	// SYSCOIN
-	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
@@ -37,53 +35,10 @@ type L1TransactionFetcher interface {
 	GetBlobFromRPC(vh common.Hash) ([]byte, error)
 }
 
-// DataSourceFactory readers raw transactions from a given block & then filters for
-// batch submitter transactions.
-// This is not a stage in the pipeline, but a wrapper for another stage in the pipeline
-type DataSourceFactory struct {
-	log     log.Logger
-	cfg     *rollup.Config
-	dsCfg   DataSourceConfig
-	fetcher L1TransactionFetcher
-	// SYSCOIN
-	batchInboxABI              *abi.ABI
-	appendSequencerFunctionSig []byte
-}
-
-func NewDataSourceFactory(log log.Logger, cfg *rollup.Config, fetcher L1TransactionFetcher, l1Blobs L1BlobsFetcher) *DataSourceFactory {
-	// SYSCOIN
-	batchInboxABI, err := bindings.BatchInboxMetaData.GetAbi()
-	if err != nil {
-		log.Error("Failed to parse contract ABI: %v", err)
-		return nil
-	}
-	appendSequencerFunctionSig := crypto.Keccak256([]byte(appendSequencerBatchMethodFunction))[:4]
-	dsConfig := DataSourceConfig{l1Signer: cfg.L1Signer(),
-		batchInboxAddress:          cfg.BatchInboxAddress,
-		batchInboxABI:              batchInboxABI,
-		appendSequencerFunctionSig: appendSequencerFunctionSig}
-	return &DataSourceFactory{log: log, dsCfg: dsConfig, fetcher: fetcher}
-}
-
-// OpenData returns a DataIter. This struct implements the `Next` function.
-func (ds *DataSourceFactory) OpenData(ctx context.Context, ref eth.L1BlockRef, batcherAddr common.Address) (DataIter, error) {
-	return NewDataSource(ctx, ds.log, ds.dsCfg, ds.fetcher, ref, batcherAddr), nil
-
-}
-
-// DataSourceConfig regroups the mandatory rollup.Config fields needed for DataFromEVMTransactions.
-type DataSourceConfig struct {
-	l1Signer          types.Signer
-	batchInboxAddress common.Address
-	// SYSCOIN
-	batchInboxABI              *abi.ABI
-	appendSequencerFunctionSig []byte
-}
-
 // DataSource is a fault tolerant approach to fetching data.
 // The constructor will never fail & it will instead re-attempt the fetcher
 // at a later point.
-type DataSource struct {
+type CalldataSource struct {
 	// Internal state + data
 	open bool
 	data []eth.Data
@@ -101,11 +56,11 @@ type DataSource struct {
 
 // NewCalldataSource creates a new calldata source. It suppresses errors in fetching the L1 block if they occur.
 // If there is an error, it will attempt to fetch the result on the next call to `Next`.
-func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, fetcher L1TransactionFetcher, ref eth.L1BlockRef, batcherAddr common.Address) DataIter {
+func NewCalldataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, fetcher L1TransactionFetcher, ref eth.L1BlockRef, batcherAddr common.Address) DataIter {
 	// SYSCOIN info
 	_, receipts, txs, err := fetcher.FetchReceipts(ctx, ref.Hash)
 	if err != nil {
-		return &DataSource{
+		return &CalldataSource{
 			open:                       false,
 			ref:                        ref,
 			dsCfg:                      dsCfg,
@@ -119,7 +74,7 @@ func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, 
 		// SYSCOIN
 		dataSrc := DataFromEVMTransactions(ctx, fetcher, dsCfg, batcherAddr, receipts, txs, log.New("origin", ref))
 		if dataSrc == nil {
-			return &DataSource{
+			return &CalldataSource{
 				open:                       false,
 				ref:                        ref,
 				dsCfg:                      dsCfg,
@@ -130,7 +85,7 @@ func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, 
 				appendSequencerFunctionSig: dsCfg.appendSequencerFunctionSig,
 			}
 		}
-		return &DataSource{
+		return &CalldataSource{
 			open: true,
 			data: dataSrc,
 		}
@@ -140,7 +95,7 @@ func NewDataSource(ctx context.Context, log log.Logger, dsCfg DataSourceConfig, 
 // Next returns the next piece of data if it has it. If the constructor failed, this
 // will attempt to reinitialize itself. If it cannot find the block it returns a ResetError
 // otherwise it returns a temporary error if fetching the block returns an error.
-func (ds *DataSource) Next(ctx context.Context) (eth.Data, error) {
+func (ds *CalldataSource) Next(ctx context.Context) (eth.Data, error) {
 	if !ds.open {
 		// SYSCOIN
 		if _, receipts, txs, err := ds.fetcher.FetchReceipts(ctx, ds.ref.Hash); err == nil {

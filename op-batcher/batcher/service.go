@@ -19,6 +19,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-batcher/rpc"
 	"github.com/ethereum-optimism/optimism/op-node/chaincfg"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
+	plasma "github.com/ethereum-optimism/optimism/op-plasma"
 	"github.com/ethereum-optimism/optimism/op-service/cliapp"
 	"github.com/ethereum-optimism/optimism/op-service/dial"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
@@ -29,9 +30,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
 )
 
-var (
-	ErrAlreadyStopped = errors.New("already stopped")
-)
+var ErrAlreadyStopped = errors.New("already stopped")
 
 type BatcherConfig struct {
 	NetworkTimeout         time.Duration
@@ -40,6 +39,10 @@ type BatcherConfig struct {
 
 	// UseBlobs is true if the batcher should use blobs instead of calldata for posting blobs
 	UseBlobs bool
+
+	// UsePlasma is true if the rollup config has a DA challenge address so the batcher
+	// will post inputs to the Plasma DA server and post commitments to blobs or calldata.
+	UsePlasma bool
 }
 
 // BatcherService represents a full batch-submitter instance and its resources,
@@ -50,6 +53,7 @@ type BatcherService struct {
 	L1Client         *ethclient.Client
 	EndpointProvider dial.L2EndpointProvider
 	TxManager        txmgr.TxManager
+	PlasmaDA         *plasma.DAClient
 
 	BatcherConfig
 
@@ -111,6 +115,10 @@ func (bs *BatcherService) initFromCLIConfig(ctx context.Context, version string,
 	}
 	if err := bs.initPProf(cfg); err != nil {
 		return fmt.Errorf("failed to init profiling: %w", err)
+	}
+	// init before driver
+	if err := bs.initPlasmaDA(cfg); err != nil {
+		return fmt.Errorf("failed to init plasma DA: %w", err)
 	}
 	bs.initDriver()
 	if err := bs.initRPCServer(cfg); err != nil {
@@ -280,6 +288,7 @@ func (bs *BatcherService) initDriver() {
 		L1Client:         bs.L1Client,
 		EndpointProvider: bs.EndpointProvider,
 		ChannelConfig:    bs.ChannelConfig,
+		PlasmaDA:         bs.PlasmaDA,
 	})
 }
 
@@ -300,6 +309,16 @@ func (bs *BatcherService) initRPCServer(cfg *CLIConfig) error {
 		return fmt.Errorf("unable to start RPC server: %w", err)
 	}
 	bs.rpcServer = server
+	return nil
+}
+
+func (bs *BatcherService) initPlasmaDA(cfg *CLIConfig) error {
+	config := cfg.PlasmaDA
+	if err := config.Check(); err != nil {
+		return err
+	}
+	bs.PlasmaDA = config.NewDAClient()
+	bs.UsePlasma = config.Enabled
 	return nil
 }
 

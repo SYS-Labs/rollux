@@ -213,29 +213,22 @@ func TestOutputCannonDefendStep(t *testing.T) {
 }
 
 func TestOutputCannonStepWithLargePreimage(t *testing.T) {
-	// TODO(client-pod#525): Investigate and fix flakiness
-	t.Skip("Skipping until the flakiness can be resolved")
-
 	op_e2e.InitParallel(t, op_e2e.UsesCannon)
 
 	ctx := context.Background()
-	sys, _ := startFaultDisputeSystem(t, withLargeBatches())
+	sys, _ := startFaultDisputeSystem(t, withBatcherStopped())
 	t.Cleanup(sys.Close)
 
-	// Send a large l2 transaction and use the receipt block number as the l2 block number for the game
-	l2Client := sys.NodeClient("sequencer")
+	// Manually send a tx from the correct batcher key to the batcher input with very large (invalid) data
+	// This forces op-program to load a large preimage.
+	sys.BatcherHelper().SendLargeInvalidBatch(ctx)
 
-	// Send a large, difficult to compress L2 transaction. This isn't read by op-program but the batcher has to include
-	// it in a batch which *is* read.
-	receipt := op_e2e.SendLargeL2Tx(t, sys.Cfg, l2Client, sys.Cfg.Secrets.Alice, func(opts *op_e2e.TxOpts) {
-		aliceAddr := sys.Cfg.Secrets.Addresses().Alice
-		startL2Nonce, err := l2Client.NonceAt(ctx, aliceAddr, nil)
-		require.NoError(t, err)
-		opts.Nonce = startL2Nonce
-		opts.ToAddr = &common.Address{}
-		// By default, the receipt status must be successful and is checked in the SendL2Tx function
-	})
-	l2BlockNumber := receipt.BlockNumber.Uint64()
+	require.NoError(t, sys.BatchSubmitter.Start(ctx))
+
+	safeHead, err := wait.ForNextSafeBlock(ctx, sys.NodeClient("sequencer"))
+	require.NoError(t, err, "Batcher should resume submitting valid batches")
+
+	l2BlockNumber := safeHead.NumberU64()
 	disputeGameFactory := disputegame.NewFactoryHelper(t, ctx, sys)
 	// Dispute any block - it will have to read the L1 batches to see if the block is reached
 	game := disputeGameFactory.StartOutputCannonGame(ctx, "sequencer", l2BlockNumber, common.Hash{0x01, 0xaa})
@@ -261,11 +254,11 @@ func TestOutputCannonStepWithLargePreimage(t *testing.T) {
 }
 
 func TestOutputCannonStepWithPreimage(t *testing.T) {
-	testPreimageStep := func(t *testing.T, preloadPreimage bool) {
+	testPreimageStep := func(t *testing.T, preimageType cannon.PreimageOpt, preloadPreimage bool) {
 		op_e2e.InitParallel(t, op_e2e.UsesCannon)
 
 		ctx := context.Background()
-		sys, l1Client := startFaultDisputeSystem(t)
+		sys, _ := startFaultDisputeSystem(t, withBlobBatches())
 		t.Cleanup(sys.Close)
 
 		disputeGameFactory := disputegame.NewFactoryHelper(t, ctx, sys)
@@ -283,13 +276,56 @@ func TestOutputCannonStepWithPreimage(t *testing.T) {
 		// Now the honest challenger is positioned as the defender of the execution game
 		// We then move to challenge it to induce a preimage load
 		preimageLoadCheck := game.CreateStepPreimageLoadCheck(ctx)
-		game.ChallengeToPreimageLoad(ctx, outputRootClaim, sys.Cfg.Secrets.Alice, cannon.FirstGlobalPreimageLoad(), preimageLoadCheck, preloadPreimage)
+		game.ChallengeToPreimageLoad(ctx, outputRootClaim, sys.Cfg.Secrets.Alice, preimageType, preimageLoadCheck, preloadPreimage)
+		// The above method already verified the image was uploaded and step called successfully
+		// So we don't waste time resolving the game - that's tested elsewhere.
+	}
 
-		sys.TimeTravelClock.AdvanceTime(game.GameDuration(ctx))
-		require.NoError(t, wait.ForNextBlock(ctx, l1Client))
-		game.WaitForInactivity(ctx, 10, true)
+	preimageConditions := []string{"keccak", "sha256", "blob"}
+	for _, preimageType := range preimageConditions {
+		preimageType := preimageType
+		t.Run("non-existing preimage-"+preimageType, func(t *testing.T) {
+			testPreimageStep(t, cannon.FirstPreimageLoadOfType(preimageType), false)
+		})
+	}
+	// Only test pre-existing images with one type to save runtime
+	t.Run("preimage already exists", func(t *testing.T) {
+		testPreimageStep(t, cannon.FirstKeccakPreimageLoad(), true)
+	})
+}
+
+func TestOutputCannonStepWithKZGPointEvaluation(t *testing.T) {
+	t.Skip("TODO: Fix flaky test")
+
+	testPreimageStep := func(t *testing.T, preloadPreimage bool) {
+		op_e2e.InitParallel(t, op_e2e.UsesCannon)
+
+		ctx := context.Background()
+		sys, _ := startFaultDisputeSystem(t, withEcotone())
+		t.Cleanup(sys.Close)
+
+		receipt := sendKZGPointEvaluationTx(t, sys, "sequencer", sys.Cfg.Secrets.Alice)
+		precompileBlock := receipt.BlockNumber
+		t.Logf("KZG Point Evaluation block number: %d", precompileBlock)
+
+		disputeGameFactory := disputegame.NewFactoryHelper(t, ctx, sys)
+		game := disputeGameFactory.StartOutputCannonGame(ctx, "sequencer", precompileBlock.Uint64(), common.Hash{0x01, 0xaa})
+		require.NotNil(t, game)
+		outputRootClaim := game.DisputeLastBlock(ctx)
 		game.LogGameData(ctx)
-		require.EqualValues(t, disputegame.StatusChallengerWins, game.Status(ctx))
+
+		game.StartChallenger(ctx, "sequencer", "Challenger", challenger.WithPrivKey(sys.Cfg.Secrets.Alice))
+
+		// Wait for the honest challenger to dispute the outputRootClaim. This creates a root of an execution game that we challenge by coercing
+		// a step at a preimage trace index.
+		outputRootClaim = outputRootClaim.WaitForCounterClaim(ctx)
+
+		// Now the honest challenger is positioned as the defender of the execution game
+		// We then move to challenge it to induce a preimage load
+		preimageLoadCheck := game.CreateStepPreimageLoadCheck(ctx)
+		game.ChallengeToPreimageLoad(ctx, outputRootClaim, sys.Cfg.Secrets.Alice, cannon.FirstKZGPointEvaluationPreimageLoad(), preimageLoadCheck, preloadPreimage)
+		// The above method already verified the image was uploaded and step called successfully
+		// So we don't waste time resolving the game - that's tested elsewhere.
 	}
 
 	t.Run("non-existing preimage", func(t *testing.T) {

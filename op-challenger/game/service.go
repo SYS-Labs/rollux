@@ -19,7 +19,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/claims"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/contracts"
-	"github.com/ethereum-optimism/optimism/op-challenger/game/loader"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/registry"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/scheduler"
 	"github.com/ethereum-optimism/optimism/op-challenger/metrics"
@@ -48,8 +47,6 @@ type Service struct {
 	txSender *sender.TxSender
 
 	cl *clock.SimpleClock
-
-	loader *loader.GameLoader
 
 	claimer *claims.BondClaimScheduler
 
@@ -104,9 +101,6 @@ func (s *Service) initFromConfig(ctx context.Context, cfg *config.Config) error 
 	}
 	if err := s.initFactoryContract(cfg); err != nil {
 		return fmt.Errorf("failed to create factory contract bindings: %w", err)
-	}
-	if err := s.initGameLoader(); err != nil {
-		return fmt.Errorf("failed to init game loader: %w", err)
 	}
 	if err := s.registerGameTypes(ctx, cfg); err != nil {
 		return fmt.Errorf("failed to register game types: %w", err)
@@ -201,11 +195,6 @@ func (s *Service) initFactoryContract(cfg *config.Config) error {
 	return nil
 }
 
-func (s *Service) initGameLoader() error {
-	s.loader = loader.NewGameLoader(s.factoryContract)
-	return nil
-}
-
 func (s *Service) initBondClaims() error {
 	claimer := claims.NewBondClaimer(s.logger, s.metrics, s.registry.CreateBondContract, s.txSender)
 	s.claimer = claims.NewBondClaimScheduler(s.logger, s.metrics, claimer)
@@ -238,7 +227,7 @@ func (s *Service) registerGameTypes(ctx context.Context, cfg *config.Config) err
 
 func (s *Service) initScheduler(cfg *config.Config) error {
 	disk := newDiskManager(cfg.Datadir)
-	s.sched = scheduler.NewScheduler(s.logger, s.metrics, disk, cfg.MaxConcurrency, s.registry.CreatePlayer)
+	s.sched = scheduler.NewScheduler(s.logger, s.metrics, disk, cfg.MaxConcurrency, s.registry.CreatePlayer, cfg.AllowInvalidPrestate)
 	return nil
 }
 
@@ -246,12 +235,12 @@ func (s *Service) initLargePreimages() error {
 	fetcher := fetcher.NewPreimageFetcher(s.logger, s.l1Client)
 	verifier := keccak.NewPreimageVerifier(s.logger, fetcher)
 	challenger := keccak.NewPreimageChallenger(s.logger, s.metrics, verifier, s.txSender)
-	s.preimages = keccak.NewLargePreimageScheduler(s.logger, s.registry.Oracles(), challenger)
+	s.preimages = keccak.NewLargePreimageScheduler(s.logger, s.cl, s.registry.Oracles(), challenger)
 	return nil
 }
 
 func (s *Service) initMonitor(cfg *config.Config) {
-	s.monitor = newGameMonitor(s.logger, s.cl, s.loader, s.sched, s.preimages, cfg.GameWindow, s.claimer, s.l1Client.BlockNumber, cfg.GameAllowlist, s.pollClient)
+	s.monitor = newGameMonitor(s.logger, s.cl, s.factoryContract, s.sched, s.preimages, cfg.GameWindow, s.claimer, s.l1Client.BlockNumber, cfg.GameAllowlist, s.pollClient)
 }
 
 func (s *Service) Start(ctx context.Context) error {

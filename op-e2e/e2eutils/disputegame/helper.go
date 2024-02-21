@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-chain-ops/deployer"
 	"github.com/ethereum-optimism/optimism/op-chain-ops/genesis"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/outputs"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/outputs/source"
 	faultTypes "github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/challenger"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/disputegame/preimage"
@@ -58,6 +59,7 @@ func (s Status) String() string {
 }
 
 type DisputeSystem interface {
+	L1BeaconEndpoint() string
 	NodeEndpoint(name string) string
 	NodeClient(name string) *ethclient.Client
 	RollupEndpoint(name string) string
@@ -127,7 +129,7 @@ func (h *FactoryHelper) StartOutputCannonGameWithCorrectRoot(ctx context.Context
 }
 
 func (h *FactoryHelper) StartOutputCannonGame(ctx context.Context, l2Node string, l2BlockNumber uint64, rootClaim common.Hash) *OutputCannonGameHelper {
-	logger := testlog.Logger(h.t, log.LvlInfo).New("role", "OutputCannonGameHelper")
+	logger := testlog.Logger(h.t, log.LevelInfo).New("role", "OutputCannonGameHelper")
 	rollupClient := h.system.RollupClient(l2Node)
 
 	extraData := h.createBisectionGameExtraData(l2Node, l2BlockNumber)
@@ -153,8 +155,9 @@ func (h *FactoryHelper) StartOutputCannonGame(ctx context.Context, l2Node string
 	h.require.NoError(err, "Failed to load l2 block number")
 	splitDepth, err := game.SplitDepth(&bind.CallOpts{Context: ctx})
 	h.require.NoError(err, "Failed to load split depth")
-	prestateProvider := outputs.NewPrestateProvider(ctx, logger, rollupClient, prestateBlock.Uint64())
-	provider := outputs.NewTraceProviderFromInputs(logger, prestateProvider, rollupClient, faultTypes.Depth(splitDepth.Uint64()), prestateBlock.Uint64(), poststateBlock.Uint64())
+	outputRootProvider := source.NewUnrestrictedOutputSource(rollupClient)
+	prestateProvider := outputs.NewPrestateProvider(outputRootProvider, prestateBlock.Uint64())
+	provider := outputs.NewTraceProviderFromInputs(logger, prestateProvider, outputRootProvider, faultTypes.Depth(splitDepth.Uint64()), prestateBlock.Uint64(), poststateBlock.Uint64())
 
 	return &OutputCannonGameHelper{
 		OutputGameHelper: OutputGameHelper{
@@ -179,7 +182,7 @@ func (h *FactoryHelper) StartOutputAlphabetGameWithCorrectRoot(ctx context.Conte
 }
 
 func (h *FactoryHelper) StartOutputAlphabetGame(ctx context.Context, l2Node string, l2BlockNumber uint64, rootClaim common.Hash) *OutputAlphabetGameHelper {
-	logger := testlog.Logger(h.t, log.LvlInfo).New("role", "OutputAlphabetGameHelper")
+	logger := testlog.Logger(h.t, log.LevelInfo).New("role", "OutputAlphabetGameHelper")
 	rollupClient := h.system.RollupClient(l2Node)
 
 	extraData := h.createBisectionGameExtraData(l2Node, l2BlockNumber)
@@ -205,8 +208,9 @@ func (h *FactoryHelper) StartOutputAlphabetGame(ctx context.Context, l2Node stri
 	h.require.NoError(err, "Failed to load l2 block number")
 	splitDepth, err := game.SplitDepth(&bind.CallOpts{Context: ctx})
 	h.require.NoError(err, "Failed to load split depth")
-	prestateProvider := outputs.NewPrestateProvider(ctx, logger, rollupClient, prestateBlock.Uint64())
-	provider := outputs.NewTraceProviderFromInputs(logger, prestateProvider, rollupClient, faultTypes.Depth(splitDepth.Uint64()), prestateBlock.Uint64(), poststateBlock.Uint64())
+	outputRootProvider := source.NewUnrestrictedOutputSource(rollupClient)
+	prestateProvider := outputs.NewPrestateProvider(outputRootProvider, prestateBlock.Uint64())
+	provider := outputs.NewTraceProviderFromInputs(logger, prestateProvider, outputRootProvider, faultTypes.Depth(splitDepth.Uint64()), prestateBlock.Uint64(), poststateBlock.Uint64())
 
 	return &OutputAlphabetGameHelper{
 		OutputGameHelper: OutputGameHelper{
@@ -242,7 +246,7 @@ func (h *FactoryHelper) StartChallenger(ctx context.Context, name string, option
 		challenger.WithFactoryAddress(h.factoryAddr),
 	}
 	opts = append(opts, options...)
-	c := challenger.NewChallenger(h.t, ctx, h.system.NodeEndpoint("l1"), name, opts...)
+	c := challenger.NewChallenger(h.t, ctx, h.system, name, opts...)
 	h.t.Cleanup(func() {
 		_ = c.Close()
 	})

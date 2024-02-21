@@ -251,7 +251,7 @@ func TestLargePreimageUploader_UploadPreimage_Succeeds(t *testing.T) {
 }
 
 func newTestLargePreimageUploader(t *testing.T) (*LargePreimageUploader, *clock.AdvancingClock, *mockTxSender, *mockPreimageOracleContract) {
-	logger := testlog.Logger(t, log.LvlError)
+	logger := testlog.Logger(t, log.LevelError)
 	cl := clock.NewAdvancingClock(time.Second)
 	cl.Start()
 	txSender := &mockTxSender{}
@@ -338,6 +338,11 @@ func (s *mockPreimageOracleContract) GetProposalMetadata(_ context.Context, _ ba
 	s.squeezeCallClaimSize = 1
 	return []keccakTypes.LargePreimageMetaData{{LargePreimageIdent: idents[0]}}, nil
 }
+
+func (s *mockPreimageOracleContract) GetMinBondLPP(_ context.Context) (*big.Int, error) {
+	return big.NewInt(0), nil
+}
+
 func (s *mockPreimageOracleContract) CallSqueeze(_ context.Context, _ common.Address, _ *big.Int, _ keccakTypes.StateSnapshot, _ keccakTypes.Leaf, _ merkle.Proof, _ keccakTypes.Leaf, _ merkle.Proof) error {
 	if s.squeezeCallFails {
 		return mockSqueezeCallError
