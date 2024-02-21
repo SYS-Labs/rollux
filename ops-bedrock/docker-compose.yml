@@ -71,10 +71,11 @@ services:
     stop_grace_period: 30s
     command: >
       op-node
-      --l1=ws://l1:8546
+      --l1=wss://rpc.tanenbaum.io/wss
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.enabled
+      --p2p.sequencer.key=a2a8983a08a81ec00559bc507e4513ae2a2765283796d7b85002fa16530e6460
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
       --rollup.config=/rollup.json
@@ -137,6 +138,7 @@ services:
       OP_PROPOSER_METRICS_ENABLED: "true"
       OP_PROPOSER_ALLOW_NON_FINALIZED: "true"
       OP_PROPOSER_RPC_ENABLE_ADMIN: "true"
+      OP_PROPOSER_PRIVATE_KEY: "49ee9f447f875c79588ad82019071cc58b6d73a4781cbb64aef09f7e6f3c1aff"
 
   op-batcher:
     depends_on:
@@ -173,6 +175,7 @@ services:
       OP_BATCHER_METRICS_ENABLED: "true"
       OP_BATCHER_RPC_ENABLE_ADMIN: "true"
       OP_BATCHER_BATCH_TYPE: 0
+      OP_BATCHER_PRIVATE_KEY: "111e5f2c73209930b8b0fce20737876dbffcef8919a15e947391cbd61f43c609"
     dns:
       - 8.8.8.8
       - 8.8.4.4

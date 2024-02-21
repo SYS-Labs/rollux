@@ -58,7 +58,13 @@ function wait_up {
   echo "Done!"
 }
 
-
+# Bring up L21
+(
+  export TAG=$TAG
+  cd ops-bedrock
+  echo "Bringing up L1.."
+  docker-compose up -d l1
+)
 
 # Bring up L2.
 (
@@ -68,9 +74,21 @@ function wait_up {
   docker-compose up -d l2
   wait_up $L2_URL
 )
-
+(sleep 10)
 L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
 # Bring up everything else.
+(
+  export TAG=$TAG
+  cd ops-bedrock
+  echo "Bringing up L2 services..."
+  L2OO_ADDRESS="$L2OO_ADDRESS" \
+      docker-compose up -d op-node op-proposer op-batcher
+
+  echo "Bringing up stateviz webserver..."
+  docker-compose up -d stateviz
+)
+(sleep 100
+echo "waiting for op-node")
 (
   export TAG=$TAG
   cd ops-bedrock
@@ -81,6 +99,5 @@ L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
   echo "Bringing up stateviz webserver..."
   docker-compose up -d stateviz
 )
-
 echo "L2 ready."
 
