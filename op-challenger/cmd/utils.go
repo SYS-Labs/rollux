@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	opclient "github.com/ethereum-optimism/optimism/op-service/client"
 
 	"github.com/ethereum-optimism/optimism/op-challenger/flags"
 	opservice "github.com/ethereum-optimism/optimism/op-service"
@@ -64,10 +65,13 @@ func newClientsFromCLI(ctx *cli.Context) (*batching.MultiCaller, txmgr.TxManager
 		return nil, nil, fmt.Errorf("failed to dial L1: %w", err)
 	}
 	defer l1Client.Close()
-
+	sysClient, err := opclient.NewSyscoinClient("")
+	if err != nil {
+		bs.Log.Warn("initTxManager", "msg", "Error in syscoin client connection")
+	}
 	caller := batching.NewMultiCaller(l1Client.Client(), batching.DefaultBatchSize)
 	txMgrConfig := txmgr.ReadCLIConfig(ctx)
-	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &metrics.NoopTxMetrics{}, txMgrConfig)
+	txMgr, err := txmgr.NewSimpleTxManager("challenger", logger, &metrics.NoopTxMetrics{}, txMgrConfig, sysClient)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create the transaction manager: %w", err)
 	}
