@@ -444,7 +444,7 @@ func (l *BatchSubmitter) blobTxCandidate(data []byte) (*txmgr.TxCandidate, error
 		To:    &l.RollupConfig.BatchInboxAddress,
 		Blobs: []*eth.Blob{&b},
 		// SYSCOIN let L1 estimate gas due to precompile
-		//GasLimit: 40,
+		GasLimit: 0,
 	}, nil
 }
 
@@ -454,7 +454,7 @@ func (l *BatchSubmitter) calldataTxCandidate(data []byte) *txmgr.TxCandidate {
 		To:     &l.RollupConfig.BatchInboxAddress,
 		TxData: data,
 		// SYSCOIN let L1 estimate gas due to precompile
-		//GasLimit: 40,
+		GasLimit: 0,
 	}
 }
 
