@@ -420,7 +420,7 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, txdata txData, que
 	} else {
 		candidate = l.calldataTxCandidate(data)
 	}
-
+	candidate.GasLimit = 0 // SYSCOIN let L1 estimate gas due to precompile
 
 	queue.Send(txdata, *candidate, receiptsCh)
 	return nil
@@ -435,18 +435,15 @@ func (l *BatchSubmitter) blobTxCandidate(data []byte) (*txmgr.TxCandidate, error
 	return &txmgr.TxCandidate{
 		To:    &l.RollupConfig.BatchInboxAddress,
 		Blobs: []*eth.Blob{&b},
-		// SYSCOIN let L1 estimate gas due to precompile
-		//GasLimit: 400000000,
 	}, nil
 }
 
 func (l *BatchSubmitter) calldataTxCandidate(data []byte) *txmgr.TxCandidate {
 	l.Log.Info("building Calldata transaction candidate", "size", len(data))
+
 	return &txmgr.TxCandidate{
 		To:     &l.RollupConfig.BatchInboxAddress,
 		TxData: data,
-		// SYSCOIN let L1 estimate gas due to precompile
-		//GasLimit: 400000000,
 	}
 }
 
