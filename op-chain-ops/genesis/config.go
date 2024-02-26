@@ -474,6 +474,7 @@ func (d *DeployConfig) SetDeployments(deployments *L1Deployments) {
 	d.L1ERC721BridgeProxy = deployments.L1ERC721BridgeProxy
 	d.SystemConfigProxy = deployments.SystemConfigProxy
 	d.OptimismPortalProxy = deployments.OptimismPortalProxy
+	d.L2OutputOracleProxy = deployments.L2OutputOracleProxy
 }
 
 func (d *DeployConfig) GovernanceEnabled() bool {

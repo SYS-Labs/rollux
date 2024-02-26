@@ -329,7 +329,7 @@ contract PreimageOracle is IPreimageOracle {
     /// @inheritdoc IPreimageOracle
     function loadKZGPointEvaluationPreimage(bytes calldata _input) external {
         // Prior to Cancun activation, the blob preimage precompile is not available.
-        if (block.timestamp < CANCUN_ACTIVATION) revert CancunNotActive();
+//        if (block.timestamp < CANCUN_ACTIVATION) revert CancunNotActive();
 
         bytes32 key;
         bytes32 part;

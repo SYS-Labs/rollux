@@ -129,34 +129,34 @@ contract Deploy is Deployer {
     /// @notice Returns the proxy addresses. If a proxy is not found, it will have address(0).
     function _proxies() internal view returns (Types.ContractSet memory proxies_) {
         proxies_ = Types.ContractSet({
-            L1CrossDomainMessenger: mustGetAddress("L1CrossDomainMessengerProxy"),
-            L1StandardBridge: mustGetAddress("L1StandardBridgeProxy"),
-            L2OutputOracle: mustGetAddress("L2OutputOracleProxy"),
-            DisputeGameFactory: mustGetAddress("DisputeGameFactoryProxy"),
-            OptimismMintableERC20Factory: mustGetAddress("OptimismMintableERC20FactoryProxy"),
-            OptimismPortal: mustGetAddress("OptimismPortalProxy"),
-            OptimismPortal2: mustGetAddress("OptimismPortalProxy"),
-            SystemConfig: mustGetAddress("SystemConfigProxy"),
-            L1ERC721Bridge: mustGetAddress("L1ERC721BridgeProxy"),
-            ProtocolVersions: mustGetAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: mustGetAddress("SuperchainConfigProxy")
+        L1CrossDomainMessenger: mustGetAddress("L1CrossDomainMessengerProxy"),
+        L1StandardBridge: mustGetAddress("L1StandardBridgeProxy"),
+        L2OutputOracle: mustGetAddress("L2OutputOracleProxy"),
+        DisputeGameFactory: mustGetAddress("DisputeGameFactoryProxy"),
+        OptimismMintableERC20Factory: mustGetAddress("OptimismMintableERC20FactoryProxy"),
+        OptimismPortal: mustGetAddress("OptimismPortalProxy"),
+        OptimismPortal2: mustGetAddress("OptimismPortalProxy"),
+        SystemConfig: mustGetAddress("SystemConfigProxy"),
+        L1ERC721Bridge: mustGetAddress("L1ERC721BridgeProxy"),
+        ProtocolVersions: mustGetAddress("ProtocolVersionsProxy"),
+        SuperchainConfig: mustGetAddress("SuperchainConfigProxy")
         });
     }
 
     /// @notice Returns the proxy addresses, not reverting if any are unset.
     function _proxiesUnstrict() internal view returns (Types.ContractSet memory proxies_) {
         proxies_ = Types.ContractSet({
-            L1CrossDomainMessenger: getAddress("L1CrossDomainMessengerProxy"),
-            L1StandardBridge: getAddress("L1StandardBridgeProxy"),
-            L2OutputOracle: getAddress("L2OutputOracleProxy"),
-            DisputeGameFactory: getAddress("DisputeGameFactoryProxy"),
-            OptimismMintableERC20Factory: getAddress("OptimismMintableERC20FactoryProxy"),
-            OptimismPortal: getAddress("OptimismPortalProxy"),
-            OptimismPortal2: getAddress("OptimismPortalProxy"),
-            SystemConfig: getAddress("SystemConfigProxy"),
-            L1ERC721Bridge: getAddress("L1ERC721BridgeProxy"),
-            ProtocolVersions: getAddress("ProtocolVersionsProxy"),
-            SuperchainConfig: getAddress("SuperchainConfigProxy")
+        L1CrossDomainMessenger: getAddress("L1CrossDomainMessengerProxy"),
+        L1StandardBridge: getAddress("L1StandardBridgeProxy"),
+        L2OutputOracle: getAddress("L2OutputOracleProxy"),
+        DisputeGameFactory: getAddress("DisputeGameFactoryProxy"),
+        OptimismMintableERC20Factory: getAddress("OptimismMintableERC20FactoryProxy"),
+        OptimismPortal: getAddress("OptimismPortalProxy"),
+        OptimismPortal2: getAddress("OptimismPortalProxy"),
+        SystemConfig: getAddress("SystemConfigProxy"),
+        L1ERC721Bridge: getAddress("L1ERC721BridgeProxy"),
+        ProtocolVersions: getAddress("ProtocolVersionsProxy"),
+        SuperchainConfig: getAddress("SuperchainConfigProxy")
 
         });
     }
@@ -286,7 +286,7 @@ contract Deploy is Deployer {
 
         // Deploy the BatchInbox contract
         // Replace <MESSENGER_ADDRESS> with the actual address
-        address payable messengerAddress = payable(address(0x0B908F7ceE98eBB59D16b37573A18bd875b160Bf));
+        address payable messengerAddress = payable(address(0x7e7F216cDe9c0b9AE823a0A712662A636A2D9068));
 
         BatchInbox batchInbox = new BatchInbox(messengerAddress);
 
@@ -588,9 +588,9 @@ contract Deploy is Deployer {
         );
 
         OptimismPortal2 portal = new OptimismPortal2{ salt: _implSalt() }({
-            _proofMaturityDelaySeconds: cfg.proofMaturityDelaySeconds(),
-            _disputeGameFinalityDelaySeconds: cfg.disputeGameFinalityDelaySeconds(),
-            _initialRespectedGameType: GameType.wrap(uint32(cfg.respectedGameType()))
+        _proofMaturityDelaySeconds: cfg.proofMaturityDelaySeconds(),
+        _disputeGameFinalityDelaySeconds: cfg.disputeGameFinalityDelaySeconds(),
+        _initialRespectedGameType: GameType.wrap(uint32(cfg.respectedGameType()))
         });
 
         save("OptimismPortal2", address(portal));
@@ -1068,16 +1068,16 @@ contract Deploy is Deployer {
         address superchainConfigProxy = mustGetAddress("SuperchainConfigProxy");
 
         _upgradeAndCallViaSafe({
-            _proxy: payable(optimismPortalProxy),
-            _implementation: optimismPortal2,
-            _innerCallData: abi.encodeCall(
+        _proxy: payable(optimismPortalProxy),
+        _implementation: optimismPortal2,
+        _innerCallData: abi.encodeCall(
                 OptimismPortal2.initialize,
                 (
-                    DisputeGameFactory(disputeGameFactoryProxy),
-                    SystemConfig(systemConfigProxy),
-                    SuperchainConfig(superchainConfigProxy)
+                DisputeGameFactory(disputeGameFactoryProxy),
+                SystemConfig(systemConfigProxy),
+                SuperchainConfig(superchainConfigProxy)
                 )
-                )
+            )
         });
 
         OptimismPortal2 portal = OptimismPortal2(payable(optimismPortalProxy));
@@ -1180,12 +1180,12 @@ contract Deploy is Deployer {
 
         // Set the Cannon FaultDisputeGame implementation in the factory.
         _setFaultGameImplementation({
-            _factory: factory,
-            _gameType: GameTypes.PERMISSIONED_CANNON,
-            _absolutePrestate: loadMipsAbsolutePrestate(),
-            _faultVm: IBigStepper(mustGetAddress("Mips")),
-            _maxGameDepth: cfg.faultGameMaxDepth(),
-            _allowUpgrade: _allowUpgrade
+        _factory: factory,
+        _gameType: GameTypes.PERMISSIONED_CANNON,
+        _absolutePrestate: loadMipsAbsolutePrestate(),
+        _faultVm: IBigStepper(mustGetAddress("Mips")),
+        _maxGameDepth: cfg.faultGameMaxDepth(),
+        _allowUpgrade: _allowUpgrade
         });
     }
 
@@ -1230,31 +1230,31 @@ contract Deploy is Deployer {
             _factory.setImplementation(
                 _gameType,
                 new FaultDisputeGame({
-                    _gameType: _gameType,
-                    _absolutePrestate: _absolutePrestate,
-                    _genesisBlockNumber: cfg.faultGameGenesisBlock(),
-                    _genesisOutputRoot: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
-                    _maxGameDepth: _maxGameDepth,
-                    _splitDepth: cfg.faultGameSplitDepth(),
-                    _gameDuration: Duration.wrap(uint64(cfg.faultGameMaxDuration())),
-                    _vm: _faultVm
-                })
+            _gameType: _gameType,
+            _absolutePrestate: _absolutePrestate,
+            _genesisBlockNumber: cfg.faultGameGenesisBlock(),
+            _genesisOutputRoot: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
+            _maxGameDepth: _maxGameDepth,
+            _splitDepth: cfg.faultGameSplitDepth(),
+            _gameDuration: Duration.wrap(uint64(cfg.faultGameMaxDuration())),
+            _vm: _faultVm
+            })
             );
         } else {
             _factory.setImplementation(
                 _gameType,
                 new PermissionedDisputeGame({
-                    _gameType: _gameType,
-                    _absolutePrestate: _absolutePrestate,
-                    _genesisBlockNumber: cfg.faultGameGenesisBlock(),
-                    _genesisOutputRoot: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
-                    _maxGameDepth: _maxGameDepth,
-                    _splitDepth: cfg.faultGameSplitDepth(),
-                    _gameDuration: Duration.wrap(uint64(cfg.faultGameMaxDuration())),
-                    _vm: _faultVm,
-                    _proposer: cfg.l2OutputOracleProposer(),
-                    _challenger: cfg.l2OutputOracleChallenger()
-                })
+            _gameType: _gameType,
+            _absolutePrestate: _absolutePrestate,
+            _genesisBlockNumber: cfg.faultGameGenesisBlock(),
+            _genesisOutputRoot: Hash.wrap(cfg.faultGameGenesisOutputRoot()),
+            _maxGameDepth: _maxGameDepth,
+            _splitDepth: cfg.faultGameSplitDepth(),
+            _gameDuration: Duration.wrap(uint64(cfg.faultGameMaxDuration())),
+            _vm: _faultVm,
+            _proposer: cfg.l2OutputOracleProposer(),
+            _challenger: cfg.l2OutputOracleChallenger()
+            })
             );
         }
 
