@@ -152,6 +152,7 @@ var Subcommands = cli.Commands{
 				return errors.New("cannot specify both --l1-starting-block and --l1-rpc")
 			}
 
+			log.Info("L1 Deployments", "path", l1Deployments)
 			deployments, err := genesis.NewL1Deployments(l1Deployments)
 			if err != nil {
 				return fmt.Errorf("cannot read L1 deployments at %s: %w", l1Deployments, err)
