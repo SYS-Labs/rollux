@@ -53,7 +53,7 @@ contract PermissionedDisputeGame_Init is DisputeGameFactory_Init {
         // Set the extra data for the game creation
         extraData = abi.encode(l2BlockNumber);
 
-        AlphabetVM _vm = new AlphabetVM(absolutePrestate, new PreimageOracle(0, 0, 0));
+        AlphabetVM _vm = new AlphabetVM(absolutePrestate);
 
         // Deploy an implementation of the fault game
         gameImpl = new PermissionedDisputeGame({
