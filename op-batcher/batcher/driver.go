@@ -420,7 +420,7 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, txdata txData, que
 	} else {
 		candidate = l.calldataTxCandidate(data)
 	}
-	candidate.GasLimit = 800000 // SYSCOIN let L1 estimate gas due to precompile
+	candidate.GasLimit = 990000 // SYSCOIN let L1 estimate gas due to precompile
 
 	queue.Send(txdata, *candidate, receiptsCh)
 	return nil
