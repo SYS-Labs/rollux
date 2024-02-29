@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-
-import { Semver } from "../universal/Semver.sol";
-import { CrossDomainMessenger } from "../universal/CrossDomainMessenger.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { ISemver } from "src/universal/ISemver.sol";
+import { CrossDomainMessenger } from "src/universal/CrossDomainMessenger.sol";
+import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
 /**
  * @custom:proxied
  * @title BatchInbox
  * @notice Calldata entries of version hashes which are checked against the precompile of blobs to verify they exist
  */
 // slither-disable-next-line locked-ether
-contract BatchInbox is Semver {
+contract BatchInbox is Initializable, ISemver {
     uint32 internal constant RECEIVE_DEFAULT_GAS_LIMIT = 100_000;
     address internal constant PODA_PRECOMPILE_ADDRESS = address(0x63);
     uint16 internal constant PODA_PRECOMPILE_COST = 1400;
@@ -23,11 +24,22 @@ contract BatchInbox is Semver {
      *
      * @param _messenger The address of the messenger on this domain.
      */
-    constructor(
-        address payable _messenger
-    ) Semver(1, 0, 0) {
+    /// @notice Semantic version.
+    /// @custom:semver 2.1.0
+    string public constant version = "2.1.0";
+
+    constructor() {
+        initialize({ _messenger: CrossDomainMessenger(address(0)), _superchainConfig: SuperchainConfig(address(0)) });
+    }
+
+    /// @notice Initializer.
+    /// @param _messenger        Contract for the CrossDomainMessenger on this network.
+    /// @param _superchainConfig Contract for the SuperchainConfig on this network.
+    function initialize(CrossDomainMessenger _messenger, SuperchainConfig _superchainConfig) public initializer {
+        superchainConfig = _superchainConfig; // Not used yet
         MESSENGER = CrossDomainMessenger(_messenger);
     }
+
 
     /**
      * @notice appends an array of valid version hashes to the chain, each VH is checked via the VH precompile.

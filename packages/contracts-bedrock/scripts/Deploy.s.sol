@@ -18,6 +18,7 @@ import { ProxyAdmin } from "src/universal/ProxyAdmin.sol";
 import { AddressManager } from "src/legacy/AddressManager.sol";
 import { Proxy } from "src/universal/Proxy.sol";
 import { L1StandardBridge } from "src/L1/L1StandardBridge.sol";
+import { BatchInbox } from "src/L1/BatchInbox.sol";
 import { StandardBridge } from "src/universal/StandardBridge.sol";
 import { OptimismPortal } from "src/L1/OptimismPortal.sol";
 import { OptimismPortal2 } from "src/L1/OptimismPortal2.sol";
@@ -25,11 +26,11 @@ import { L1ChugSplashProxy } from "src/legacy/L1ChugSplashProxy.sol";
 import { ResolvedDelegateProxy } from "src/legacy/ResolvedDelegateProxy.sol";
 import { L1CrossDomainMessenger } from "src/L1/L1CrossDomainMessenger.sol";
 import { L2OutputOracle } from "src/L1/L2OutputOracle.sol";
-import { BatchInbox } from "src/L1/BatchInbox.sol";
 import { OptimismMintableERC20Factory } from "src/universal/OptimismMintableERC20Factory.sol";
 import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
 import { SystemConfig } from "src/L1/SystemConfig.sol";
 import { ResourceMetering } from "src/L1/ResourceMetering.sol";
+import { DataAvailabilityChallenge } from "src/L1/DataAvailabilityChallenge.sol";
 import { Constants } from "src/libraries/Constants.sol";
 import { DisputeGameFactory } from "src/dispute/DisputeGameFactory.sol";
 import { FaultDisputeGame } from "src/dispute/FaultDisputeGame.sol";
@@ -41,6 +42,7 @@ import { ProtocolVersions, ProtocolVersion } from "src/L1/ProtocolVersions.sol";
 import { StorageSetter } from "src/universal/StorageSetter.sol";
 import { Predeploys } from "src/libraries/Predeploys.sol";
 import { Chains } from "scripts/Chains.sol";
+import { Config } from "scripts/Config.sol";
 
 import { IBigStepper } from "src/dispute/interfaces/IBigStepper.sol";
 import { IPreimageOracle } from "src/cannon/interfaces/IPreimageOracle.sol";
@@ -50,7 +52,6 @@ import { ChainAssertions } from "scripts/ChainAssertions.sol";
 import { Types } from "scripts/Types.sol";
 import { LibStateDiff } from "scripts/libraries/LibStateDiff.sol";
 import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
-import { BatchInbox } from "src/L1/BatchInbox.sol";
 
 /// @title Deploy
 /// @notice Script used to deploy a bedrock system. The entire system is deployed within the `run` function.
@@ -123,7 +124,7 @@ contract Deploy is Deployer {
     ///         Using this helps to reduce config across networks as the implementation
     ///         addresses will be the same across networks when deployed with create2.
     function _implSalt() internal view returns (bytes32) {
-        return keccak256(bytes(vm.envOr("IMPL_SALT", string("ethers phoenix"))));
+        return keccak256(bytes(Config.implSalt()));
     }
 
     /// @notice Returns the proxy addresses. If a proxy is not found, it will have address(0).
@@ -139,7 +140,8 @@ contract Deploy is Deployer {
         SystemConfig: mustGetAddress("SystemConfigProxy"),
         L1ERC721Bridge: mustGetAddress("L1ERC721BridgeProxy"),
         ProtocolVersions: mustGetAddress("ProtocolVersionsProxy"),
-        SuperchainConfig: mustGetAddress("SuperchainConfigProxy")
+        SuperchainConfig: mustGetAddress("SuperchainConfigProxy"),
+        BatchInbox: mustGetAddress("BatchInboxProxy")
         });
     }
 
@@ -156,8 +158,8 @@ contract Deploy is Deployer {
         SystemConfig: getAddress("SystemConfigProxy"),
         L1ERC721Bridge: getAddress("L1ERC721BridgeProxy"),
         ProtocolVersions: getAddress("ProtocolVersionsProxy"),
-        SuperchainConfig: getAddress("SuperchainConfigProxy")
-
+        SuperchainConfig: getAddress("SuperchainConfigProxy"),
+        BatchInbox: mustGetAddress("BatchInboxProxy")
         });
     }
 
@@ -269,10 +271,7 @@ contract Deploy is Deployer {
     function runWithStateDump() public {
         _run();
 
-        string memory path = vm.envOr(
-            "STATE_DUMP_PATH", string.concat(vm.projectRoot(), "/", name(), "-", vm.toString(block.chainid), ".json")
-        );
-        vm.dumpState(path);
+        vm.dumpState(Config.stateDumpPath(name()));
     }
 
     /// @notice Deploy all L1 contracts and write the state diff to a file.
@@ -282,15 +281,12 @@ contract Deploy is Deployer {
 
     /// @notice Internal function containing the deploy logic.
     function _run() internal {
-        vm.startBroadcast();
-
-        // Deploy the BatchInbox contract
-        // Replace <MESSENGER_ADDRESS> with the actual address
-        address payable messengerAddress = payable(address(0x7e7F216cDe9c0b9AE823a0A712662A636A2D9068));
-
-        BatchInbox batchInbox = new BatchInbox(messengerAddress);
-
-        vm.stopBroadcast();
+        deploySafe();
+        setupSuperchain();
+        if (cfg.usePlasma()) {
+            setupOpPlasma();
+        }
+        setupOpChain();
     }
 
     ////////////////////////////////////////////////////////////////
@@ -349,8 +345,8 @@ contract Deploy is Deployer {
 
         deployERC1967Proxy("OptimismPortalProxy");
         deployERC1967Proxy("SystemConfigProxy");
-        deployERC1967Proxy("BatchInboxProxy");
         deployL1StandardBridgeProxy();
+        deployBatchInboxProxy();
         deployL1CrossDomainMessengerProxy();
         deployERC1967Proxy("OptimismMintableERC20FactoryProxy");
         deployERC1967Proxy("L1ERC721BridgeProxy");
@@ -380,7 +376,6 @@ contract Deploy is Deployer {
         deployDisputeGameFactory();
         deployPreimageOracle();
         deployMips();
-        //        deployBatchInbox();
     }
 
     /// @notice Initialize all of the implementations
@@ -403,6 +398,14 @@ contract Deploy is Deployer {
         } else {
             initializeOptimismPortal();
         }
+    }
+
+    /// @notice Add Plasma setup to the OP chain
+    function setupOpPlasma() public {
+        console.log("Deploying OP Plasma");
+        deployDataAvailabilityChallengeProxy();
+        deployDataAvailabilityChallenge();
+        initializeDataAvailabilityChallenge();
     }
 
     ////////////////////////////////////////////////////////////////
@@ -483,6 +486,19 @@ contract Deploy is Deployer {
         addr_ = address(proxy);
     }
 
+    /// @notice Deploy BatchInboxProxy
+    function deployBatchInboxProxy() public broadcast returns (address addr_) {
+        console.log("Deploying proxy for BatchInbox");
+        address proxyAdmin = mustGetAddress("ProxyAdmin");
+        Proxy proxy = new Proxy({ _admin: proxyAdmin });
+
+        require(EIP1967Helper.getAdmin(address(proxy)) == proxyAdmin);
+        save("BatchInboxProxy", address(proxy));
+        console.log("BatchInboxProxy deployed at %s", address(proxy));
+
+        addr_ = address(proxy);
+    }
+
     /// @notice Deploy the L1CrossDomainMessengerProxy using a ResolvedDelegateProxy
     function deployL1CrossDomainMessengerProxy() public broadcast returns (address addr_) {
         console.log("Deploying proxy for L1CrossDomainMessenger");
@@ -494,7 +510,6 @@ contract Deploy is Deployer {
 
         addr_ = address(proxy);
     }
-
 
     /// @notice Deploys an ERC1967Proxy contract with the ProxyAdmin as the owner.
     /// @param _name The name of the proxy contract to be deployed.
@@ -522,6 +537,20 @@ contract Deploy is Deployer {
 
         save(_name, address(proxy));
         console.log("   at %s", address(proxy));
+        addr_ = address(proxy);
+    }
+
+    /// @notice Deploy the DataAvailabilityChallengeProxy
+    function deployDataAvailabilityChallengeProxy() public broadcast returns (address addr_) {
+        console.log("Deploying proxy for DataAvailabilityChallenge");
+        address proxyAdmin = mustGetAddress("ProxyAdmin");
+        Proxy proxy = new Proxy({ _admin: proxyAdmin });
+
+        require(EIP1967Helper.getAdmin(address(proxy)) == proxyAdmin);
+
+        save("DataAvailabilityChallengeProxy", address(proxy));
+        console.log("DataAvailabilityChallengeProxy deployed at %s", address(proxy));
+
         addr_ = address(proxy);
     }
 
@@ -629,27 +658,6 @@ contract Deploy is Deployer {
         addr_ = address(oracle);
     }
 
-    /// @notice Deploy the BatchInbox
-    function deployBatchInbox() broadcast() public returns (address) {
-        address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
-
-        BatchInbox inbox = new BatchInbox({
-        _messenger: payable(l1CrossDomainMessengerProxy)
-        });
-
-        save("BatchInbox", address(inbox));
-        console.log("BatchInbox deployed at %s", address(inbox));
-
-        Types.ContractSet memory contracts = _proxiesUnstrict();
-
-        require(address(inbox.MESSENGER()) == l1CrossDomainMessengerProxy);
-
-        save("BatchInbox", address(inbox));
-        console.log("BatchInbox deployed at %s", address(inbox));
-
-        return address(inbox);
-    }
-
     /// @notice Deploy the OptimismMintableERC20Factory
     function deployOptimismMintableERC20Factory() public broadcast returns (address addr_) {
         console.log("Deploying OptimismMintableERC20Factory implementation");
@@ -706,7 +714,8 @@ contract Deploy is Deployer {
         console.log("Deploying PreimageOracle implementation");
         PreimageOracle preimageOracle = new PreimageOracle{ salt: _implSalt() }({
         _minProposalSize: cfg.preimageOracleMinProposalSize(),
-        _challengePeriod: cfg.preimageOracleChallengePeriod()
+        _challengePeriod: cfg.preimageOracleChallengePeriod(),
+        _cancunActivation: cfg.preimageOracleCancunActivationTimestamp()
         });
         save("PreimageOracle", address(preimageOracle));
         console.log("PreimageOracle deployed at %s", address(preimageOracle));
@@ -761,6 +770,24 @@ contract Deploy is Deployer {
         addr_ = address(bridge);
     }
 
+    /// @notice Deploy the BatchInbox
+    function deployBatchInbox() public broadcast returns (address addr_) {
+        console.log("Deploying BatchInbox implementation");
+        BatchInbox inbox = new BatchInbox{ salt: _implSalt() }();
+
+        save("BatchInbox", address(inbox));
+        console.log("BatchInbox deployed at %s", address(inbox));
+
+        // Override the `BatchInbox` contract to the deployed implementation. This is necessary
+        // to check the `BatchInbox` implementation alongside dependent contracts, which
+        // are always proxies.
+        Types.ContractSet memory contracts = _proxiesUnstrict();
+        contracts.BatchInbox = address(inbox);
+        ChainAssertions.checkBatchInbox({ _contracts: contracts, _isProxy: false });
+
+        addr_ = address(inbox);
+    }
+
     /// @notice Deploy the L1ERC721Bridge
     function deployL1ERC721Bridge() public broadcast returns (address addr_) {
         console.log("Deploying L1ERC721Bridge implementation");
@@ -792,6 +819,16 @@ contract Deploy is Deployer {
         }
 
         require(addressManager.owner() == proxyAdmin);
+    }
+
+    /// @notice Deploy the DataAvailabilityChallenge
+    function deployDataAvailabilityChallenge() public broadcast returns (address addr_) {
+        console.log("Deploying DataAvailabilityChallenge implementation");
+        DataAvailabilityChallenge dac = new DataAvailabilityChallenge();
+        save("DataAvailabilityChallenge", address(dac));
+        console.log("DataAvailabilityChallenge deployed at %s", address(dac));
+
+        addr_ = address(dac);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -901,6 +938,31 @@ contract Deploy is Deployer {
         console.log("L1StandardBridge version: %s", version);
 
         ChainAssertions.checkL1StandardBridge({ _contracts: _proxies(), _isProxy: true });
+    }
+
+    /// @notice Initialize the BatchInbox
+    function initializeBatchInbox() public broadcast {
+        console.log("Upgrading and initializing BatchInbox proxy");
+        ProxyAdmin proxyAdmin = ProxyAdmin(mustGetAddress("ProxyAdmin"));
+        address batchInboxProxy = mustGetAddress("BatchInboxProxy");
+        address batchInbox = mustGetAddress("BatchInbox");
+        address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
+        address superchainConfigProxy = mustGetAddress("SuperchainConfigProxy");
+
+        _upgradeAndCallViaSafe({
+        _proxy: payable(batchInboxProxy),
+        _implementation: batchInbox,
+        _innerCallData: abi.encodeCall(
+                BatchInbox.initialize,
+                (L1CrossDomainMessenger(l1CrossDomainMessengerProxy), SuperchainConfig(superchainConfigProxy))
+            )
+        });
+
+        BatchInbox inbox = BatchInbox(batchInboxProxy);
+        string memory version = inbox.version();
+        console.log("BatchInbox version: %s", version);
+
+        ChainAssertions.checkBatchInbox({ _contracts: _proxies(), _isProxy: true });
     }
 
     /// @notice Initialize the L1ERC721Bridge
@@ -1199,7 +1261,7 @@ contract Deploy is Deployer {
         _factory: factory,
         _gameType: GameTypes.ALPHABET,
         _absolutePrestate: outputAbsolutePrestate,
-        _faultVm: IBigStepper(new AlphabetVM(outputAbsolutePrestate)),
+        _faultVm: IBigStepper(new AlphabetVM(outputAbsolutePrestate, PreimageOracle(mustGetAddress("PreimageOracle")))),
         // The max depth for the alphabet trace is always 3. Add 1 because split depth is fully inclusive.
         _maxGameDepth: cfg.faultGameSplitDepth() + 3 + 1,
         _allowUpgrade: _allowUpgrade
@@ -1274,5 +1336,37 @@ contract Deploy is Deployer {
             gameTypeString,
             vm.toString(rawGameType)
         );
+    }
+
+    /// @notice Initialize the DataAvailabilityChallenge
+    function initializeDataAvailabilityChallenge() public broadcast {
+        console.log("Upgrading and initializing DataAvailabilityChallenge proxy");
+        address dataAvailabilityChallengeProxy = mustGetAddress("DataAvailabilityChallengeProxy");
+        address dataAvailabilityChallenge = mustGetAddress("DataAvailabilityChallenge");
+
+        address finalSystemOwner = cfg.finalSystemOwner();
+        uint256 daChallengeWindow = cfg.daChallengeWindow();
+        uint256 daResolveWindow = cfg.daResolveWindow();
+        uint256 daBondSize = cfg.daBondSize();
+        uint256 daResolverRefundPercentage = cfg.daResolverRefundPercentage();
+
+        _upgradeAndCallViaSafe({
+        _proxy: payable(dataAvailabilityChallengeProxy),
+        _implementation: dataAvailabilityChallenge,
+        _innerCallData: abi.encodeCall(
+                DataAvailabilityChallenge.initialize,
+                (finalSystemOwner, daChallengeWindow, daResolveWindow, daBondSize, daResolverRefundPercentage)
+            )
+        });
+
+        DataAvailabilityChallenge dac = DataAvailabilityChallenge(payable(dataAvailabilityChallengeProxy));
+        string memory version = dac.version();
+        console.log("DataAvailabilityChallenge version: %s", version);
+
+        require(dac.owner() == finalSystemOwner);
+        require(dac.challengeWindow() == daChallengeWindow);
+        require(dac.resolveWindow() == daResolveWindow);
+        require(dac.bondSize() == daBondSize);
+        require(dac.resolverRefundPercentage() == daResolverRefundPercentage);
     }
 }
