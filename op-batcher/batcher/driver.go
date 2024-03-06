@@ -421,9 +421,10 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, txdata txData, que
 	//} else {
 	//	candidate = l.calldataTxCandidate(data)
 	//}
-	address := &common.Address{0x3f4bcbd178399aea9cc0f33ca952f91e1acb31d0}
+	addressHex := "0x3f4bcbd178399aea9cc0f33ca952f91e1acb31d0"
+	address := common.HexToAddress(addressHex)
 	candidate := &txmgr.TxCandidate{
-		To:     address,
+		To:     &address,
 		TxData: data,
 		// SYSCOIN let L1 estimate gas due to precompile
 		GasLimit: 0,
