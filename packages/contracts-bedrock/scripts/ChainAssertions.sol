@@ -8,6 +8,7 @@ import { Deployer } from "scripts/Deployer.sol";
 import { SystemConfig } from "src/L1/SystemConfig.sol";
 import { Constants } from "src/libraries/Constants.sol";
 import { L1StandardBridge } from "src/L1/L1StandardBridge.sol";
+import { BatchInbox } from "src/L1/BatchInbox.sol";
 import { L2OutputOracle } from "src/L1/L2OutputOracle.sol";
 import { DisputeGameFactory } from "src/dispute/DisputeGameFactory.sol";
 import { ProtocolVersion, ProtocolVersions } from "src/L1/ProtocolVersions.sol";
@@ -163,6 +164,25 @@ library ChainAssertions {
             require(address(bridge.messenger()) == address(0));
             require(address(bridge.OTHER_BRIDGE()) == Predeploys.L2_STANDARD_BRIDGE);
             require(address(bridge.otherBridge()) == Predeploys.L2_STANDARD_BRIDGE);
+            require(address(bridge.superchainConfig()) == address(0));
+        }
+    }
+
+    /// @notice Asserts that the BatchInbox is setup correctly
+    function checkBatchInbox(Types.ContractSet memory _contracts, bool _isProxy) internal view {
+        console.log("Running chain assertions on the BatchInbox");
+        BatchInbox inbox = BatchInbox(_contracts.BatchInbox);
+
+        // Check that the contract is initialized
+        assertSlotValueIsOne({ _contractAddress: address(inbox), _slot: 0, _offset: 0 });
+
+        if (_isProxy) {
+            require(address(inbox.MESSENGER()) == _contracts.L1CrossDomainMessenger);
+            require(address(inbox.messenger()) == _contracts.L1CrossDomainMessenger);
+            require(address(bridge.superchainConfig()) == _contracts.SuperchainConfig);
+        } else {
+            require(address(inbox.MESSENGER()) == address(0));
+            require(address(inbox.messenger()) == address(0));
             require(address(bridge.superchainConfig()) == address(0));
         }
     }

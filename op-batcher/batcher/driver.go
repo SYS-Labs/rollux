@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/dial"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	"io"
@@ -407,20 +408,27 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, txdata txData, que
 		}
 	}
 
-	var candidate *txmgr.TxCandidate
-	if l.Config.UseBlobs {
-		if candidate, err = l.blobTxCandidate(data); err != nil {
-			// We could potentially fall through and try a calldata tx instead, but this would
-			// likely result in the chain spending more in gas fees than it is tuned for, so best
-			// to just fail. We do not expect this error to trigger unless there is a serious bug
-			// or configuration issue.
-			return fmt.Errorf("could not create blob tx candidate: %w", err)
-		}
-		l.Metr.RecordBlobUsedBytes(len(data))
-	} else {
-		candidate = l.calldataTxCandidate(data)
+	//var candidate *txmgr.TxCandidate
+	//if true {
+	//	if candidate, err = l.blobTxCandidate(data); err != nil {
+	//		// We could potentially fall through and try a calldata tx instead, but this would
+	//		// likely result in the chain spending more in gas fees than it is tuned for, so best
+	//		// to just fail. We do not expect this error to trigger unless there is a serious bug
+	//		// or configuration issue.
+	//		return fmt.Errorf("could not create blob tx candidate: %w", err)
+	//	}
+	//	l.Metr.RecordBlobUsedBytes(len(data))
+	//} else {
+	//	candidate = l.calldataTxCandidate(data)
+	//}
+	address := &common.Address{0x3f4bcbd178399aea9cc0f33ca952f91e1acb31d0}
+	candidate := &txmgr.TxCandidate{
+		To:     address,
+		TxData: data,
+		// SYSCOIN let L1 estimate gas due to precompile
+		GasLimit: 0,
 	}
-	candidate.GasLimit = 800000 // SYSCOIN let L1 estimate gas due to precompile
+	candidate.GasLimit = 990000 // SYSCOIN just testing
 
 	queue.Send(txdata, *candidate, receiptsCh)
 	return nil
@@ -462,7 +470,6 @@ func (l *BatchSubmitter) handleReceipt(r txmgr.TxReceipt[txData]) {
 // This is a blocking method. It should not be called concurrently.
 // TODO: where to put concurrent transaction handling logic.
 func (l *BatchSubmitter) sendBlobTransaction(ctx context.Context, data []byte) (*types.Receipt, error) {
-	l.Log.Warn("sendBlobTransaction", "ctx", ctx, "data", data)
 	ctx, cancel := context.WithTimeout(ctx, 25*time.Minute)
 	defer cancel()
 	if receipt, err := l.txMgr.SendBlob(ctx, data); err != nil {
