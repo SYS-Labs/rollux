@@ -2,6 +2,7 @@ package batcher
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum-optimism/optimism/op-batcher/metrics"
@@ -377,7 +378,8 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 		copy(array[:], receipt.TxHash.Bytes())
 		arrayOfVHs = append(arrayOfVHs, array)
 		packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, arrayOfVHs)
-		l.Log.Warn("Packed data", "data", packedData)
+		hexString := hex.EncodeToString(packedData)
+		l.Log.Warn("Packed data", "data", hexString)
 		if err != nil {
 			l.Log.Error("Failed to pack data for function call: %v", err)
 			l.recordFailedTx(txdata, err)
