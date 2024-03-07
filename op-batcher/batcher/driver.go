@@ -401,9 +401,10 @@ func (l *BatchSubmitter) sendTransaction(ctx context.Context, txdata txData, que
 	// Do the gas estimation offline. A value of 0 will cause the [txmgr] to estimate the gas limit.
 	data := txdata.frame.data
 	testData := txdata.Bytes()
-
-	l.Log.Warn("Test data", "data", testData)
-	l.Log.Warn("Actual data", "data", data)
+	hexString := hex.EncodeToString(data)
+	testHexString := hex.EncodeToString(testData)
+	l.Log.Warn("Test data", "data", testHexString)
+	l.Log.Warn("Actual data", "data", hexString)
 	// if plasma DA is enabled we post the txdata to the DA Provider and replace it with the commitment.
 	if l.Config.UsePlasma {
 		data, err = l.PlasmaDA.SetInput(ctx, data)
