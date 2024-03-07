@@ -399,7 +399,11 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 func (l *BatchSubmitter) sendTransaction(ctx context.Context, txdata txData, queue *txmgr.Queue[txData], receiptsCh chan txmgr.TxReceipt[txData]) error {
 	var err error
 	// Do the gas estimation offline. A value of 0 will cause the [txmgr] to estimate the gas limit.
-	data := txdata.Bytes()
+	data := txdata.frame.data
+	testData := txdata.Bytes()
+
+	l.Log.Warn("Test data", "data", testData)
+	l.Log.Warn("Actual data", "data", data)
 	// if plasma DA is enabled we post the txdata to the DA Provider and replace it with the commitment.
 	if l.Config.UsePlasma {
 		data, err = l.PlasmaDA.SetInput(ctx, data)
