@@ -135,14 +135,10 @@ services:
       - ./envs/op-node-rollux.env
 
   op-batcher:
-    depends_on:
-      - l1
-      - l2
-      - op-node
     build:
       context: ../
       dockerfile: ./op-batcher/Dockerfile
-    image: op-batcher:${TAG}
+    image: op-batcher
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -151,7 +147,7 @@ services:
       - "6545:8545"
     environment:
       OP_BATCHER_L1_ETH_RPC: https://rpc.syscoin.org
-      OP_BATCHER_L2_ETH_RPC: http://l2:8545
+      OP_BATCHER_L2_ETH_RPC: https://rpc.rollux.com
       OP_BATCHER_ROLLUP_RPC: http://op-node:8545
       OP_BATCHER_MAX_L1_TX_SIZE_BYTES: 2097120
       OP_BATCHER_TARGET_L1_TX_SIZE_BYTES: 2000000

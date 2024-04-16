@@ -28,3 +28,4 @@ $ make devtools
 ```
 
 The geth docs for `abigen` can be found [here](https://geth.ethereum.org/docs/dapp/native-bindings).
+"https://rpc-nebula.rollux.com"

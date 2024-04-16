@@ -7,9 +7,11 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/eth"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"io"
 	"math/big"
 	_ "net/http/pprof"
+	"os"
 	_ "strings"
 	"sync"
 	"time"
@@ -212,15 +214,15 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 	//} else if start.Number >= end.Number {
 	//	return errors.New("start number is >= end number")
 	//}
-	startHash := common.HexToHash("0x9e74aa0ee89625c151995beb2fcff7aa12931ce159aac0ae1577e7c43d331ab9")
-	endHash := common.HexToHash("0x3260d4f747137145de41027a09715c2bf581f0d8aa46a92f6e5c3e75583b2c7e")
+	startHash := common.HexToHash("0xa47f55de397c3f979da716651793f75ab222d1df5a8d0e29ba8cc3abd979bc88")
+	endHash := common.HexToHash("0x7b5403bed4bf0d3eaff8953cd2fafd76e2271099784010604c4f5724c59e0c0d")
 	start := eth.BlockID{
 		Hash:   startHash,
-		Number: 7000000,
+		Number: 7944530,
 	}
 	end := eth.BlockID{
 		Hash:   endHash,
-		Number: 7000050,
+		Number: 8111442,
 	}
 
 	var latestBlock *types.Block
@@ -383,20 +385,37 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	}
 
 	// SYSCOIN Record TX Status
-	l.log.Info("BLOB", "SEE BLOB", txdata.Bytes())
-	if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
-		l.recordFailedTx(txdata.ID(), err)
-	} else {
-		l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
-		// Create the transaction
-		// we avoid changing Receipt object and just reuse TxHash for VH
-		var arrayOfVHs [][32]byte
-		var array [32]byte
-		copy(array[:], receipt.TxHash.Bytes())
-		arrayOfVHs = append(arrayOfVHs, array)
+	//l.log.Info("BLOB", "SEE BLOB", txdata.Bytes())
+	vhData := crypto.Keccak256Hash(txdata.Bytes())
+	vhDataHex := fmt.Sprintf("%x", vhData)
+	targetHash := "bf111e9fe9f9749492c156fc87e183916e7e17b589eef8e1e23db75621d8a16b"
 
-		//
+	// Compare the computed hash to the target hash
+	if vhDataHex == targetHash {
+		fmt.Println("Hash match found. Terminating the program.", "versionhash", vhDataHex)
+		fileName := "transaction_data.txt"
+		err := os.WriteFile(fileName, txdata.Bytes(), 0644)
+		if err != nil {
+			l.log.Crit("Failed to write to file: %v", err)
+		}
+		os.Exit(0) // Terminate the program
+	} else {
+		fmt.Println("No match found. Hash is:", vhDataHex)
 	}
+	l.log.Info("Blob Testing", "versionhash", vhData)
+	//if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
+	//	l.recordFailedTx(txdata.ID(), err)
+	//} else {
+	//	l.log.Info("Blob confirmed", "versionhash", receipt.TxHash)
+	//	// Create the transaction
+	//	// we avoid changing Receipt object and just reuse TxHash for VH
+	//	var arrayOfVHs [][32]byte
+	//	var array [32]byte
+	//	copy(array[:], receipt.TxHash.Bytes())
+	//	arrayOfVHs = append(arrayOfVHs, array)
+	//
+	//	//
+	//}
 	return nil
 }
 
