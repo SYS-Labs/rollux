@@ -56,7 +56,7 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 	}
 	s := &SyscoinRPC{
 		client:       http.Client{Timeout: time.Duration(600) * time.Second, Transport: transport},
-		rpcURL:       "http://54.187.137.60:8370",
+		rpcURL:       "http://l1:8370",
 		user:         "u",
 		password:     "p",
 		podaurl:      podaurl,
