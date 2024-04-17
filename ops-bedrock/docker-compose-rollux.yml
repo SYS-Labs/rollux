@@ -7,7 +7,6 @@ version: '3.4'
 volumes:
   l1_data:
 
-
 services:
   l1:
     build:
