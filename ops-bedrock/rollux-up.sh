@@ -60,21 +60,7 @@ function wait_up {
 
 mkdir -p ./.rollux
 
-# Regenerate the L1 genesis file if necessary. The existence of the genesis
-# file is used to determine if we need to recreate the rollux's state folder.
-if [ ! -f "$DEVNET/done" ]; then
-  echo "Regenerating genesis files"
-  (
-    cd "$OP_NODE"
-    go run cmd/main.go genesis l2 \
-        --l1-rpc https://rpc.syscoin.org \
-        --deployment-dir $CONTRACTS_BEDROCK/deployments/mainnet \
-        --deploy-config $CONTRACTS_BEDROCK/deploy-config/mainnet.json \
-        --outfile.l2 $DEVNET/genesis-l2.json \
-        --outfile.rollup $DEVNET/rollup.json
-    touch "$DEVNET/done"
-  )
-fi
+
 
 # Bring up L1.
 (
@@ -86,27 +72,17 @@ fi
   wait_up $L1_URL
 )
 
-# Bring up L2.
-(
-  export TAG=$TAG
-  cd ops-bedrock
-  echo "Bringing up L2..."
-  docker-compose -f docker-compose-rollux.yml up -d l2
-  wait_up $L2_URL
-)
 
-L2OO_ADDRESS="$(cat $DEVNET/rollup.json | jq -r '.output_oracle_address')"
-# Bring up everything else.
+
+
 (
   export TAG=$TAG
   cd ops-bedrock
   echo "Bringing up L2 services..."
   L2OO_ADDRESS="$L2OO_ADDRESS" \
-      docker-compose -f docker-compose-rollux.yml up -d op-proposer op-batcher
+      docker-compose -f docker-compose-rollux.yml up -d op-batcher
 
-  echo "Bringing up stateviz webserver..."
-  docker-compose -f docker-compose-rollux.yml up -d stateviz
 )
 
-echo "L2 ready."
+echo "Poda Builder ready."
 

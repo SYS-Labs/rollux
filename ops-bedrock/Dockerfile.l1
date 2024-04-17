@@ -26,7 +26,6 @@ RUN apk --no-cache add \
 RUN echo $'mkdir -p ${SYSCOIN_DATA}/testnet3/geth/keystore/' >> geth.sh
 RUN echo $'mkdir -p ${SYSCOIN_DATA}/geth/keystore/' >> geth.sh
 RUN echo $'exec syscoind --datadir=${SYSCOIN_DATA} \
-    --testnet=$TESTNET \
 	--server=1 \
 	--rpcuser=u \
 	--rpcpassword=p \
