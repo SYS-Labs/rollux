@@ -6,12 +6,6 @@ version: '3.4'
 
 volumes:
   l1_data:
-  l2_data:
-  op_log:
-  influxdb_data:
-  grafana_data:
-  grafana_dashboards:
-  prometheus_data:
 
 
 services:
