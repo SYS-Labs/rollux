@@ -94,14 +94,14 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 			}
 			log.Info("NewSyscoinClient please fund SYS", "address", address)
 		}
-		for balance <= 0.0 {
-			balance, err = client.GetBalance()
-			if err != nil {
-				return &client, err
-			}
-			time.Sleep(10 * time.Second)
-			log.Info("NewSyscoinClient waiting for funds at funding destination", "address", address)
-		}
+		//for balance <= 0.0 {
+		//	balance, err = client.GetBalance()
+		//	if err != nil {
+		//		return &client, err
+		//	}
+		//	time.Sleep(10 * time.Second)
+		//	log.Info("NewSyscoinClient waiting for funds at funding destination", "address", address)
+		//}
 	}
 
 	log.Info("NewSyscoinClient loaded!")
