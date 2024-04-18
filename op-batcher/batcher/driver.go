@@ -240,26 +240,26 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 		l.lastStoredBlock = eth.ToBlockID(block)
 		latestBlock = block
 	}
-	l1GenHash := common.HexToHash("0xbaaa9a7834d9b5e928eeb36942b96eb64167701e16b9da02a7a5f3aa9c0a216c")
-	l2GenHash := common.HexToHash("0x045514aee1f089c5acd01ee15995e39a406e92586495bfa4429aa93b9f6f1067")
+	l1GenHash := common.HexToHash("0x47ac31005a8c86e4fc6bdbbf4b74ebe578bd8660b3ce44ea2e04f362a5918ca8")
+	l2GenHash := common.HexToHash("0xc6b3cc4a21e79da5a3ff4981e73403be68ad93dce5c52401c7172cd8e33af6a0")
 	l1Gen := eth.BlockID{
 		Hash:   l1GenHash,
-		Number: 247425,
+		Number: 319398,
 	}
 	l2Gen := eth.BlockID{
 		Hash:   l2GenHash,
 		Number: 0,
 	}
-	overheadBytes := common.Hex2Bytes("0x0000000000000000000000000000000000000000000000000000000000000834")
+	overheadBytes := common.Hex2Bytes("0x00000000000000000000000000000000000000000000000000000000000000bc")
 	convertedOverheadBytes := ConvertToBytes32(overheadBytes)
 	sysConfig := eth.SystemConfig{
-		BatcherAddr: common.HexToAddress("0x678255ae6b5c4ba0e6206a8e70b59b874f20bc9c"),
+		BatcherAddr: common.HexToAddress("0x00d97b2a26cb85252998fe7b4bd4ec2118bf6b6e"),
 		Overhead:    convertedOverheadBytes,
 	}
 	genesis := rollup.Genesis{
 		L1:           l1Gen,
 		L2:           l2Gen,
-		L2Time:       1678830392,
+		L2Time:       1687365241,
 		SystemConfig: sysConfig,
 	}
 	l2ref, err := derive.L2BlockToBlockRef(latestBlock, &genesis)
@@ -542,3 +542,4 @@ func (l *BatchSubmitter) l1Tip(ctx context.Context) (eth.L1BlockRef, error) {
 // Error conditions:
 // Submitted batch, but it is not valid
 // Missed L2 block somehow.
+// 73746fa55ae73fb9806269ebd886476415e26aeb75bc5db3874ae41e4c88de05
