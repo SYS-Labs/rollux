@@ -64,6 +64,44 @@ services:
     env_file:
       - ./envs/op-node-rollux.env
 
+  op-batcher-v2:
+    depends_on:
+      - l1
+    build:
+      context: ../
+      dockerfile: ./op-batcher/Dockerfile
+    image: op-batcher
+    stop_signal: SIGINT
+    stop_grace_period: 30s
+    ports:
+      - "6061:6060"
+      - "7301:7300"
+      - "6545:8545"
+    environment:
+      OP_BATCHER_L1_ETH_RPC: https://rpc.syscoin.org
+      OP_BATCHER_L2_ETH_RPC: https://rpc0.rollux.com
+      OP_BATCHER_ROLLUP_RPC: http://op-node:8545
+      OP_BATCHER_MAX_L1_TX_SIZE_BYTES: 2097120
+      OP_BATCHER_TARGET_L1_TX_SIZE_BYTES: 2000000
+      OP_BATCHER_TARGET_NUM_FRAMES: 1
+      OP_BATCHER_APPROX_COMPR_RATIO: 1.0
+      OP_BATCHER_SUB_SAFETY_MARGIN: 6 # SWS is 15, ChannelTimeout is 40
+      OP_BATCHER_POLL_INTERVAL: 10s
+      OP_BATCHER_MAX_CHANNEL_DURATION: 24
+      OP_BATCHER_NUM_CONFIRMATIONS: 1
+      OP_BATCHER_SAFE_ABORT_NONCE_TOO_LOW_COUNT: 3
+      OP_BATCHER_SEQUENCER_HD_PATH: "m/44'/60'/0'/0/2"
+      OP_BATCHER_LOG_TERMINAL: "true"
+      OP_BATCHER_PPROF_ENABLED: "true"
+      OP_BATCHER_METRICS_ENABLED: "true"
+      OP_BATCHER_RPC_ENABLE_ADMIN: "true"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
+    env_file:
+      - ./envs/op-node-rollux.env
+
 networks:
   default:
       driver: bridge

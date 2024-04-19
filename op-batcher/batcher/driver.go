@@ -214,6 +214,16 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 	//} else if start.Number >= end.Number {
 	//	return errors.New("start number is >= end number")
 	//}
+	//startHash := common.HexToHash("0xfa3fd601e9ada8afeb4f3379753e6f8cf65c58a2defdb2e3f5cf75482dea095e")
+	//endHash := common.HexToHash("0x11ef94bf21f3004b560943f9a2e2a4dbaf46c2ccc6747e77ee6e452ca71ea907")
+	//start := eth.BlockID{
+	//	Hash:   startHash,
+	//	Number: 7944531,
+	//}
+	//end := eth.BlockID{
+	//	Hash:   endHash,
+	//	Number: 8111443,
+	//}
 	startHash := common.HexToHash("0xfa3fd601e9ada8afeb4f3379753e6f8cf65c58a2defdb2e3f5cf75482dea095e")
 	endHash := common.HexToHash("0x11ef94bf21f3004b560943f9a2e2a4dbaf46c2ccc6747e77ee6e452ca71ea907")
 	start := eth.BlockID{

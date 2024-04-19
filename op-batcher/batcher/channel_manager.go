@@ -296,9 +296,10 @@ func (s *channelManager) outputFrames() error {
 // if the block does not extend the last block loaded into the state. If no
 // blocks were added yet, the parent hash check is skipped.
 func (s *channelManager) AddL2Block(block *types.Block) error {
-	if s.tip != (common.Hash{}) && s.tip != block.ParentHash() {
-		return ErrReorg
-	}
+	// Commenting out this check for now, as it is not necessary for poda reconstruction
+	//if s.tip != (common.Hash{}) && s.tip != block.ParentHash() {
+	//	return ErrReorg
+	//}
 
 	s.metr.RecordL2BlockInPendingQueue(block)
 	s.blocks = append(s.blocks, block)
