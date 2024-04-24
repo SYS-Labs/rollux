@@ -11,7 +11,6 @@ import (
 	"io"
 	"math/big"
 	_ "net/http/pprof"
-	"os"
 	_ "strings"
 	"sync"
 	"time"
@@ -224,15 +223,17 @@ func (l *BatchSubmitter) loadBlocksIntoState(ctx context.Context) error {
 	//	Hash:   endHash,
 	//	Number: 8111443,
 	//}
-	startHash := common.HexToHash("0xfa3fd601e9ada8afeb4f3379753e6f8cf65c58a2defdb2e3f5cf75482dea095e")
-	endHash := common.HexToHash("0x11ef94bf21f3004b560943f9a2e2a4dbaf46c2ccc6747e77ee6e452ca71ea907")
+	// start from genesis
+	startHash := common.HexToHash("0xc6b3cc4a21e79da5a3ff4981e73403be68ad93dce5c52401c7172cd8e33af6a0")
+
+	endHash := common.HexToHash("0xa4b6c7b17c1f2098bd547227ca2a53c710431fae61127afc397da7016a7d6935")
 	start := eth.BlockID{
 		Hash:   startHash,
-		Number: 7944531,
+		Number: 0,
 	}
 	end := eth.BlockID{
 		Hash:   endHash,
-		Number: 8111443,
+		Number: 50000,
 	}
 
 	var latestBlock *types.Block
@@ -397,21 +398,23 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	// SYSCOIN Record TX Status
 	//l.log.Info("BLOB", "SEE BLOB", txdata.Bytes())
 	vhData := crypto.Keccak256Hash(txdata.Bytes())
+
 	vhDataHex := fmt.Sprintf("%x", vhData)
 	targetHash := "bf111e9fe9f9749492c156fc87e183916e7e17b589eef8e1e23db75621d8a16b"
 
 	// Compare the computed hash to the target hash
-	if vhDataHex == targetHash {
-		fmt.Println("Hash match found. Terminating the program.", "versionhash", vhDataHex)
-		fileName := "transaction_data.txt"
-		err := os.WriteFile(fileName, txdata.Bytes(), 0644)
-		if err != nil {
-			l.log.Crit("Failed to write to file: %v", err)
-		}
-		os.Exit(0) // Terminate the program
-	} else {
-		fmt.Println("No match found. Hash is:", vhDataHex)
-	}
+	fmt.Println("Hash is:", vhDataHex)
+	//if vhDataHex == targetHash {
+	//	fmt.Println("Hash match found. Terminating the program.", "versionhash", vhDataHex)
+	//	fileName := "transaction_data.txt"
+	//	err := os.WriteFile(fileName, txdata.Bytes(), 0644)
+	//	if err != nil {
+	//		l.log.Crit("Failed to write to file: %v", err)
+	//	}
+	//	os.Exit(0) // Terminate the program
+	//} else {
+	//	fmt.Println("No match found. Hash is:", vhDataHex)
+	//}
 	l.log.Info("Blob Testing", "versionhash", vhData)
 	//if receipt, err := l.sendBlobTransaction(ctx, txdata.Bytes()); err != nil || receipt.Status == types.ReceiptStatusFailed {
 	//	l.recordFailedTx(txdata.ID(), err)
