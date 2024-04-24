@@ -400,7 +400,7 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	vhData := crypto.Keccak256Hash(txdata.Bytes())
 
 	vhDataHex := fmt.Sprintf("%x", vhData)
-	targetHash := "bf111e9fe9f9749492c156fc87e183916e7e17b589eef8e1e23db75621d8a16b"
+	//targetHash := "bf111e9fe9f9749492c156fc87e183916e7e17b589eef8e1e23db75621d8a16b"
 
 	// Compare the computed hash to the target hash
 	fmt.Println("Hash is:", vhDataHex)
