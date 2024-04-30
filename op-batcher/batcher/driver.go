@@ -2,6 +2,7 @@ package batcher
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum-optimism/optimism/op-node/eth"
@@ -9,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"io"
+	"io/ioutil"
 	"math/big"
 	_ "net/http/pprof"
 	_ "strings"
@@ -398,7 +400,17 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 	// SYSCOIN Record TX Status
 	//l.log.Info("BLOB", "SEE BLOB", txdata.Bytes())
 	vhData := crypto.Keccak256Hash(txdata.Bytes())
+	hexString := hex.EncodeToString(txdata.Bytes())
+	fmt.Println("Hex string:", hexString)
+	filename := fmt.Sprintf("%s.txt", vhData.String())
+	// Write the hex string to a file
+	err = ioutil.WriteFile(filename, []byte(hexString), 0644)
+	if err != nil {
+		fmt.Println(hexString)
+		fmt.Println("Error writing to file:", err)
+	}
 
+	fmt.Println("Data written to file successfully.")
 	vhDataHex := fmt.Sprintf("%x", vhData)
 	//targetHash := "bf111e9fe9f9749492c156fc87e183916e7e17b589eef8e1e23db75621d8a16b"
 
