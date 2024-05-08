@@ -221,6 +221,7 @@ var (
 			"This does not include checks if the blockhash is part of the canonical chain.",
 		EnvVars:  prefixEnvVars("L2_BACKUP_UNSAFE_SYNC_RPC_TRUST_RPC"),
 		Required: false,
+		Value:    "true",
 	}
 
 	// SYSCOIN
@@ -234,7 +235,7 @@ var (
 		Usage:    "Enables or disables execution engine P2P sync",
 		EnvVars:  prefixEnvVars("L2_ENGINE_SYNC_ENABLED"),
 		Required: false,
-		Value:    false,
+		Value:    true,
 	}
 	SkipSyncStartCheck = &cli.BoolFlag{
 		Name: "l2.skip-sync-start-check",
@@ -242,7 +243,7 @@ var (
 			"This defers the L1-origin verification, and is recommended to use in when utilizing l2.engine-sync",
 		EnvVars:  prefixEnvVars("L2_SKIP_SYNC_START_CHECK"),
 		Required: false,
-		Value:    false,
+		Value:    true,
 	}
 	BetaExtraNetworks = &cli.BoolFlag{
 		Name: "beta.extra-networks",

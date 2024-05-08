@@ -64,6 +64,7 @@ services:
       --l1=ws://l1:8546
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
+      --l2.backup-unsafe-sync-rpc=https://rpc.rollux.com
       --sequencer.stopped
       --sequencer.l1-confs=0
       --verifier.l1-confs=0
@@ -74,7 +75,7 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
-      --p2p.static=/ip4/<ip>/tcp/9003/p2p/<peer_ids>
+      --p2p.static=/ip4/54.149.129.118/tcp/9003/p2p/16Uiu2HAkxkb5K6FUvCshcG2CdhhRzPShQQdEZMfm23nhDHZFuSx4
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
