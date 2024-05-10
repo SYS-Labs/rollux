@@ -75,7 +75,7 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
-      --p2p.static=/ip4/54.149.129.118/tcp/9003/p2p/16Uiu2HAkxkb5K6FUvCshcG2CdhhRzPShQQdEZMfm23nhDHZFuSx4
+      --p2p.static=/ip4/213.239.234.158/tcp/9003/p2p/16Uiu2HAmPfLFVjVDoRvrMwXCY5AMiL1YAVCriFXo5k7aL7MikGB1
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
