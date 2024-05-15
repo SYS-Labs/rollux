@@ -161,6 +161,9 @@ func NewEthClient(client opclient.RPC, log log.Logger, metrics caching.Metrics, 
 		}
 	}
 	recProvider := newRecProviderFromConfig(client, log, metrics, config)
+	if recProvider.isInnerNil() {
+		return nil, fmt.Errorf("failed to open RethDB")
+	}
 	return &EthClient{
 		client:      client,
 		recProvider: recProvider,

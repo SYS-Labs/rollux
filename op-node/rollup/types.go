@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 
+	plasma "github.com/ethereum-optimism/optimism/op-plasma"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 )
 
@@ -59,7 +60,12 @@ type Config struct {
 	//
 	// Note: When L1 has many 1 second consecutive blocks, and L2 grows at fixed 2 seconds,
 	// the L2 time may still grow beyond this difference.
-	MaxSequencerDrift uint64 `json:"max_sequencer_drift"`
+	//
+	// With Fjord, the MaxSequencerDrift becomes a constant. Use the ChainSpec
+	// instead of reading this rollup configuration field directly to determine
+	// the max sequencer drift for a given block based on the block's L1 origin.
+	// Chains that activate Fjord at genesis may leave this field empty.
+	MaxSequencerDrift uint64 `json:"max_sequencer_drift,omitempty"`
 	// Number of epochs (L1 blocks) per sequencing window, including the epoch L1 origin block itself
 	SeqWindowSize uint64 `json:"seq_window_size"`
 	// Number of L1 blocks between when a channel can be opened and when it must be closed by.
@@ -110,11 +116,19 @@ type Config struct {
 	// L1 address that declares the protocol versions, optional (Beta feature)
 	ProtocolVersionsAddress common.Address `json:"protocol_versions_address,omitempty"`
 
-	// L1 block timestamp to start reading blobs as batch data-source. Optional.
-	BlobsEnabledL1Timestamp *uint64 `json:"blobs_data,omitempty"`
-
 	// L1 DataAvailabilityChallenge contract proxy address
-	DAChallengeAddress common.Address `json:"da_challenge_address,omitempty"`
+	DAChallengeAddress common.Address `json:"da_challenge_contract_address,omitempty"`
+
+	// DA challenge window value set on the DAC contract. Used in plasma mode
+	// to compute when a commitment can no longer be challenged.
+	DAChallengeWindow uint64 `json:"da_challenge_window"`
+
+	// DA resolve window value set on the DAC contract. Used in plasma mode
+	// to compute when a challenge expires and trigger a reorg if needed.
+	DAResolveWindow uint64 `json:"da_resolve_window"`
+
+	// UsePlasma is activated when the chain is in plasma mode.
+	UsePlasma bool `json:"use_plasma"`
 }
 
 // ValidateL1Config checks L1 config variables for errors.
@@ -403,9 +417,33 @@ func (c *Config) GetPayloadVersion(timestamp uint64) eth.EngineAPIMethod {
 	}
 }
 
-// IsPlasmaEnabled returns true if a DA Challenge proxy Address is provided in the rollup config.
-func (c *Config) IsPlasmaEnabled() bool {
-	return c.DAChallengeAddress != (common.Address{})
+// PlasmaConfig validates and returns the plasma config from the rollup config.
+func (c *Config) PlasmaConfig() (plasma.Config, error) {
+	if c.DAChallengeAddress == (common.Address{}) {
+		return plasma.Config{}, fmt.Errorf("missing DAChallengeAddress")
+	}
+	if c.DAChallengeWindow == uint64(0) {
+		return plasma.Config{}, fmt.Errorf("missing DAChallengeWindow")
+	}
+	if c.DAResolveWindow == uint64(0) {
+		return plasma.Config{}, fmt.Errorf("missing DAResolveWindow")
+	}
+	return plasma.Config{
+		DAChallengeContractAddress: c.DAChallengeAddress,
+		ChallengeWindow:            c.DAChallengeWindow,
+		ResolveWindow:              c.DAResolveWindow,
+	}, nil
+}
+
+// SyncLookback computes the number of blocks to walk back in order to find the correct L1 origin.
+// In plasma mode longest possible window is challenge + resolve windows.
+func (c *Config) SyncLookback() uint64 {
+	if c.UsePlasma {
+		if win := (c.DAChallengeWindow + c.DAResolveWindow); win > c.SeqWindowSize {
+			return win
+		}
+	}
+	return c.SeqWindowSize
 }
 
 // Description outputs a banner describing the important parts of rollup configuration in a human-readable form.

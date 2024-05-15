@@ -85,6 +85,7 @@ services:
       --heartbeat.enabled
       --heartbeat.moniker=sequencer
       --heartbeat.url=http://op-heartbeat:8080
+      --safedb.path=/db
       --sys-poda-url=https://poda.syscoin.org/vh/
     ports:
       #      - "7545:8545"            # ? rpc ?
@@ -92,6 +93,7 @@ services:
       - "7300:7300"             # public, metrics ?
       #      - "6060:6060"            # ?
     volumes:
+      - "safedb_data:/db"
       - "${PWD}/p2p-node-key.txt:/config/p2p-node-key.txt"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
       - "${PWD}/../.rollux/rollup.json:/rollup.json"

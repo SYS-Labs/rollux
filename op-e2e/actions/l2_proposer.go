@@ -72,6 +72,10 @@ func (f fakeTxMgr) Close() {
 
 }
 
+func (f fakeTxMgr) IsClosed() bool {
+	return false
+}
+
 func NewL2Proposer(t Testing, log log.Logger, cfg *ProposerCfg, l1 *ethclient.Client, rollupCl *sources.RollupClient) *L2Proposer {
 	proposerConfig := proposer.ProposerConfig{
 		PollInterval:           time.Second,
