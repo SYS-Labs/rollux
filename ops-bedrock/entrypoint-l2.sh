@@ -68,7 +68,7 @@ exec geth \
 	--ws.port="$WS_PORT" \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
-	--syncmode=full \
+	--syncmode=snap \
 	--nodiscover \
 	--maxpeers=0 \
 	--networkid="$CHAIN_ID" \
