@@ -33,11 +33,11 @@ if [ ! -d "$GETH_CHAINDATA_DIR" ]; then
 else
 	echo "$GETH_CHAINDATA_DIR exists."
 fi
-L1_URL="http://u:p@l1:8370"
+L1_URL="http://u-liquify:p-liquify@10.9.0.20/api-syscoin"
 function wait_up {
   echo -n "Waiting for $1 to come up inside entrypoint ..."
   i=0
-  until curl -s --data-binary '{"jsonrpc": "2.0", "id":"curltest", "method": "getblockcount", "params": [] }' -H 'content-type: application/json;' "$L1_URL" 2>&1 | grep -c '"error":null'
+  until curl -s --data-binary '{"jsonrpc": "2.0", "method": "getblockcount", "params": [] }' -H 'content-type: application/json;' "$L1_URL" 2>&1 | grep -c '"error":null'
   do
     echo -n .
     sleep 0.25
@@ -68,9 +68,9 @@ exec geth \
 	--ws.port="$WS_PORT" \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
-	--syncmode=snap \
-	--discovery.port=30303
-	--maxpeers=3 \
+	--syncmode=full \
+	--nodiscover \
+	--maxpeers=0 \
 	--networkid="$CHAIN_ID" \
 	--rpc.allow-unprotected-txs \
 	--authrpc.addr="0.0.0.0" \
