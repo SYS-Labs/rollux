@@ -6,7 +6,6 @@ version: '3.4'
 
 volumes:
   l1_data:
-  safedb_data:
   l2_data:
   op_log:
   influxdb_data:
@@ -42,7 +41,7 @@ services:
       - "127.0.0.1:9546:8546"   # local, wss L2
     #      - "8060:6060"            # ?
     volumes:
-      - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l2_data:/db"
+      - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l2_data-new:/db"
       - "${PWD}/../.rollux/genesis-l2.json:/genesis.json"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
     entrypoint: # pass the L2 specific flags by overriding the entry-point and adding extra arguments
@@ -51,26 +50,14 @@ services:
       - "--authrpc.jwtsecret=/config/test-jwt-secret.txt"
     env_file:
       - ./envs/p2p-node-rollux.env
-
-  op_stack_go_builder: # Not an actual service, but builds the prerequisite go images
-    build:
-      context: ../
-      dockerfile: ops/docker/op-stack-go/Dockerfile
-      args:
-        GIT_COMMIT: "dev"
-        GIT_DATE: "0"
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-stack-go:devnet
-    entrypoint: [ "echo", "build complete" ]
-
   op-node:
     depends_on:
-      - l1
       - l2
     build:
       context: ../
-      dockerfile: ops/docker/op-stack-go/Dockerfile
-      target: op-node-target
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:devnet
+      dockerfile: ./op-node/Dockerfile
+    stop_signal: SIGINT
+    stop_grace_period: 30s
     command: >
       op-node
       --l1=ws://l1:8546
@@ -86,7 +73,7 @@ services:
       --p2p.listen.ip=0.0.0.0
       --p2p.listen.tcp=9003
       --p2p.listen.udp=9003
-      --p2p.static=/ip4/213.239.234.158/tcp/9003/p2p/16Uiu2HAmPfLFVjVDoRvrMwXCY5AMiL1YAVCriFXo5k7aL7MikGB1
+      --p2p.static=/ip4/<ip>/tcp/9003/p2p/<peer_ids>
       --snapshotlog.file=/op_log/snapshot.log
       --p2p.priv.path=/config/p2p-node-key.txt
       --metrics.enabled
@@ -97,7 +84,6 @@ services:
       --heartbeat.enabled
       --heartbeat.moniker=sequencer
       --heartbeat.url=http://op-heartbeat:8080
-      --syncmode=execution-layer
       --sys-poda-url=https://poda.syscoin.org/vh/
     ports:
       #      - "7545:8545"            # ? rpc ?
@@ -105,7 +91,6 @@ services:
       - "7300:7300"             # public, metrics ?
       #      - "6060:6060"            # ?
     volumes:
-      - "safedb_data:/db"
       - "${PWD}/p2p-node-key.txt:/config/p2p-node-key.txt"
       - "${PWD}/test-jwt-secret.txt:/config/test-jwt-secret.txt"
       - "${PWD}/../.rollux/rollup.json:/rollup.json"

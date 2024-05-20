@@ -15,32 +15,16 @@ volumes:
 
 
 services:
-  l1:
-    build:
-      context: .
-      dockerfile: Dockerfile.l1
-    image: l1:${TAG}
-    stop_signal: SIGINT
-    stop_grace_period: 30s
-    ports:
-      - "127.0.0.1:8545:8545"   # local, rpc L1
-      #      - "7060:6060"            # ?
-    volumes:
-      - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l1_data:/db/.syscoin"
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-      - 192.168.9.45
   l2:
     build:
       context: .
       dockerfile: Dockerfile.l2
-    image: l2:${TAG}
+    image: l2:latest
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
-      - "127.0.0.1:9545:8545"   # local, rpc L2
-      - "127.0.0.1:9546:8546"   # local, wss L2
+      - "8545:8545"   # local, rpc L2
+      - "8546:8546"   # local, wss L2
       #      - "8060:6060"            # ?
     volumes:
       - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l2_data:/db"
@@ -55,17 +39,16 @@ services:
 
   op-node:
     depends_on:
-      - l1
       - l2
     build:
       context: ../
       dockerfile: ./op-node/Dockerfile
-    image: op-node:${TAG}
+    image: op-node:latest
     stop_signal: SIGINT
     stop_grace_period: 30s
     command: >
       op-node
-      --l1=ws://l1:8546
+      --l1=ws://10.9.0.20/syscoin
       --l2=http://l2:9551
       --l2.jwt-secret=/config/test-jwt-secret.txt
       --sequencer.enabled
@@ -84,7 +67,6 @@ services:
       --metrics.port=7300
       --pprof.enabled
       --rpc.enable-admin
-      --sys-poda-url=https://poda.syscoin.org/vh/
     ports:
       #      - "7545:8545"            # ? rpc ?
       - "9003:9003"             # public, p2p
@@ -104,7 +86,6 @@ services:
 
   op-proposer:
     depends_on:
-      - l1
       - l2
       - op-node
     build:
@@ -136,7 +117,6 @@ services:
 
   op-batcher:
     depends_on:
-      - l1
       - l2
       - op-node
     build:
