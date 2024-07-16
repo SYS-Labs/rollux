@@ -68,7 +68,7 @@ const config: HardhatUserConfig = {
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
     },
     goerli: {
-      chainId: 5700,
+      chainId: 57057,
       url: 'https://rpc.tanenbaum.io',
       accounts: [process.env.PRIVATE_KEY_DEPLOYER || ethers.constants.HashZero],
       live: true,
