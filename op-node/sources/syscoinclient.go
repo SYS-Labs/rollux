@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -23,110 +24,6 @@ import (
 
 // JSONMarshalerV2 is used for marshalling requests to newer Syscoin Type RPC interfaces
 type JSONMarshalerV2 struct{}
-
-type BlobFetchState int
-
-const (
-	Idle BlobFetchState = iota
-	SendingRequest
-	WaitingForResponse
-	HandlingResponse
-	ErrorState
-	SuccessState
-)
-
-type BlobFetchEvent int
-
-const (
-	StartFetch BlobFetchEvent = iota
-	ResponseReceived
-	FetchFailed
-	FetchSucceeded
-	FetchRetry
-)
-
-func (s *SyscoinClient) transitionBlobFetch(state BlobFetchState, event BlobFetchEvent, vh common.Hash) BlobFetchState {
-	switch state {
-	case Idle:
-		if event == StartFetch {
-			go s.sendBlobRequest(vh)
-			return SendingRequest
-		}
-
-	case SendingRequest:
-		if event == ResponseReceived {
-			return WaitingForResponse
-		} else if event == FetchFailed {
-			return ErrorState
-		}
-
-	case WaitingForResponse:
-		if event == ResponseReceived {
-			return HandlingResponse
-		}
-
-	case HandlingResponse:
-		if event == FetchSucceeded {
-			return SuccessState
-		} else if event == FetchFailed {
-			return ErrorState
-		}
-
-	case ErrorState:
-		if event == FetchRetry {
-			go s.sendBlobRequest(vh)
-			return SendingRequest
-		}
-
-	case SuccessState:
-		//TODO:
-	}
-
-	return state
-}
-
-type ResGetBlobData struct {
-	Error  *RPCError `json:"error"`
-	Result struct {
-		Data string `json:"data"`
-	} `json:"result"`
-}
-
-func (s *SyscoinClient) sendBlobRequest(vh common.Hash) {
-	res := ResGetBlobData{}
-	type CmdGetBlobData struct {
-		Method string `json:"method"`
-		Params struct {
-			VersionHash string `json:"versionhash_or_txid"`
-			Verbose     bool   `json:"getdata"`
-		} `json:"params"`
-	}
-	req := CmdGetBlobData{Method: "getnevmblobdata"}
-	req.Params.VersionHash = vh.String()[2:]
-	req.Params.Verbose = true
-
-	err := s.Call(&req, &res)
-	if err != nil {
-		s.handleBlobEvent(FetchFailed, vh)
-		return
-	}
-	s.handleBlobResponse(res, vh)
-}
-
-func (s *SyscoinClient) handleBlobResponse(res ResGetBlobData, vh common.Hash) {
-	if res.Error != nil {
-		s.handleBlobEvent(FetchFailed, vh)
-	} else {
-		s.handleBlobEvent(ResponseReceived, vh)
-		s.handleBlobEvent(FetchSucceeded, vh)
-	}
-}
-
-func (s *SyscoinClient) handleBlobEvent(event BlobFetchEvent, vh common.Hash) {
-	currentState := s.currentBlobState
-	newState := s.transitionBlobFetch(currentState, event, vh)
-	s.currentBlobState = newState
-}
 
 var addressLabel string = "podalabel"
 
@@ -149,8 +46,7 @@ type SyscoinRPC struct {
 	RPCMarshaler JSONMarshalerV2
 }
 type SyscoinClient struct {
-	client           *SyscoinRPC
-	currentBlobState BlobFetchState
+	client *SyscoinRPC
 }
 
 func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
@@ -167,7 +63,7 @@ func NewSyscoinClient(podaurl string) (*SyscoinClient, error) {
 		podaurl:      podaurl,
 		RPCMarshaler: JSONMarshalerV2{},
 	}
-	client := SyscoinClient{s, Idle}
+	client := SyscoinClient{s}
 	// if its empty it means we are in batcher mode which needs SYS gas for PoDA transactions
 	if podaurl == "" {
 		log.Info("NewSyscoinClient loading wallet...")
@@ -531,33 +427,72 @@ func (s *SyscoinClient) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
 	return data, err
 }
 
+var logger = logrus.New()
+
+// Modified function with state machine behavior and logging
 func (s *SyscoinClient) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
-	url := s.client.podaurl + vh.String()[2:]
+	url := "http://poda.tanenbaum.io/vh/" + vh.String()[2:]
 	var res *http.Response
 	var err error
-	// try 4 times incase of timeout or reset/hanging socket with 5+i second expiry each attempt
-	for i := 0; i < 4; i++ {
-		client := http.Client{
-			Timeout: (5 + time.Duration(i)) * time.Second,
-		}
-		res, err = client.Get(url)
-		if err != nil {
-			continue
-		} else {
-			err = nil
-			break
+
+	// Define states for retry logic
+	type State int
+	const (
+		InitialState State = iota
+		RetryState
+		ErrorState
+		SuccessState
+	)
+
+	// Implement retry logic
+	retryCount := 0
+	maxRetries := 4
+	state := InitialState
+
+	for state != SuccessState {
+		switch state {
+		case InitialState, RetryState:
+			client := http.Client{
+				Timeout: (5 + time.Duration(retryCount)) * time.Second,
+			}
+			res, err = client.Get(url)
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"retry": retryCount,
+					"error": err.Error(),
+				}).Info("Failed to retrieve blob data, retrying...")
+				retryCount++
+				if retryCount >= maxRetries {
+					state = ErrorState
+				} else {
+					state = RetryState
+				}
+			} else {
+				state = SuccessState
+			}
+
+		case ErrorState:
+			logger.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Error("Final failure after retries")
+			return nil, err
 		}
 	}
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close() // we need to close the connection
+
+	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
+		logger.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to read response body")
 		return nil, err
 	}
+
 	txBytes, err := hex.DecodeString(string(body))
 	if err != nil {
+		logger.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to decode hex string")
 		return nil, err
 	}
 	return txBytes, nil

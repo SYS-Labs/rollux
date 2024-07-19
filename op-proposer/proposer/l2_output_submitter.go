@@ -321,6 +321,7 @@ func proposeL2OutputTxData(abi *abi.ABI, output *eth.OutputResponse) ([]byte, er
 
 // sendTransaction creates & sends transactions through the underlying transaction manager.
 func (l *L2OutputSubmitter) sendTransaction(ctx context.Context, output *eth.OutputResponse) error {
+	l.log.Crit("proposing L2 output", "block", output.BlockRef.Number, "current l1", output.Status.CurrentL1.Number, "current l1 hash", output.Status.CurrentL1.Hash)
 	data, err := l.ProposeL2OutputTxData(output)
 	if err != nil {
 		return err
