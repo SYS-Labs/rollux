@@ -313,6 +313,7 @@ func (l *L2OutputSubmitter) ProposeL2OutputTxData(output *eth.OutputResponse) ([
 
 // proposeL2OutputTxData creates the transaction data for the ProposeL2Output function
 func proposeL2OutputTxData(abi *abi.ABI, output *eth.OutputResponse) ([]byte, error) {
+	// var zeroBytes32 [32]byte
 	return abi.Pack(
 		"proposeL2Output",
 		output.OutputRoot,
@@ -323,6 +324,7 @@ func proposeL2OutputTxData(abi *abi.ABI, output *eth.OutputResponse) ([]byte, er
 
 // sendTransaction creates & sends transactions through the underlying transaction manager.
 func (l *L2OutputSubmitter) sendTransaction(ctx context.Context, output *eth.OutputResponse) error {
+	l.log.Info("proposing L2 output", "block", output.BlockRef.Number, "current l1", output.Status.CurrentL1.Number, "current l1 hash", output.Status.CurrentL1.Hash)
 	data, err := l.ProposeL2OutputTxData(output)
 	if err != nil {
 		return err
@@ -330,7 +332,7 @@ func (l *L2OutputSubmitter) sendTransaction(ctx context.Context, output *eth.Out
 	receipt, err := l.txMgr.Send(ctx, txmgr.TxCandidate{
 		TxData:   data,
 		To:       &l.l2ooContractAddr,
-		GasLimit: 0,
+		GasLimit: 400_000,
 	})
 	if err != nil {
 		return err

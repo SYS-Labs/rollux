@@ -16,6 +16,12 @@ services:
     ports:
       - "8545:8545"
       - "7060:6060"
+      - "18369:18369" 	# added
+      - "30304:30303" 	# added
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
     volumes:
       - "${HOME}/${COMPOSE_PROJECT_NAME}-data/l1_data:/db/.syscoin"
   l2:
@@ -115,6 +121,10 @@ services:
       OP_PROPOSER_PPROF_ENABLED: "true"
       OP_PROPOSER_METRICS_ENABLED: "true"
       OP_PROPOSER_ALLOW_NON_FINALIZED: "true"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
     env_file:
       - ./envs/op-node.env
 
@@ -127,6 +137,7 @@ services:
       context: ../
       dockerfile: ./op-batcher/Dockerfile
     image: op-batcher:${TAG}
+    #    restart: always
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -153,6 +164,10 @@ services:
       OP_BATCHER_PPROF_ENABLED: "true"
       OP_BATCHER_METRICS_ENABLED: "true"
       OP_BATCHER_RPC_ENABLE_ADMIN: "true"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 192.168.9.45
     env_file:
       - ./envs/op-node.env
 

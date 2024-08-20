@@ -13,10 +13,13 @@ import (
 	"time"
 	"errors"
 	"fmt"
+	"strings"
+	"github.com/sirupsen/logrus"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 // JSONMarshalerV2 is used for marshalling requests to newer Syscoin Type RPC interfaces
 type JSONMarshalerV2 struct{}
@@ -48,7 +51,7 @@ func NewSyscoinClient(sysdesc string, sysdescinternal string) (*SyscoinClient, e
 	}
 	s := &SyscoinRPC{
 		client:       http.Client{Timeout: time.Duration(600) * time.Second, Transport: transport},
-		rpcURL:       "http://l1:8370",
+		rpcURL:       "http://l1:18370",
 		user:         "u",
 		password:     "p",
 		RPCMarshaler: JSONMarshalerV2{},
@@ -198,10 +201,14 @@ func (s *SyscoinClient) CreateOrLoadWallet(walletName string) (error) {
 		req.Params.WalletName = walletName
 		err = s.Call(&req, &res)
 		if err != nil {
-			return err
+			if strings.Contains(err.Error(), "is already loaded") {
+				log.Info("CreateOrLoadWallet wallet already loaded...")
+				return nil
+			}
+			return nil
 		}
 		if res.Error != nil {
-			return res.Error
+			return nil
 		}
 	}
 	if len(res.Result.Warning) > 0 {
@@ -327,33 +334,72 @@ func (s *SyscoinClient) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
 	return data, err
 }
 
+var logger = logrus.New()
+
+// Modified function with state machine behavior and logging
 func (s *SyscoinClient) GetBlobFromCloud(vh common.Hash) ([]byte, error) {
 	url := "http://poda.tanenbaum.io/vh/" + vh.String()[2:]
 	var res *http.Response
 	var err error
-	// try 4 times incase of timeout or reset/hanging socket with 5+i second expiry each attempt
-	for i := 0; i < 4; i++ {
-		client := http.Client{
-			Timeout: (5 + time.Duration(i)) * time.Second,
-		}
-		res, err = client.Get(url)
-		if err != nil {
-			continue
-		} else {
-			err = nil
-			break
+
+	// Define states for retry logic
+	type State int
+	const (
+		InitialState State = iota
+		RetryState
+		ErrorState
+		SuccessState
+	)
+
+	// Implement retry logic
+	retryCount := 0
+	maxRetries := 4
+	state := InitialState
+
+	for state != SuccessState {
+		switch state {
+		case InitialState, RetryState:
+			client := http.Client{
+				Timeout: (5 + time.Duration(retryCount)) * time.Second,
+			}
+			res, err = client.Get(url)
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"retry": retryCount,
+					"error": err.Error(),
+				}).Info("Failed to retrieve blob data, retrying...")
+				retryCount++
+				if retryCount >= maxRetries {
+					state = ErrorState
+				} else {
+					state = RetryState
+				}
+			} else {
+				state = SuccessState
+			}
+
+		case ErrorState:
+			logger.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Error("Final failure after retries")
+			return nil, err
 		}
 	}
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
+		logger.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to read response body")
 		return nil, err
 	}
-	defer res.Body.Close() // we need to close the connection
-    body, err := ioutil.ReadAll(res.Body)
-    if err != nil {
-		return nil, err
-	}
+
 	txBytes, err := hex.DecodeString(string(body))
 	if err != nil {
+		logger.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to decode hex string")
 		return nil, err
 	}
 	return txBytes, nil
