@@ -8,9 +8,9 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	altda "github.com/ethereum-optimism/optimism/op-alt-da"
 	"github.com/ethereum-optimism/optimism/op-batcher/compressor"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
-	plasma "github.com/ethereum-optimism/optimism/op-plasma"
 	opservice "github.com/ethereum-optimism/optimism/op-service"
 	openum "github.com/ethereum-optimism/optimism/op-service/enum"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
@@ -78,6 +78,11 @@ var (
 		Value:   120_000, // will be overwritten to max for blob da-type
 		EnvVars: prefixEnvVars("MAX_L1_TX_SIZE_BYTES"),
 	}
+	MaxBlocksPerSpanBatch = &cli.IntFlag{
+		Name:    "max-blocks-per-span-batch",
+		Usage:   "Maximum number of blocks to add to a span batch. Default is 0 - no maximum.",
+		EnvVars: prefixEnvVars("MAX_BLOCKS_PER_SPAN_BATCH"),
+	}
 	TargetNumFramesFlag = &cli.IntFlag{
 		Name:    "target-num-frames",
 		Usage:   "The target number of frames to create per channel. Controls number of blobs per blob tx, if using Blob DA.",
@@ -104,7 +109,7 @@ var (
 	}
 	CompressionAlgoFlag = &cli.GenericFlag{
 		Name:    "compression-algo",
-		Usage:   "The compression algorithm to use. Valid options: " + openum.EnumString(derive.CompressionAlgoTypes),
+		Usage:   "The compression algorithm to use. Valid options: " + openum.EnumString(derive.CompressionAlgos),
 		EnvVars: prefixEnvVars("COMPRESSION_ALGO"),
 		Value: func() *derive.CompressionAlgo {
 			out := derive.Zlib
@@ -171,6 +176,7 @@ var optionalFlags = []cli.Flag{
 	MaxPendingTransactionsFlag,
 	MaxChannelDurationFlag,
 	MaxL1TxSizeBytesFlag,
+	MaxBlocksPerSpanBatch,
 	TargetNumFramesFlag,
 	ApproxComprRatioFlag,
 	CompressorFlag,
@@ -188,7 +194,7 @@ func init() {
 	optionalFlags = append(optionalFlags, opmetrics.CLIFlags(EnvVarPrefix)...)
 	optionalFlags = append(optionalFlags, oppprof.CLIFlags(EnvVarPrefix)...)
 	optionalFlags = append(optionalFlags, txmgr.CLIFlags(EnvVarPrefix)...)
-	optionalFlags = append(optionalFlags, plasma.CLIFlags(EnvVarPrefix, "")...)
+	optionalFlags = append(optionalFlags, altda.CLIFlags(EnvVarPrefix, "")...)
 
 	Flags = append(requiredFlags, optionalFlags...)
 }

@@ -48,7 +48,7 @@ type frameData struct {
 // size approximation.
 type ChannelBuilder struct {
 	cfg       ChannelConfig
-	rollupCfg rollup.Config
+	rollupCfg *rollup.Config
 
 	// L1 block number timeout of combined
 	// - channel duration timeout,
@@ -68,6 +68,12 @@ type ChannelBuilder struct {
 	blocks []*types.Block
 	// latestL1Origin is the latest L1 origin of all the L2 blocks that have been added to the channel
 	latestL1Origin eth.BlockID
+	// oldestL1Origin is the oldest L1 origin of all the L2 blocks that have been added to the channel
+	oldestL1Origin eth.BlockID
+	// latestL2 is the latest L2 block of all the L2 blocks that have been added to the channel
+	latestL2 eth.BlockID
+	// oldestL2 is the oldest L2 block of all the L2 blocks that have been added to the channel
+	oldestL2 eth.BlockID
 	// frames data queue, to be send as txs
 	frames []frameData
 	// total frames counter
@@ -76,33 +82,43 @@ type ChannelBuilder struct {
 	outputBytes int
 }
 
-// newChannelBuilder creates a new channel builder or returns an error if the
+// NewChannelBuilder creates a new channel builder or returns an error if the
 // channel out could not be created.
 // it acts as a factory for either a span or singular channel out
-func NewChannelBuilder(cfg ChannelConfig, rollupCfg rollup.Config, latestL1OriginBlockNum uint64) (*ChannelBuilder, error) {
-	c, err := cfg.CompressorConfig.NewCompressor()
-	if err != nil {
-		return nil, err
-	}
-	var co derive.ChannelOut
-	if cfg.BatchType == derive.SpanBatchType {
-		co, err = derive.NewSpanChannelOut(rollupCfg.Genesis.L2Time, rollupCfg.L2ChainID, cfg.CompressorConfig.TargetOutputSize, cfg.CompressorConfig.CompressionAlgo)
-	} else {
-		co, err = derive.NewSingularChannelOut(c)
-	}
+func NewChannelBuilder(cfg ChannelConfig, rollupCfg *rollup.Config, latestL1OriginBlockNum uint64) (*ChannelBuilder, error) {
+	co, err := NewChannelOut(cfg, rollupCfg)
 	if err != nil {
 		return nil, fmt.Errorf("creating channel out: %w", err)
 	}
 
+	return NewChannelBuilderWithChannelOut(cfg, rollupCfg, latestL1OriginBlockNum, co), nil
+}
+
+func NewChannelBuilderWithChannelOut(cfg ChannelConfig, rollupCfg *rollup.Config, latestL1OriginBlockNum uint64, channelOut derive.ChannelOut) *ChannelBuilder {
 	cb := &ChannelBuilder{
 		cfg:       cfg,
 		rollupCfg: rollupCfg,
-		co:        co,
+		co:        channelOut,
 	}
 
 	cb.updateDurationTimeout(latestL1OriginBlockNum)
 
-	return cb, nil
+	return cb
+}
+
+// NewChannelOut creates a new channel out based on the given configuration.
+func NewChannelOut(cfg ChannelConfig, rollupCfg *rollup.Config) (derive.ChannelOut, error) {
+	spec := rollup.NewChainSpec(rollupCfg)
+	if cfg.BatchType == derive.SpanBatchType {
+		return derive.NewSpanChannelOut(
+			cfg.CompressorConfig.TargetOutputSize, cfg.CompressorConfig.CompressionAlgo,
+			spec, derive.WithMaxBlocksPerSpanBatch(cfg.MaxBlocksPerSpanBatch))
+	}
+	comp, err := cfg.CompressorConfig.NewCompressor()
+	if err != nil {
+		return nil, err
+	}
+	return derive.NewSingularChannelOut(comp, spec)
 }
 
 func (c *ChannelBuilder) ID() derive.ChannelID {
@@ -135,6 +151,21 @@ func (c *ChannelBuilder) LatestL1Origin() eth.BlockID {
 	return c.latestL1Origin
 }
 
+// OldestL1Origin returns the oldest L1 block origin from all the L2 blocks that have been added to the channel
+func (c *ChannelBuilder) OldestL1Origin() eth.BlockID {
+	return c.oldestL1Origin
+}
+
+// LatestL2 returns the latest L2 block from all the L2 blocks that have been added to the channel
+func (c *ChannelBuilder) LatestL2() eth.BlockID {
+	return c.latestL2
+}
+
+// OldestL2 returns the oldest L2 block from all the L2 blocks that have been added to the channel
+func (c *ChannelBuilder) OldestL2() eth.BlockID {
+	return c.oldestL2
+}
+
 // AddBlock adds a block to the channel compression pipeline. IsFull should be
 // called afterwards to test whether the channel is full. If full, a new channel
 // must be started.
@@ -151,12 +182,8 @@ func (c *ChannelBuilder) AddBlock(block *types.Block) (*derive.L1BlockInfo, erro
 		return nil, c.FullErr()
 	}
 
-	batch, l1info, err := derive.BlockToSingularBatch(&c.rollupCfg, block)
-	if err != nil {
-		return l1info, fmt.Errorf("converting block to batch: %w", err)
-	}
-
-	if err = c.co.AddSingularBatch(batch, l1info.SequenceNumber); errors.Is(err, derive.ErrTooManyRLPBytes) || errors.Is(err, derive.ErrCompressorFull) {
+	l1info, err := c.co.AddBlock(c.rollupCfg, block)
+	if errors.Is(err, derive.ErrTooManyRLPBytes) || errors.Is(err, derive.ErrCompressorFull) {
 		c.setFullErr(err)
 		return l1info, c.FullErr()
 	} else if err != nil {
@@ -164,13 +191,25 @@ func (c *ChannelBuilder) AddBlock(block *types.Block) (*derive.L1BlockInfo, erro
 	}
 
 	c.blocks = append(c.blocks, block)
-	c.updateSwTimeout(batch)
+	c.updateSwTimeout(l1info.Number)
 
 	if l1info.Number > c.latestL1Origin.Number {
 		c.latestL1Origin = eth.BlockID{
 			Hash:   l1info.BlockHash,
 			Number: l1info.Number,
 		}
+	}
+	if c.oldestL1Origin.Number == 0 || l1info.Number < c.latestL1Origin.Number {
+		c.oldestL1Origin = eth.BlockID{
+			Hash:   l1info.BlockHash,
+			Number: l1info.Number,
+		}
+	}
+	if block.NumberU64() > c.latestL2.Number {
+		c.latestL2 = eth.ToBlockID(block)
+	}
+	if c.oldestL2.Number == 0 || block.NumberU64() < c.oldestL2.Number {
+		c.oldestL2 = eth.ToBlockID(block)
 	}
 
 	if err = c.co.FullErr(); err != nil {
@@ -213,13 +252,13 @@ func (c *ChannelBuilder) updateDurationTimeout(l1BlockNum uint64) {
 // derived from the batch's origin L1 block. The timeout is only moved forward
 // if the derived sequencer window timeout is earlier than the currently set
 // timeout.
-func (c *ChannelBuilder) updateSwTimeout(batch *derive.SingularBatch) {
-	timeout := uint64(batch.EpochNum) + c.cfg.SeqWindowSize - c.cfg.SubSafetyMargin
+func (c *ChannelBuilder) updateSwTimeout(l1InfoNumber uint64) {
+	timeout := l1InfoNumber + c.cfg.SeqWindowSize - c.cfg.SubSafetyMargin
 	c.updateTimeout(timeout, ErrSeqWindowClose)
 }
 
 // updateTimeout updates the timeout block to the given block number if it is
-// earlier than the current block timeout, or if it still unset.
+// earlier than the current block timeout, or if it is still unset.
 //
 // If the timeout is updated, the provided reason will be set as the channel
 // full error reason in case the timeout is hit in the future.
@@ -378,12 +417,12 @@ func (c *ChannelBuilder) HasFrame() bool {
 }
 
 // PendingFrames returns the number of pending frames in the frames queue.
-// It is larger zero iff HasFrames() returns true.
+// It is larger zero iff HasFrame() returns true.
 func (c *ChannelBuilder) PendingFrames() int {
 	return len(c.frames)
 }
 
-// NextFrame returns the next available frame.
+// NextFrame dequeues the next available frame.
 // HasFrame must be called prior to check if there's a next frame available.
 // Panics if called when there's no next frame.
 func (c *ChannelBuilder) NextFrame() frameData {

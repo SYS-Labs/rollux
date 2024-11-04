@@ -158,6 +158,15 @@ func TestSimpleGetters(t *testing.T) {
 				return game.CallResolve(context.Background())
 			},
 		},
+		{
+			methodAlias: "resolvedAt",
+			method:      methodResolvedAt,
+			result:      uint64(240402),
+			expected:    time.Unix(240402, 0),
+			call: func(game FaultDisputeGameContract) (any, error) {
+				return game.GetResolvedAt(context.Background(), rpcblock.Latest)
+			},
+		},
 	}
 	for _, version := range versions {
 		version := version
@@ -185,7 +194,7 @@ func TestSimpleGetters(t *testing.T) {
 
 func TestClock_EncodingDecoding(t *testing.T) {
 	t.Run("DurationAndTimestamp", func(t *testing.T) {
-		by := common.Hex2Bytes("00000000000000050000000000000002")
+		by := common.FromHex("00000000000000050000000000000002")
 		encoded := new(big.Int).SetBytes(by)
 		clock := decodeClock(encoded)
 		require.Equal(t, 5*time.Second, clock.Duration)
@@ -194,7 +203,7 @@ func TestClock_EncodingDecoding(t *testing.T) {
 	})
 
 	t.Run("ZeroDuration", func(t *testing.T) {
-		by := common.Hex2Bytes("00000000000000000000000000000002")
+		by := common.FromHex("00000000000000000000000000000002")
 		encoded := new(big.Int).SetBytes(by)
 		clock := decodeClock(encoded)
 		require.Equal(t, 0*time.Second, clock.Duration)
@@ -203,7 +212,7 @@ func TestClock_EncodingDecoding(t *testing.T) {
 	})
 
 	t.Run("ZeroTimestamp", func(t *testing.T) {
-		by := common.Hex2Bytes("00000000000000050000000000000000")
+		by := common.FromHex("00000000000000050000000000000000")
 		encoded := new(big.Int).SetBytes(by)
 		clock := decodeClock(encoded)
 		require.Equal(t, 5*time.Second, clock.Duration)
@@ -212,7 +221,7 @@ func TestClock_EncodingDecoding(t *testing.T) {
 	})
 
 	t.Run("ZeroClock", func(t *testing.T) {
-		by := common.Hex2Bytes("00000000000000000000000000000000")
+		by := common.FromHex("00000000000000000000000000000000")
 		encoded := new(big.Int).SetBytes(by)
 		clock := decodeClock(encoded)
 		require.Equal(t, 0*time.Second, clock.Duration)
@@ -327,14 +336,19 @@ func TestGetBalance(t *testing.T) {
 		t.Run(version.version, func(t *testing.T) {
 			wethAddr := common.Address{0x11, 0x55, 0x66}
 			balance := big.NewInt(9995877)
+			delaySeconds := big.NewInt(429829)
+			delay := time.Duration(delaySeconds.Int64()) * time.Second
 			block := rpcblock.ByNumber(424)
 			stubRpc, game := setupFaultDisputeGameTest(t, version)
 			stubRpc.SetResponse(fdgAddr, methodWETH, block, nil, []interface{}{wethAddr})
+			stubRpc.AddContract(wethAddr, snapshots.LoadDelayedWETHABI())
+			stubRpc.SetResponse(wethAddr, methodDelay, block, nil, []interface{}{delaySeconds})
 			stubRpc.AddExpectedCall(batchingTest.NewGetBalanceCall(wethAddr, block, balance))
 
-			actualBalance, actualAddr, err := game.GetBalance(context.Background(), block)
+			actualBalance, actualDelay, actualAddr, err := game.GetBalanceAndDelay(context.Background(), block)
 			require.NoError(t, err)
 			require.Equal(t, wethAddr, actualAddr)
+			require.Equal(t, delay, actualDelay)
 			require.Truef(t, balance.Cmp(actualBalance) == 0, "Expected balance %v but was %v", balance, actualBalance)
 		})
 	}
@@ -783,6 +797,7 @@ func setupFaultDisputeGameTest(t *testing.T, version contractVersion) (*batching
 	caller := batching.NewMultiCaller(stubRpc, batching.DefaultBatchSize)
 
 	stubRpc.SetResponse(fdgAddr, methodVersion, rpcblock.Latest, nil, []interface{}{version.version})
+	stubRpc.SetResponse(oracleAddr, methodVersion, rpcblock.Latest, nil, []interface{}{oracleLatest})
 	game, err := NewFaultDisputeGameContract(context.Background(), contractMetrics.NoopContractMetrics, fdgAddr, caller)
 	require.NoError(t, err)
 	return stubRpc, game

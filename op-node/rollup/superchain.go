@@ -12,11 +12,7 @@ import (
 	"github.com/ethereum-optimism/superchain-registry/superchain"
 )
 
-var OPStackSupport = params.ProtocolVersionV0{Build: [8]byte{}, Major: 6, Minor: 0, Patch: 0, PreRelease: 0}.Encode()
-
-const (
-	pgnSepolia = 58008
-)
+var OPStackSupport = params.ProtocolVersionV0{Build: [8]byte{}, Major: 8, Minor: 0, Patch: 0, PreRelease: 0}.Encode()
 
 // LoadOPStackRollupConfig loads the rollup configuration of the requested chain ID from the superchain-registry.
 // Some chains may require a SystemConfigProvider to retrieve any values not part of the registry.
@@ -48,6 +44,23 @@ func LoadOPStackRollupConfig(chainID uint64) (*Config, error) {
 		return nil, fmt.Errorf("unable to retrieve deposit contract address")
 	}
 
+	var altDA *AltDAConfig
+	if chConfig.AltDA != nil {
+		altDA = &AltDAConfig{}
+		if chConfig.AltDA.DAChallengeAddress != nil {
+			altDA.DAChallengeAddress = common.Address(*chConfig.AltDA.DAChallengeAddress)
+		}
+		if chConfig.AltDA.DAChallengeWindow != nil {
+			altDA.DAChallengeWindow = *chConfig.AltDA.DAChallengeWindow
+		}
+		if chConfig.AltDA.DAResolveWindow != nil {
+			altDA.DAResolveWindow = *chConfig.AltDA.DAResolveWindow
+		}
+		if chConfig.AltDA.DACommitmentType != nil {
+			altDA.CommitmentType = *chConfig.AltDA.DACommitmentType
+		}
+	}
+
 	regolithTime := uint64(0)
 	cfg := &Config{
 		Genesis: Genesis{
@@ -63,13 +76,13 @@ func LoadOPStackRollupConfig(chainID uint64) (*Config, error) {
 			SystemConfig: genesisSysConfig,
 		},
 		// The below chain parameters can be different per OP-Stack chain,
-		// but since none of the superchain chains differ, it's not represented in the superchain-registry yet.
-		// This restriction on superchain-chains may change in the future.
-		// Test/Alt configurations can still load custom rollup-configs when necessary.
-		BlockTime:              2,
-		MaxSequencerDrift:      600,
-		SeqWindowSize:          3600,
-		ChannelTimeout:         300,
+		// therefore they are read from the superchain-registry configs.
+		// Note: hardcoded values are not yet represented in the registry but should be
+		// soon, then will be read and set in the same fashion.
+		BlockTime:              chConfig.BlockTime,
+		MaxSequencerDrift:      chConfig.MaxSequencerDrift,
+		SeqWindowSize:          chConfig.SequencerWindowSize,
+		ChannelTimeoutBedrock:  300,
 		L1ChainID:              new(big.Int).SetUint64(superChain.Config.L1.ChainID),
 		L2ChainID:              new(big.Int).SetUint64(chConfig.ChainID),
 		RegolithTime:           &regolithTime,
@@ -77,17 +90,15 @@ func LoadOPStackRollupConfig(chainID uint64) (*Config, error) {
 		DeltaTime:              chConfig.DeltaTime,
 		EcotoneTime:            chConfig.EcotoneTime,
 		FjordTime:              chConfig.FjordTime,
+		GraniteTime:            chConfig.GraniteTime,
 		BatchInboxAddress:      common.Address(chConfig.BatchInboxAddr),
 		DepositContractAddress: common.Address(addrs.OptimismPortalProxy),
 		L1SystemConfigAddress:  common.Address(addrs.SystemConfigProxy),
+		AltDAConfig:            altDA,
 	}
 
 	if superChain.Config.ProtocolVersionsAddr != nil { // Set optional protocol versions address
 		cfg.ProtocolVersionsAddress = common.Address(*superChain.Config.ProtocolVersionsAddr)
-	}
-	if chainID == pgnSepolia {
-		cfg.MaxSequencerDrift = 1000
-		cfg.SeqWindowSize = 7200
 	}
 	return cfg, nil
 }

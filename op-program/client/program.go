@@ -1,32 +1,30 @@
 package client
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
-
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	preimage "github.com/ethereum-optimism/optimism/op-preimage"
+	"github.com/ethereum-optimism/optimism/op-program/client/claim"
 	cldr "github.com/ethereum-optimism/optimism/op-program/client/driver"
 	"github.com/ethereum-optimism/optimism/op-program/client/l1"
 	"github.com/ethereum-optimism/optimism/op-program/client/l2"
-	oppio "github.com/ethereum-optimism/optimism/op-program/io"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // Main executes the client program in a detached context and exits the current process.
 // The client runtime environment must be preset before calling this function.
 func Main(logger log.Logger) {
 	log.Info("Starting fault proof program client")
-	preimageOracle := CreatePreimageChannel()
-	preimageHinter := CreateHinterChannel()
-	if err := RunProgram(logger, preimageOracle, preimageHinter); errors.Is(err, cldr.ErrClaimNotValid) {
+	preimageOracle := preimage.ClientPreimageChannel()
+	preimageHinter := preimage.ClientHinterChannel()
+	if err := RunProgram(logger, preimageOracle, preimageHinter); errors.Is(err, claim.ErrClaimNotValid) {
 		log.Error("Claim is invalid", "err", err)
 		os.Exit(1)
 	} else if err != nil {
@@ -72,25 +70,8 @@ func runDerivation(logger log.Logger, cfg *rollup.Config, l2Cfg *params.ChainCon
 
 	logger.Info("Starting derivation")
 	d := cldr.NewDriver(logger, cfg, l1Source, l1BlobsSource, l2Source, l2ClaimBlockNum)
-	for {
-		if err = d.Step(context.Background()); errors.Is(err, io.EOF) {
-			break
-		} else if err != nil {
-			return err
-		}
+	if err := d.RunComplete(); err != nil {
+		return fmt.Errorf("failed to run program to completion: %w", err)
 	}
-	return d.ValidateClaim(l2ClaimBlockNum, eth.Bytes32(l2Claim))
-}
-
-func CreateHinterChannel() oppio.FileChannel {
-	r := os.NewFile(HClientRFd, "preimage-hint-read")
-	w := os.NewFile(HClientWFd, "preimage-hint-write")
-	return oppio.NewReadWritePair(r, w)
-}
-
-// CreatePreimageChannel returns a FileChannel for the preimage oracle in a detached context
-func CreatePreimageChannel() oppio.FileChannel {
-	r := os.NewFile(PClientRFd, "preimage-oracle-read")
-	w := os.NewFile(PClientWFd, "preimage-oracle-write")
-	return oppio.NewReadWritePair(r, w)
+	return claim.ValidateClaim(logger, l2ClaimBlockNum, eth.Bytes32(l2Claim), l2Source)
 }

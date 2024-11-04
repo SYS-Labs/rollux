@@ -4,10 +4,8 @@ pragma solidity ^0.8.13;
 import { DeploymentSummary } from "./utils/DeploymentSummary.sol";
 import { KontrolUtils } from "./utils/KontrolUtils.sol";
 import { Types } from "src/libraries/Types.sol";
-import {
-    IOptimismPortal as OptimismPortal,
-    ISuperchainConfig as SuperchainConfig
-} from "./interfaces/KontrolInterfaces.sol";
+import { IOptimismPortal as OptimismPortal } from "src/L1/interfaces/IOptimismPortal.sol";
+import { ISuperchainConfig as SuperchainConfig } from "src/L1/interfaces/ISuperchainConfig.sol";
 import "src/libraries/PortalErrors.sol";
 
 contract OptimismPortalKontrol is DeploymentSummary, KontrolUtils {
@@ -28,10 +26,7 @@ contract OptimismPortalKontrol is DeploymentSummary, KontrolUtils {
         vm.prank(optimismPortal.guardian());
         superchainConfig.pause("identifier");
 
-        // We need to encode the error selector as bytes instead of bytes4 because the bytes4 signature
-        // it's not currently supported
-        // Tracking issue: https://github.com/runtimeverification/kontrol/issues/466
-        vm.expectRevert(abi.encodeWithSelector(CallPaused.selector));
+        vm.expectRevert(CallPaused.selector);
         optimismPortal.finalizeWithdrawalTransaction(_tx);
     }
 
@@ -52,10 +47,7 @@ contract OptimismPortalKontrol is DeploymentSummary, KontrolUtils {
         vm.prank(optimismPortal.guardian());
         superchainConfig.pause("identifier");
 
-        // We need to encode the error selector as bytes instead of bytes4 because the bytes4 signature
-        // it's not currently supported
-        // Tracking issue: https://github.com/runtimeverification/kontrol/issues/466
-        vm.expectRevert(abi.encodeWithSelector(CallPaused.selector));
+        vm.expectRevert(CallPaused.selector);
         optimismPortal.proveWithdrawalTransaction(_tx, _l2OutputIndex, _outputRootProof, _withdrawalProof);
     }
 

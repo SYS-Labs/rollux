@@ -4,14 +4,13 @@ pragma solidity 0.8.15;
 // Testing utilities
 import { Test } from "forge-std/Test.sol";
 import { Bridge_Initializer } from "test/setup/Bridge_Initializer.sol";
-import { CallerCaller, Reverter } from "test/mocks/Callers.sol";
 
 // Libraries
 import { Predeploys } from "src/libraries/Predeploys.sol";
 import { Hashing } from "src/libraries/Hashing.sol";
 import { Encoding } from "src/libraries/Encoding.sol";
 
-import { L1CrossDomainMessenger } from "src/L1/L1CrossDomainMessenger.sol";
+import { IL1CrossDomainMessenger } from "src/L1/interfaces/IL1CrossDomainMessenger.sol";
 
 // CrossDomainMessenger_Test is for testing functionality which is common to both the L1 and L2
 // CrossDomainMessenger contracts. For simplicity, we use the L1 Messenger as the test contract.
@@ -45,11 +44,11 @@ contract CrossDomainMessenger_BaseGas_Test is Bridge_Initializer {
 contract ExternalRelay is Test {
     address internal op;
     address internal fuzzedSender;
-    L1CrossDomainMessenger internal l1CrossDomainMessenger;
+    IL1CrossDomainMessenger internal l1CrossDomainMessenger;
 
     event FailedRelayedMessage(bytes32 indexed msgHash);
 
-    constructor(L1CrossDomainMessenger _l1Messenger, address _op) {
+    constructor(IL1CrossDomainMessenger _l1Messenger, address _op) {
         l1CrossDomainMessenger = _l1Messenger;
         op = _op;
     }
@@ -100,7 +99,7 @@ contract ExternalRelay is Test {
 
     /// @notice Helper function to get the callData for an `externalCallWithMinGas
     function getCallData() public pure returns (bytes memory) {
-        return abi.encodeWithSelector(ExternalRelay.externalCallWithMinGas.selector);
+        return abi.encodeCall(ExternalRelay.externalCallWithMinGas, ());
     }
 
     /// @notice Helper function to set the fuzzed sender

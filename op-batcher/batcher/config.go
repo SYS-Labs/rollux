@@ -8,10 +8,11 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	altda "github.com/ethereum-optimism/optimism/op-alt-da"
 	"github.com/ethereum-optimism/optimism/op-batcher/compressor"
 	"github.com/ethereum-optimism/optimism/op-batcher/flags"
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive"
-	plasma "github.com/ethereum-optimism/optimism/op-plasma"
+	"github.com/ethereum-optimism/optimism/op-service/eth"
 	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 	opmetrics "github.com/ethereum-optimism/optimism/op-service/metrics"
 	"github.com/ethereum-optimism/optimism/op-service/oppprof"
@@ -56,6 +57,9 @@ type CLIConfig struct {
 	// If using blobs, this setting is ignored and the max blob size is used.
 	MaxL1TxSize uint64
 
+	// Maximum number of blocks to add to a span batch. Default is 0 - no maximum.
+	MaxBlocksPerSpanBatch int
+
 	// The target number of frames to create per channel. Controls number of blobs
 	// per blob tx, if using Blob DA.
 	TargetNumFrames int
@@ -85,22 +89,23 @@ type CLIConfig struct {
 	BatchType uint
 
 	// DataAvailabilityType is one of the values defined in op-batcher/flags/types.go and dictates
-	// the data availability type to use for posting batches, e.g. blobs vs calldata.
+	// the data availability type to use for posting batches, e.g. blobs vs calldata, or auto
+	// for choosing the most economic type dynamically at the start of each channel.
 	DataAvailabilityType flags.DataAvailabilityType
+
+	// ActiveSequencerCheckDuration is the duration between checks to determine the active sequencer endpoint.
+	ActiveSequencerCheckDuration time.Duration
 
 	// TestUseMaxTxSizeForBlobs allows to set the blob size with MaxL1TxSize.
 	// Should only be used for testing purposes.
 	TestUseMaxTxSizeForBlobs bool
-
-	// ActiveSequencerCheckDuration is the duration between checks to determine the active sequencer endpoint.
-	ActiveSequencerCheckDuration time.Duration
 
 	TxMgrConfig   txmgr.CLIConfig
 	LogConfig     oplog.CLIConfig
 	MetricsConfig opmetrics.CLIConfig
 	PprofConfig   oppprof.CLIConfig
 	RPC           oprpc.CLIConfig
-	PlasmaDA      plasma.CLIConfig
+	AltDA         altda.CLIConfig
 }
 
 func (c *CLIConfig) Check() error {
@@ -128,20 +133,21 @@ func (c *CLIConfig) Check() error {
 	if c.Compressor == compressor.RatioKind && (c.ApproxComprRatio <= 0 || c.ApproxComprRatio > 1) {
 		return fmt.Errorf("invalid ApproxComprRatio %v for ratio compressor", c.ApproxComprRatio)
 	}
-	if !derive.ValidCompressionAlgoType(c.CompressionAlgo) {
+	if !derive.ValidCompressionAlgo(c.CompressionAlgo) {
 		return fmt.Errorf("invalid compression algo %v", c.CompressionAlgo)
 	}
-	if c.BatchType > 1 {
+	if c.BatchType > derive.SpanBatchType {
 		return fmt.Errorf("unknown batch type: %v", c.BatchType)
 	}
 	if c.CheckRecentTxsDepth > 128 {
 		return fmt.Errorf("CheckRecentTxsDepth cannot be set higher than 128: %v", c.CheckRecentTxsDepth)
 	}
-	if c.DataAvailabilityType == flags.BlobsType && c.TargetNumFrames > 6 {
-		return errors.New("too many frames for blob transactions, max 6")
-	}
 	if !flags.ValidDataAvailabilityType(c.DataAvailabilityType) {
 		return fmt.Errorf("unknown data availability type: %q", c.DataAvailabilityType)
+	}
+	// we want to enforce it for both blobs and auto
+	if c.DataAvailabilityType != flags.CalldataType && c.TargetNumFrames > eth.MaxBlobsPerBlobTx {
+		return fmt.Errorf("too many frames for blob transactions, max %d", eth.MaxBlobsPerBlobTx)
 	}
 	if err := c.MetricsConfig.Check(); err != nil {
 		return err
@@ -172,6 +178,7 @@ func NewConfig(ctx *cli.Context) *CLIConfig {
 		MaxPendingTransactions:       ctx.Uint64(flags.MaxPendingTransactionsFlag.Name),
 		MaxChannelDuration:           ctx.Uint64(flags.MaxChannelDurationFlag.Name),
 		MaxL1TxSize:                  ctx.Uint64(flags.MaxL1TxSizeBytesFlag.Name),
+		MaxBlocksPerSpanBatch:        ctx.Int(flags.MaxBlocksPerSpanBatch.Name),
 		TargetNumFrames:              ctx.Int(flags.TargetNumFramesFlag.Name),
 		ApproxComprRatio:             ctx.Float64(flags.ApproxComprRatioFlag.Name),
 		Compressor:                   ctx.String(flags.CompressorFlag.Name),
@@ -187,6 +194,6 @@ func NewConfig(ctx *cli.Context) *CLIConfig {
 		MetricsConfig:                opmetrics.ReadCLIConfig(ctx),
 		PprofConfig:                  oppprof.ReadCLIConfig(ctx),
 		RPC:                          oprpc.ReadCLIConfig(ctx),
-		PlasmaDA:                     plasma.ReadCLIConfig(ctx),
+		AltDA:                        altda.ReadCLIConfig(ctx),
 	}
 }

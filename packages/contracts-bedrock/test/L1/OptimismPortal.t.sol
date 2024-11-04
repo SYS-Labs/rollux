@@ -1,33 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-// Testing utilities
+// Testing
 import { stdError } from "forge-std/Test.sol";
 import { VmSafe } from "forge-std/Vm.sol";
-
+import { MockERC20 } from "solmate/test/utils/mocks/MockERC20.sol";
 import { CommonTest } from "test/setup/CommonTest.sol";
 import { NextImpl } from "test/mocks/NextImpl.sol";
 import { EIP1967Helper } from "test/mocks/EIP1967Helper.sol";
+
+// Contracts
+import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
 
 // Libraries
 import { Types } from "src/libraries/Types.sol";
 import { Hashing } from "src/libraries/Hashing.sol";
 import { Constants } from "src/libraries/Constants.sol";
-
-// Target contract dependencies
-import { Proxy } from "src/universal/Proxy.sol";
-import { ResourceMetering } from "src/L1/ResourceMetering.sol";
-import { AddressAliasHelper } from "src/vendor/AddressAliasHelper.sol";
-import { L2OutputOracle } from "src/L1/L2OutputOracle.sol";
-import { SystemConfig } from "src/L1/SystemConfig.sol";
-import { SuperchainConfig } from "src/L1/SuperchainConfig.sol";
-import { L1Block } from "src/L2/L1Block.sol";
 import { Predeploys } from "src/libraries/Predeploys.sol";
-import { OptimismPortal } from "src/L1/OptimismPortal.sol";
 import { GasPayingToken } from "src/libraries/GasPayingToken.sol";
-import { MockERC20 } from "solmate/test/utils/mocks/MockERC20.sol";
 import { AddressAliasHelper } from "src/vendor/AddressAliasHelper.sol";
 import "src/libraries/PortalErrors.sol";
+
+// Interfaces
+import { IResourceMetering } from "src/L1/interfaces/IResourceMetering.sol";
+import { IL2OutputOracle } from "src/L1/interfaces/IL2OutputOracle.sol";
+import { IL1Block } from "src/L2/interfaces/IL1Block.sol";
+import { IOptimismPortal } from "src/L1/interfaces/IOptimismPortal.sol";
+import { IProxy } from "src/universal/interfaces/IProxy.sol";
 
 contract OptimismPortal_Test is CommonTest {
     address depositor;
@@ -35,6 +34,7 @@ contract OptimismPortal_Test is CommonTest {
     /// @notice Marked virtual to be overridden in
     ///         test/kontrol/deployment/DeploymentSummary.t.sol
     function setUp() public virtual override {
+        super.enableLegacyContracts();
         super.setUp();
         depositor = makeAddr("depositor");
     }
@@ -43,7 +43,7 @@ contract OptimismPortal_Test is CommonTest {
     /// @notice Marked virtual to be overridden in
     ///         test/kontrol/deployment/DeploymentSummary.t.sol
     function test_constructor_succeeds() external virtual {
-        OptimismPortal opImpl = OptimismPortal(payable(deploy.mustGetAddress("OptimismPortal")));
+        IOptimismPortal opImpl = IOptimismPortal(payable(deploy.mustGetAddress("OptimismPortal")));
         assertEq(address(opImpl.l2Oracle()), address(0));
         assertEq(address(opImpl.systemConfig()), address(0));
         assertEq(address(opImpl.superchainConfig()), address(0));
@@ -170,7 +170,7 @@ contract OptimismPortal_Test is CommonTest {
             _to = address(0);
         }
         vm.assume(_data.length <= 120_000);
-        ResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
+        IResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
         _gasLimit =
             uint64(bound(_gasLimit, optimismPortal.minimumGasLimit(uint64(_data.length)), rcfg.maxResourceLimit));
 
@@ -201,6 +201,7 @@ contract OptimismPortal_Test is CommonTest {
     }
 
     /// @dev Tests that `depositTransaction` succeeds when msg.sender == tx.origin and non-custom gas is used.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositTransaction_senderIsOrigin_succeeds(
         address _to,
         uint256 _mint,
@@ -226,6 +227,7 @@ contract OptimismPortal_Test is CommonTest {
     }
 
     /// @dev Tests that `depositTransaction` succeeds when msg.sender != tx.origin and non-custom gas is used.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositTransaction_senderNotOrigin_succeeds(
         address _to,
         uint256 _mint,
@@ -308,6 +310,7 @@ contract OptimismPortal_Test is CommonTest {
     }
 
     /// @dev Tests that `depositTransaction` succeeds for an EOA.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositTransaction_eoa_succeeds(
         address _to,
         uint64 _gasLimit,
@@ -352,6 +355,7 @@ contract OptimismPortal_Test is CommonTest {
     }
 
     /// @dev Tests that `depositTransaction` succeeds for a contract.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositTransaction_contract_succeeds(
         address _to,
         uint64 _gasLimit,
@@ -403,7 +407,7 @@ contract OptimismPortal_Test is CommonTest {
         uint256 ts = block.timestamp;
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSelector(L2OutputOracle.getL2Output.selector),
+            abi.encodePacked(IL2OutputOracle.getL2Output.selector),
             abi.encode(Types.OutputProposal(bytes32(uint256(1)), uint128(ts), uint128(startingBlockNumber)))
         );
 
@@ -463,7 +467,7 @@ contract OptimismPortal_Test is CommonTest {
                 uint256(0), // value
                 uint64(200_000), // gasLimit
                 false, // isCreation,
-                abi.encodeCall(L1Block.setGasPayingToken, (_token, _decimals, _name, _symbol))
+                abi.encodeCall(IL1Block.setGasPayingToken, (_token, _decimals, _name, _symbol))
             )
         );
 
@@ -498,7 +502,7 @@ contract OptimismPortal_Test is CommonTest {
             _value: 0,
             _gasLimit: 200_000,
             _isCreation: false,
-            _data: abi.encodeCall(L1Block.setGasPayingToken, (_token, 18, name, symbol))
+            _data: abi.encodeCall(IL1Block.setGasPayingToken, (_token, 18, name, symbol))
         });
 
         VmSafe.Log[] memory logs = vm.getRecordedLogs();
@@ -535,7 +539,7 @@ contract OptimismPortal_Test is CommonTest {
     }
 
     function test_depositERC20Transaction_balanceOverflow_reverts() external {
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(42), 18));
+        vm.mockCall(address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(42), 18));
 
         // The balance slot
         vm.store(address(optimismPortal), bytes32(uint256(61)), bytes32(type(uint256).max));
@@ -581,6 +585,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
 
     // Use a constructor to set the storage vars above, so as to minimize the number of ffi calls.
     constructor() {
+        super.enableLegacyContracts();
         super.setUp();
         _defaultTx = Types.WithdrawalTransaction({
             nonce: 0,
@@ -787,7 +792,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
     function test_finalizeWithdrawalTransaction_provenWithdrawalHash_nonEther_targetToken_reverts() external {
         vm.mockCall(
             address(systemConfig),
-            abi.encodeWithSignature("gasPayingToken()"),
+            abi.encodeCall(systemConfig.gasPayingToken, ()),
             abi.encode(address(_defaultTx.target), 18)
         );
 
@@ -831,7 +836,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         // this case we just use bytes32(uint256(1)).
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSelector(L2OutputOracle.getL2Output.selector),
+            abi.encodePacked(IL2OutputOracle.getL2Output.selector),
             abi.encode(bytes32(uint256(1)), _proposedBlockNumber)
         );
 
@@ -857,7 +862,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         // Mock a startingTimestamp change on the L2 Oracle
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSignature("startingTimestamp()"),
+            abi.encodeCall(IL2OutputOracle.startingTimestamp, ()),
             abi.encode(block.timestamp + 1)
         );
 
@@ -886,7 +891,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         // to finalize the withdrawal.
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSelector(L2OutputOracle.getL2Output.selector),
+            abi.encodePacked(IL2OutputOracle.getL2Output.selector),
             abi.encode(
                 Types.OutputProposal(bytes32(uint256(0)), uint128(block.timestamp), uint128(_proposedBlockNumber))
             )
@@ -917,7 +922,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         // finalization period.
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSelector(L2OutputOracle.getL2Output.selector),
+            abi.encodePacked(IL2OutputOracle.getL2Output.selector),
             abi.encode(Types.OutputProposal(_outputRoot, uint128(block.timestamp + 1), uint128(_proposedBlockNumber)))
         );
 
@@ -953,7 +958,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         uint256 recentTimestamp = block.timestamp - 1;
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSelector(L2OutputOracle.getL2Output.selector),
+            abi.encodePacked(IL2OutputOracle.getL2Output.selector),
             abi.encode(Types.OutputProposal(_outputRoot, uint128(recentTimestamp), uint128(_proposedBlockNumber)))
         );
 
@@ -1005,7 +1010,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
 
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSelector(L2OutputOracle.getL2Output.selector),
+            abi.encodePacked(IL2OutputOracle.getL2Output.selector),
             abi.encode(
                 Types.OutputProposal(
                     Hashing.hashOutputRootProof(outputRootProof),
@@ -1033,7 +1038,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         // this contract's callPortalAndExpectRevert() function above.
         Types.WithdrawalTransaction memory _testTx = _defaultTx;
         _testTx.target = address(this);
-        _testTx.data = abi.encodeWithSelector(this.callPortalAndExpectRevert.selector);
+        _testTx.data = abi.encodeCall(this.callPortalAndExpectRevert, ());
 
         // Get modified proof inputs.
         (
@@ -1054,7 +1059,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         uint256 finalizedTimestamp = block.timestamp - l2OutputOracle.FINALIZATION_PERIOD_SECONDS() - 1;
         vm.mockCall(
             address(optimismPortal.l2Oracle()),
-            abi.encodeWithSelector(L2OutputOracle.getL2Output.selector),
+            abi.encodePacked(IL2OutputOracle.getL2Output.selector),
             abi.encode(Types.OutputProposal(outputRoot, uint128(finalizedTimestamp), uint128(_proposedBlockNumber)))
         );
 
@@ -1073,6 +1078,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
     }
 
     /// @dev Tests that `finalizeWithdrawalTransaction` succeeds.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testDiff_finalizeWithdrawalTransaction_succeeds(
         address _sender,
         address _target,
@@ -1128,7 +1134,7 @@ contract OptimismPortal_FinalizeWithdrawal_Test is CommonTest {
         // Setup the Oracle to return the outputRoot
         vm.mockCall(
             address(l2OutputOracle),
-            abi.encodeWithSelector(l2OutputOracle.getL2Output.selector),
+            abi.encodePacked(l2OutputOracle.getL2Output.selector),
             abi.encode(outputRoot, block.timestamp, 100)
         );
 
@@ -1156,7 +1162,7 @@ contract OptimismPortalUpgradeable_Test is CommonTest {
     /// @dev Tests that the proxy is initialized correctly.
     function test_params_initValuesOnProxy_succeeds() external view {
         (uint128 prevBaseFee, uint64 prevBoughtGas, uint64 prevBlockNum) = optimismPortal.params();
-        ResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
+        IResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
 
         assertEq(prevBaseFee, rcfg.minimumBaseFee);
         assertEq(prevBoughtGas, 0);
@@ -1174,10 +1180,10 @@ contract OptimismPortalUpgradeable_Test is CommonTest {
         vm.startPrank(EIP1967Helper.getAdmin(address(optimismPortal)));
         // The value passed to the initialize must be larger than the last value
         // that initialize was called with.
-        Proxy(payable(address(optimismPortal))).upgradeToAndCall(
-            address(nextImpl), abi.encodeWithSelector(NextImpl.initialize.selector, 2)
+        IProxy(payable(address(optimismPortal))).upgradeToAndCall(
+            address(nextImpl), abi.encodeCall(NextImpl.initialize, (2))
         );
-        assertEq(Proxy(payable(address(optimismPortal))).implementation(), address(nextImpl));
+        assertEq(IProxy(payable(address(optimismPortal))).implementation(), address(nextImpl));
 
         // Verify that the NextImpl contract initialized its values according as expected
         bytes32 slot21After = vm.load(address(optimismPortal), bytes32(uint256(21)));
@@ -1195,6 +1201,7 @@ contract OptimismPortalResourceFuzz_Test is CommonTest {
     uint256 constant MAX_GAS_LIMIT = 30_000_000;
 
     /// @dev Test that various values of the resource metering config will not break deposits.
+    /// forge-config: ciheavy.fuzz.runs = 10000
     function testFuzz_systemConfigDeposit_succeeds(
         uint32 _maxResourceLimit,
         uint8 _elasticityMultiplier,
@@ -1211,24 +1218,36 @@ contract OptimismPortalResourceFuzz_Test is CommonTest {
     {
         // Get the set system gas limit
         uint64 gasLimit = systemConfig.gasLimit();
+
         // Bound resource config
         _maxResourceLimit = uint32(bound(_maxResourceLimit, 21000, MAX_GAS_LIMIT / 8));
         _gasLimit = uint64(bound(_gasLimit, 21000, _maxResourceLimit));
         _prevBaseFee = uint128(bound(_prevBaseFee, 0, 3 gwei));
+        _prevBoughtGas = uint64(bound(_prevBoughtGas, 0, _maxResourceLimit - _gasLimit));
+        _blockDiff = uint8(bound(_blockDiff, 0, 3));
+        _baseFeeMaxChangeDenominator = uint8(bound(_baseFeeMaxChangeDenominator, 2, type(uint8).max));
+        _elasticityMultiplier = uint8(bound(_elasticityMultiplier, 1, type(uint8).max));
+
         // Prevent values that would cause reverts
         vm.assume(gasLimit >= _gasLimit);
         vm.assume(_minimumBaseFee < _maximumBaseFee);
-        vm.assume(_baseFeeMaxChangeDenominator > 1);
         vm.assume(uint256(_maxResourceLimit) + uint256(_systemTxMaxGas) <= gasLimit);
-        vm.assume(_elasticityMultiplier > 0);
         vm.assume(((_maxResourceLimit / _elasticityMultiplier) * _elasticityMultiplier) == _maxResourceLimit);
-        _prevBoughtGas = uint64(bound(_prevBoughtGas, 0, _maxResourceLimit - _gasLimit));
-        _blockDiff = uint8(bound(_blockDiff, 0, 3));
+
+        // Base fee can increase quickly and mean that we can't buy the amount of gas we want.
+        // Here we add a VM assumption to bound the potential increase.
+        // Compute the maximum possible increase in base fee.
+        uint256 maxPercentIncrease = uint256(_elasticityMultiplier - 1) * 100 / uint256(_baseFeeMaxChangeDenominator);
+        // Assume that we have enough gas to burn.
+        // Compute the maximum amount of gas we'd need to burn.
+        // Assume we need 1/5 of our gas to do other stuff.
+        vm.assume(_prevBaseFee * maxPercentIncrease * _gasLimit / 100 < MAX_GAS_LIMIT * 4 / 5);
+
         // Pick a pseudorandom block number
         vm.roll(uint256(keccak256(abi.encode(_blockDiff))) % uint256(type(uint16).max) + uint256(_blockDiff));
 
         // Create a resource config to mock the call to the system config with
-        ResourceMetering.ResourceConfig memory rcfg = ResourceMetering.ResourceConfig({
+        IResourceMetering.ResourceConfig memory rcfg = IResourceMetering.ResourceConfig({
             maxResourceLimit: _maxResourceLimit,
             elasticityMultiplier: _elasticityMultiplier,
             baseFeeMaxChangeDenominator: _baseFeeMaxChangeDenominator,
@@ -1236,9 +1255,7 @@ contract OptimismPortalResourceFuzz_Test is CommonTest {
             systemTxMaxGas: _systemTxMaxGas,
             maximumBaseFee: _maximumBaseFee
         });
-        vm.mockCall(
-            address(systemConfig), abi.encodeWithSelector(systemConfig.resourceConfig.selector), abi.encode(rcfg)
-        );
+        vm.mockCall(address(systemConfig), abi.encodeCall(systemConfig.resourceConfig, ()), abi.encode(rcfg));
 
         // Set the resource params
         uint256 _prevBlockNum = block.number - _blockDiff;
@@ -1287,7 +1304,7 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
             _to = address(0);
         }
         vm.assume(_data.length <= 120_000);
-        ResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
+        IResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
         _gasLimit =
             uint64(bound(_gasLimit, optimismPortal.minimumGasLimit(uint64(_data.length)), rcfg.maxResourceLimit));
 
@@ -1296,7 +1313,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
         token.approve(address(optimismPortal), _mint);
 
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         bytes memory opaqueData = abi.encodePacked(_mint, _value, _gasLimit, _isCreation, _data);
 
@@ -1317,6 +1336,7 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     }
 
     /// @dev Tests that `depositERC20Transaction` succeeds when msg.sender == tx.origin.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositERC20Transaction_senderIsOrigin_succeeds(
         address _to,
         uint256 _mint,
@@ -1342,6 +1362,7 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     }
 
     /// @dev Tests that `depositERC20Transaction` succeeds when msg.sender != tx.origin.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositERC20Transaction_senderNotOrigin_succeeds(
         address _to,
         uint256 _mint,
@@ -1369,7 +1390,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     /// @dev Tests that `depositERC20Transaction` reverts when not enough of the token is approved.
     function test_depositERC20Transaction_notEnoughAmount_reverts() external {
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
         vm.expectRevert(stdError.arithmeticError);
         // Deposit the token into the portal
         optimismPortal.depositERC20Transaction(address(0), 1, 0, 0, false, "");
@@ -1382,12 +1405,12 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
         token.approve(address(optimismPortal), 100);
 
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         // Mock the token balance
-        vm.mockCall(
-            address(token), abi.encodeWithSelector(token.balanceOf.selector, address(optimismPortal)), abi.encode(0)
-        );
+        vm.mockCall(address(token), abi.encodeCall(token.balanceOf, (address(optimismPortal))), abi.encode(0));
 
         // Call minimumGasLimit(0) before vm.expectRevert to ensure vm.expectRevert is for depositERC20Transaction
         uint64 gasLimit = optimismPortal.minimumGasLimit(0);
@@ -1401,7 +1424,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     /// @dev Tests that `depositERC20Transaction` reverts when creating a contract with a non-zero target.
     function test_depositERC20Transaction_isCreationNotZeroTarget_reverts() external {
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         // Call minimumGasLimit(0) before vm.expectRevert to ensure vm.expectRevert is for depositERC20Transaction
         uint64 gasLimit = optimismPortal.minimumGasLimit(0);
@@ -1414,7 +1439,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     /// @dev Tests that `depositERC20Transaction` reverts when the gas limit is too low.
     function test_depositERC20Transaction_gasLimitTooLow_reverts() external {
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         vm.expectRevert(SmallGasLimit.selector);
         // Deposit the token into the portal
@@ -1427,7 +1454,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
         data[120_000] = 0x01;
 
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         uint64 gasLimit = optimismPortal.minimumGasLimit(120_001);
         vm.expectRevert(LargeCalldata.selector);
@@ -1442,7 +1471,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
         token.approve(address(optimismPortal), _amount);
 
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         // Deposit the token into the portal
         optimismPortal.depositERC20Transaction(address(0), _amount, 0, optimismPortal.minimumGasLimit(0), false, "");
@@ -1458,7 +1489,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
         token.approve(address(optimismPortal), _defaultTx.value);
 
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         // Deposit the token into the portal
         optimismPortal.depositERC20Transaction(
@@ -1477,9 +1510,7 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
 
         vm.expectCall(_defaultTx.target, 0, _defaultTx.data);
 
-        vm.expectCall(
-            address(token), 0, abi.encodeWithSelector(token.transfer.selector, _defaultTx.target, _defaultTx.value)
-        );
+        vm.expectCall(address(token), 0, abi.encodeCall(token.transfer, (_defaultTx.target, _defaultTx.value)));
 
         optimismPortal.finalizeWithdrawalTransaction(_defaultTx);
 
@@ -1502,12 +1533,14 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
             _to = address(0);
         }
         vm.assume(_data.length <= 120_000);
-        ResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
+        IResourceMetering.ResourceConfig memory rcfg = systemConfig.resourceConfig();
         _gasLimit =
             uint64(bound(_gasLimit, optimismPortal.minimumGasLimit(uint64(_data.length)), rcfg.maxResourceLimit));
 
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         bytes memory opaqueData = abi.encodePacked(uint256(0), _value, _gasLimit, _isCreation, _data);
 
@@ -1528,6 +1561,7 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     }
 
     /// @dev Tests that `depositTransaction` succeeds when a custom gas token is used but the msg.value is zero.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositTransaction_customGasToken_noValue_senderIsOrigin_succeeds(
         address _to,
         uint256 _value,
@@ -1551,6 +1585,7 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     }
 
     /// @dev Tests that `depositTransaction` succeeds when a custom gas token is used but the msg.value is zero.
+    /// forge-config: ciheavy.fuzz.runs = 8192
     function testFuzz_depositTransaction_customGasToken_noValue_senderNotOrigin_succeeds(
         address _to,
         uint256 _value,
@@ -1576,7 +1611,9 @@ contract OptimismPortalWithMockERC20_Test is OptimismPortal_FinalizeWithdrawal_T
     /// @dev Tests that `depositTransaction` fails when a custom gas token is used and msg.value is non-zero.
     function test_depositTransaction_customGasToken_withValue_reverts() external {
         // Mock the gas paying token to be the ERC20 token
-        vm.mockCall(address(systemConfig), abi.encodeWithSignature("gasPayingToken()"), abi.encode(address(token), 18));
+        vm.mockCall(
+            address(systemConfig), abi.encodeCall(systemConfig.gasPayingToken, ()), abi.encode(address(token), 18)
+        );
 
         vm.expectRevert(NoValue.selector);
 

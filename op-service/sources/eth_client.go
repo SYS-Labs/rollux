@@ -11,6 +11,7 @@ package sources
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"math/big"
@@ -66,11 +67,6 @@ type EthClientConfig struct {
 	// SYSCOIN PoDA URL
 	SysPODAURL string
 
-	// [OPTIONAL] The reth DB path to fetch receipts from
-	// [OPTIONAL] The reth DB path to fetch receipts from.
-	// If it is specified, the rethdb receipts fetcher will be used
-	// and the RPC configuration parameters don't need to be set.
-	RethDBPath string
 }
 
 func (c *EthClientConfig) Check() error {
@@ -85,15 +81,6 @@ func (c *EthClientConfig) Check() error {
 	}
 	if c.PayloadsCacheSize < 0 {
 		return fmt.Errorf("invalid payloads cache size: %d", c.PayloadsCacheSize)
-	}
-	if c.RethDBPath != "" {
-		if buildRethdb {
-			// If the rethdb path is set, we use the rethdb receipts fetcher and skip creating
-			// an RCP receipts fetcher, so below rpc config parameters don't need to be checked.
-			return nil
-		} else {
-			return fmt.Errorf("rethdb path specified, but built without rethdb support")
-		}
 	}
 	if c.MaxConcurrentRequests < 1 {
 		return fmt.Errorf("expected at least 1 concurrent request, but max is %d", c.MaxConcurrentRequests)
@@ -153,6 +140,7 @@ func NewEthClient(client opclient.RPC, log log.Logger, metrics caching.Metrics, 
 	}
 
 	client = LimitRPC(client, config.MaxConcurrentRequests)
+<<<<<<< HEAD
 	var sysClient *opclient.SyscoinClient = nil
 	if config.SysPODAURL != "" {
 		sysClient, err = opclient.NewSyscoinClient(config.SysPODAURL)
@@ -161,8 +149,11 @@ func NewEthClient(client opclient.RPC, log log.Logger, metrics caching.Metrics, 
 		}
 	}
 	recProvider := newRecProviderFromConfig(client, log, metrics, config)
+=======
+	recProvider := newRPCRecProviderFromConfig(client, log, metrics, config)
+>>>>>>> upstream/develop
 	if recProvider.isInnerNil() {
-		return nil, fmt.Errorf("failed to open RethDB")
+		return nil, errors.New("failed to establish receipts provider")
 	}
 	return &EthClient{
 		client:      client,
@@ -372,6 +363,22 @@ func (s *EthClient) GetBlobFromRPC(vh common.Hash) ([]byte, error) {
 	return s.syscoinClient.GetBlobFromRPC(vh)
 }
 
+// ExecutionWitness fetches execution witness data for a block number.
+func (s *EthClient) ExecutionWitness(ctx context.Context, blockNum uint64) (*eth.ExecutionWitness, error) {
+	var witness *eth.ExecutionWitness
+
+	err := s.client.CallContext(ctx, &witness, "debug_executionWitness", hexutil.EncodeUint64(blockNum), true)
+	if err != nil {
+		return nil, err
+	}
+
+	if witness == nil {
+		return nil, ethereum.NotFound
+	}
+
+	return witness, nil
+}
+
 // GetProof returns an account proof result, with any optional requested storage proofs.
 // The retrieval does sanity-check that storage proofs for the expected keys are present in the response,
 // but does not verify the result. Call accountResult.Verify(stateRoot) to verify the result.
@@ -388,8 +395,8 @@ func (s *EthClient) GetProof(ctx context.Context, address common.Address, storag
 		return nil, fmt.Errorf("missing storage proof data, got %d proof entries but requested %d storage keys", len(getProofResponse.StorageProof), len(storage))
 	}
 	for i, key := range storage {
-		if key != getProofResponse.StorageProof[i].Key {
-			return nil, fmt.Errorf("unexpected storage proof key difference for entry %d: got %s but requested %s", i, getProofResponse.StorageProof[i].Key, key)
+		if key != common.BigToHash(getProofResponse.StorageProof[i].Key.ToInt()) {
+			return nil, fmt.Errorf("unexpected storage proof key difference for entry %d: got %s but requested %s", i, getProofResponse.StorageProof[i].Key.String(), key)
 		}
 	}
 	return getProofResponse, nil

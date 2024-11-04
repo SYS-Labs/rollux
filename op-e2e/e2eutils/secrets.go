@@ -3,13 +3,15 @@ package e2eutils
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"strconv"
 
 	hdwallet "github.com/ethereum-optimism/go-ethereum-hdwallet"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
+
+const defaultHDPathPrefix = "m/44'/60'/0'/0/"
 
 // DefaultMnemonicConfig is the default mnemonic used in testing.
 // We prefer a mnemonic rather than direct private keys to make it easier
@@ -131,18 +133,6 @@ type Secrets struct {
 	Wallet *hdwallet.Wallet
 }
 
-// EncodePrivKey encodes the given private key in 32 bytes
-func EncodePrivKey(priv *ecdsa.PrivateKey) hexutil.Bytes {
-	privkey := make([]byte, 32)
-	blob := priv.D.Bytes()
-	copy(privkey[32-len(blob):], blob)
-	return privkey
-}
-
-func EncodePrivKeyToString(priv *ecdsa.PrivateKey) string {
-	return hexutil.Encode(EncodePrivKey(priv))
-}
-
 // Addresses computes the ethereum address of each account,
 // which can then be kept around for fast precomputed address access.
 func (s *Secrets) Addresses() *Addresses {
@@ -188,4 +178,15 @@ func (a *Addresses) All() []common.Address {
 		a.Bob,
 		a.Mallory,
 	}
+}
+
+func (s *Secrets) AccountAtIdx(idx int) *ecdsa.PrivateKey {
+	account := accounts.Account{URL: accounts.URL{
+		Path: defaultHDPathPrefix + strconv.Itoa(idx),
+	}}
+	pk, err := s.Wallet.PrivateKey(account)
+	if err != nil {
+		panic(err)
+	}
+	return pk
 }

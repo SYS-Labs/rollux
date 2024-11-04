@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ethereum-optimism/optimism/op-program/host/types"
 	"github.com/urfave/cli/v2"
 
 	"github.com/ethereum-optimism/optimism/op-node/chaincfg"
@@ -35,10 +36,21 @@ var (
 		Usage:   "Directory to use for preimage data storage. Default uses in-memory storage",
 		EnvVars: prefixEnvVars("DATADIR"),
 	}
+	DataFormat = &cli.StringFlag{
+		Name:    "data.format",
+		Usage:   fmt.Sprintf("Format to use for preimage data storage. Available formats: %s", openum.EnumString(types.SupportedDataFormats)),
+		EnvVars: prefixEnvVars("DATA_FORMAT"),
+		Value:   string(types.DataFormatDirectory),
+	}
 	L2NodeAddr = &cli.StringFlag{
 		Name:    "l2",
 		Usage:   "Address of L2 JSON-RPC endpoint to use (eth and debug namespace required)",
 		EnvVars: prefixEnvVars("L2_RPC"),
+	}
+	L2NodeExperimentalAddr = &cli.StringFlag{
+		Name:    "l2.experimental",
+		Usage:   "Address of L2 JSON-RPC endpoint to use for experimental features (debug_executionWitness)",
+		EnvVars: prefixEnvVars("L2_RPC_EXPERIMENTAL_RPC"),
 	}
 	L1Head = &cli.StringFlag{
 		Name:    "l1.head",
@@ -122,7 +134,9 @@ var programFlags = []cli.Flag{
 	RollupConfig,
 	Network,
 	DataDir,
+	DataFormat,
 	L2NodeAddr,
+	L2NodeExperimentalAddr,
 	L2GenesisPath,
 	L1NodeAddr,
 	L1BeaconAddr,
@@ -149,6 +163,9 @@ func CheckRequired(ctx *cli.Context) error {
 	}
 	if network == "" && ctx.String(L2GenesisPath.Name) == "" {
 		return fmt.Errorf("flag %s is required for custom networks", L2GenesisPath.Name)
+	}
+	if ctx.String(L2GenesisPath.Name) != "" && network != "" {
+		return fmt.Errorf("cannot specify both %s and %s", L2GenesisPath.Name, Network.Name)
 	}
 	for _, flag := range requiredFlags {
 		if !ctx.IsSet(flag.Names()[0]) {

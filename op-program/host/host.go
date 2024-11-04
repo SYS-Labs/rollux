@@ -16,17 +16,30 @@ import (
 	"github.com/ethereum-optimism/optimism/op-program/host/flags"
 	"github.com/ethereum-optimism/optimism/op-program/host/kvstore"
 	"github.com/ethereum-optimism/optimism/op-program/host/prefetcher"
-	oppio "github.com/ethereum-optimism/optimism/op-program/io"
 	opservice "github.com/ethereum-optimism/optimism/op-service"
 	"github.com/ethereum-optimism/optimism/op-service/client"
+	"github.com/ethereum-optimism/optimism/op-service/ctxinterrupt"
 	"github.com/ethereum-optimism/optimism/op-service/sources"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 )
 
-type L2Source struct {
-	*L2Client
-	*sources.DebugClient
+type Prefetcher interface {
+	Hint(hint string) error
+	GetPreimage(ctx context.Context, key common.Hash) ([]byte, error)
+}
+type PrefetcherCreator func(ctx context.Context, logger log.Logger, kv kvstore.KV, cfg *config.Config) (Prefetcher, error)
+
+type creatorsCfg struct {
+	prefetcher PrefetcherCreator
+}
+
+type ProgramOpt func(c *creatorsCfg)
+
+func WithPrefetcher(creator PrefetcherCreator) ProgramOpt {
+	return func(c *creatorsCfg) {
+		c.prefetcher = creator
+	}
 }
 
 func Main(logger log.Logger, cfg *config.Config) error {
@@ -36,11 +49,13 @@ func Main(logger log.Logger, cfg *config.Config) error {
 	opservice.ValidateEnvVars(flags.EnvVarPrefix, flags.Flags, logger)
 	cfg.Rollup.LogDescription(logger, chaincfg.L2ChainIDToNetworkDisplayName)
 
-	ctx := context.Background()
+	hostCtx, stop := ctxinterrupt.WithSignalWaiter(context.Background())
+	defer stop()
+	ctx := ctxinterrupt.WithCancelOnInterrupt(hostCtx)
 	if cfg.ServerMode {
-		preimageChan := cl.CreatePreimageChannel()
-		hinterChan := cl.CreateHinterChannel()
-		return PreimageServer(ctx, logger, cfg, preimageChan, hinterChan)
+		preimageChan := preimage.ClientPreimageChannel()
+		hinterChan := preimage.ClientHinterChannel()
+		return PreimageServer(ctx, logger, cfg, preimageChan, hinterChan, makeDefaultPrefetcher)
 	}
 
 	if err := FaultProofProgram(ctx, logger, cfg); err != nil {
@@ -51,11 +66,17 @@ func Main(logger log.Logger, cfg *config.Config) error {
 }
 
 // FaultProofProgram is the programmatic entry-point for the fault proof program
-func FaultProofProgram(ctx context.Context, logger log.Logger, cfg *config.Config) error {
+func FaultProofProgram(ctx context.Context, logger log.Logger, cfg *config.Config, opts ...ProgramOpt) error {
+	creators := &creatorsCfg{
+		prefetcher: makeDefaultPrefetcher,
+	}
+	for _, opt := range opts {
+		opt(creators)
+	}
 	var (
 		serverErr chan error
-		pClientRW oppio.FileChannel
-		hClientRW oppio.FileChannel
+		pClientRW preimage.FileChannel
+		hClientRW preimage.FileChannel
 	)
 	defer func() {
 		if pClientRW != nil {
@@ -73,13 +94,13 @@ func FaultProofProgram(ctx context.Context, logger log.Logger, cfg *config.Confi
 		}
 	}()
 	// Setup client I/O for preimage oracle interaction
-	pClientRW, pHostRW, err := oppio.CreateBidirectionalChannel()
+	pClientRW, pHostRW, err := preimage.CreateBidirectionalChannel()
 	if err != nil {
 		return fmt.Errorf("failed to create preimage pipe: %w", err)
 	}
 
 	// Setup client I/O for hint comms
-	hClientRW, hHostRW, err := oppio.CreateBidirectionalChannel()
+	hClientRW, hHostRW, err := preimage.CreateBidirectionalChannel()
 	if err != nil {
 		return fmt.Errorf("failed to create hints pipe: %w", err)
 	}
@@ -88,7 +109,7 @@ func FaultProofProgram(ctx context.Context, logger log.Logger, cfg *config.Confi
 	serverErr = make(chan error)
 	go func() {
 		defer close(serverErr)
-		serverErr <- PreimageServer(ctx, logger, cfg, pHostRW, hHostRW)
+		serverErr <- PreimageServer(ctx, logger, cfg, pHostRW, hHostRW, creators.prefetcher)
 	}()
 
 	var cmd *exec.Cmd
@@ -120,9 +141,13 @@ func FaultProofProgram(ctx context.Context, logger log.Logger, cfg *config.Confi
 // This method will block until both the hinter and preimage handlers complete.
 // If either returns an error both handlers are stopped.
 // The supplied preimageChannel and hintChannel will be closed before this function returns.
-func PreimageServer(ctx context.Context, logger log.Logger, cfg *config.Config, preimageChannel oppio.FileChannel, hintChannel oppio.FileChannel) error {
+func PreimageServer(ctx context.Context, logger log.Logger, cfg *config.Config, preimageChannel preimage.FileChannel, hintChannel preimage.FileChannel, prefetcherCreator PrefetcherCreator) error {
 	var serverDone chan error
 	var hinterDone chan error
+	logger.Info("Starting preimage server")
+	var kv kvstore.KV
+
+	// Close the preimage/hint channels, and then kv store once the server and hinter have exited.
 	defer func() {
 		preimageChannel.Close()
 		hintChannel.Close()
@@ -134,29 +159,35 @@ func PreimageServer(ctx context.Context, logger log.Logger, cfg *config.Config, 
 			// Wait for hinter to complete
 			<-hinterDone
 		}
+
+		if kv != nil {
+			kv.Close()
+		}
 	}()
-	logger.Info("Starting preimage server")
-	var kv kvstore.KV
+
 	if cfg.DataDir == "" {
 		logger.Info("Using in-memory storage")
 		kv = kvstore.NewMemKV()
 	} else {
-		logger.Info("Creating disk storage", "datadir", cfg.DataDir)
 		if err := os.MkdirAll(cfg.DataDir, 0755); err != nil {
 			return fmt.Errorf("creating datadir: %w", err)
 		}
-		kv = kvstore.NewDiskKV(cfg.DataDir)
+		store, err := kvstore.NewDiskKV(logger, cfg.DataDir, cfg.DataFormat)
+		if err != nil {
+			return fmt.Errorf("creating kvstore: %w", err)
+		}
+		kv = store
 	}
 
 	var (
 		getPreimage kvstore.PreimageSource
 		hinter      preimage.HintHandler
 	)
-	if cfg.FetchingEnabled() {
-		prefetch, err := makePrefetcher(ctx, logger, kv, cfg)
-		if err != nil {
-			return fmt.Errorf("failed to create prefetcher: %w", err)
-		}
+	prefetch, err := prefetcherCreator(ctx, logger, kv, cfg)
+	if err != nil {
+		return fmt.Errorf("failed to create prefetcher: %w", err)
+	}
+	if prefetch != nil {
 		getPreimage = func(key common.Hash) ([]byte, error) { return prefetch.GetPreimage(ctx, key) }
 		hinter = prefetch.Hint
 	} else {
@@ -179,36 +210,43 @@ func PreimageServer(ctx context.Context, logger log.Logger, cfg *config.Config, 
 		return err
 	case err := <-hinterDone:
 		return err
+	case <-ctx.Done():
+		logger.Info("Shutting down")
+		if errors.Is(ctx.Err(), context.Canceled) {
+			// We were asked to shutdown by the context being cancelled so don't treat it as an error condition.
+			return nil
+		}
+		return ctx.Err()
 	}
 }
 
-func makePrefetcher(ctx context.Context, logger log.Logger, kv kvstore.KV, cfg *config.Config) (*prefetcher.Prefetcher, error) {
+func makeDefaultPrefetcher(ctx context.Context, logger log.Logger, kv kvstore.KV, cfg *config.Config) (Prefetcher, error) {
+	if !cfg.FetchingEnabled() {
+		return nil, nil
+	}
 	logger.Info("Connecting to L1 node", "l1", cfg.L1URL)
-	l1RPC, err := client.NewRPC(ctx, logger, cfg.L1URL, client.WithDialBackoff(10))
+	l1RPC, err := client.NewRPC(ctx, logger, cfg.L1URL, client.WithDialAttempts(10))
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup L1 RPC: %w", err)
 	}
 
-	logger.Info("Connecting to L2 node", "l2", cfg.L2URL)
-	l2RPC, err := client.NewRPC(ctx, logger, cfg.L2URL, client.WithDialBackoff(10))
-	if err != nil {
-		return nil, fmt.Errorf("failed to setup L2 RPC: %w", err)
-	}
-
 	l1ClCfg := sources.L1ClientDefaultConfig(cfg.Rollup, cfg.L1TrustRPC, cfg.L1RPCKind)
-	l2ClCfg := sources.L2ClientDefaultConfig(cfg.Rollup, true)
 	l1Cl, err := sources.NewL1Client(l1RPC, logger, nil, l1ClCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create L1 client: %w", err)
 	}
+
+	logger.Info("Connecting to L1 beacon", "l1", cfg.L1BeaconURL)
 	l1Beacon := sources.NewBeaconHTTPClient(client.NewBasicHTTPClient(cfg.L1BeaconURL, logger))
 	l1BlobFetcher := sources.NewL1BeaconClient(l1Beacon, sources.L1BeaconClientConfig{FetchAllSidecars: false})
-	l2Cl, err := NewL2Client(l2RPC, logger, nil, &L2ClientConfig{L2ClientConfig: l2ClCfg, L2Head: cfg.L2Head})
+
+	logger.Info("Initializing L2 clients")
+	l2Client, err := NewL2Source(ctx, logger, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create L2 client: %w", err)
+		return nil, fmt.Errorf("failed to create L2 source: %w", err)
 	}
-	l2DebugCl := &L2Source{L2Client: l2Cl, DebugClient: sources.NewDebugClient(l2RPC.CallContext)}
-	return prefetcher.NewPrefetcher(logger, l1Cl, l1BlobFetcher, l2DebugCl, kv), nil
+
+	return prefetcher.NewPrefetcher(logger, l1Cl, l1BlobFetcher, l2Client, kv), nil
 }
 
 func routeHints(logger log.Logger, hHostRW io.ReadWriter, hinter preimage.HintHandler) chan error {

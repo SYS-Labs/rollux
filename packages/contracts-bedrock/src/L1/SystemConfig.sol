@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
+// Contracts
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { ISemver } from "src/universal/ISemver.sol";
-import { ResourceMetering } from "src/L1/ResourceMetering.sol";
-import { Storage } from "src/libraries/Storage.sol";
-import { Constants } from "src/libraries/Constants.sol";
-import { OptimismPortal } from "src/L1/OptimismPortal.sol";
-import { GasPayingToken, IGasToken } from "src/libraries/GasPayingToken.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+// Libraries
+import { Storage } from "src/libraries/Storage.sol";
+import { Constants } from "src/libraries/Constants.sol";
+import { GasPayingToken, IGasToken } from "src/libraries/GasPayingToken.sol";
+
+// Interfaces
+import { ISemver } from "src/universal/interfaces/ISemver.sol";
+import { IOptimismPortal } from "src/L1/interfaces/IOptimismPortal.sol";
+import { IResourceMetering } from "src/L1/interfaces/IResourceMetering.sol";
+
+/// @custom:proxied true
 /// @title SystemConfig
 /// @notice The SystemConfig contract is used to manage configuration of an Optimism network.
 ///         All configuration is stored on L1 and picked up by L2 as part of the derviation of
@@ -17,15 +23,16 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     /// @notice Enum representing different types of updates.
     /// @custom:value BATCHER              Represents an update to the batcher hash.
-    /// @custom:value GAS_CONFIG           Represents an update to txn fee config on L2.
+    /// @custom:value FEE_SCALARS          Represents an update to l1 data fee scalars.
     /// @custom:value GAS_LIMIT            Represents an update to gas limit on L2.
     /// @custom:value UNSAFE_BLOCK_SIGNER  Represents an update to the signer key for unsafe
     ///                                    block distrubution.
     enum UpdateType {
         BATCHER,
-        GAS_CONFIG,
+        FEE_SCALARS,
         GAS_LIMIT,
-        UNSAFE_BLOCK_SIGNER
+        UNSAFE_BLOCK_SIGNER,
+        EIP_1559_PARAMS
     }
 
     /// @notice Struct representing the addresses of L1 system contracts. These should be the
@@ -90,9 +97,12 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     uint64 internal constant MAX_GAS_LIMIT = 200_000_000;
 
     /// @notice Fixed L2 gas overhead. Used as part of the L2 fee calculation.
+    ///         Deprecated since the Ecotone network upgrade
     uint256 public overhead;
 
     /// @notice Dynamic L2 gas overhead. Used as part of the L2 fee calculation.
+    ///         The most significant byte is used to determine the version since the
+    ///         Ecotone network upgrade.
     uint256 public scalar;
 
     /// @notice Identifier for the batcher.
@@ -103,10 +113,22 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     /// @notice L2 block gas limit.
     uint64 public gasLimit;
 
+    /// @notice Basefee scalar value. Part of the L2 fee calculation since the Ecotone network upgrade.
+    uint32 public basefeeScalar;
+
+    /// @notice Blobbasefee scalar value. Part of the L2 fee calculation since the Ecotone network upgrade.
+    uint32 public blobbasefeeScalar;
+
     /// @notice The configuration for the deposit fee market.
     ///         Used by the OptimismPortal to meter the cost of buying L2 gas on L1.
     ///         Set as internal with a getter so that the struct is returned instead of a tuple.
-    ResourceMetering.ResourceConfig internal _resourceConfig;
+    IResourceMetering.ResourceConfig internal _resourceConfig;
+
+    /// @notice The EIP-1559 base fee max change denominator.
+    uint32 public eip1559Denominator;
+
+    /// @notice The EIP-1559 elasticity multiplier.
+    uint32 public eip1559Elasticity;
 
     /// @notice Emitted when configuration is updated.
     /// @param version    SystemConfig version.
@@ -115,8 +137,10 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     event ConfigUpdate(uint256 indexed version, UpdateType indexed updateType, bytes data);
 
     /// @notice Semantic version.
-    /// @custom:semver 2.2.0
-    string public constant version = "2.2.0";
+    /// @custom:semver 2.3.0-beta.5
+    function version() public pure virtual returns (string memory) {
+        return "2.3.0-beta.5";
+    }
 
     /// @notice Constructs the SystemConfig contract. Cannot set
     ///         the owner to `address(0)` due to the Ownable contract's
@@ -127,12 +151,12 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
         Storage.setUint(START_BLOCK_SLOT, type(uint256).max);
         initialize({
             _owner: address(0xdEaD),
-            _overhead: 0,
-            _scalar: 0,
+            _basefeeScalar: 0,
+            _blobbasefeeScalar: 0,
             _batcherHash: bytes32(0),
             _gasLimit: 1,
             _unsafeBlockSigner: address(0),
-            _config: ResourceMetering.ResourceConfig({
+            _config: IResourceMetering.ResourceConfig({
                 maxResourceLimit: 1,
                 elasticityMultiplier: 1,
                 baseFeeMaxChangeDenominator: 2,
@@ -156,8 +180,8 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     /// @notice Initializer.
     ///         The resource config must be set before the require check.
     /// @param _owner             Initial owner of the contract.
-    /// @param _overhead          Initial overhead value.
-    /// @param _scalar            Initial scalar value.
+    /// @param _basefeeScalar     Initial basefee scalar value.
+    /// @param _blobbasefeeScalar Initial blobbasefee scalar value.
     /// @param _batcherHash       Initial batcher hash.
     /// @param _gasLimit          Initial gas limit.
     /// @param _unsafeBlockSigner Initial unsafe block signer address.
@@ -167,12 +191,12 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     /// @param _addresses         Set of L1 contract addresses. These should be the proxies.
     function initialize(
         address _owner,
-        uint256 _overhead,
-        uint256 _scalar,
+        uint32 _basefeeScalar,
+        uint32 _blobbasefeeScalar,
         bytes32 _batcherHash,
         uint64 _gasLimit,
         address _unsafeBlockSigner,
-        ResourceMetering.ResourceConfig memory _config,
+        IResourceMetering.ResourceConfig memory _config,
         address _batchInbox,
         SystemConfig.Addresses memory _addresses
     )
@@ -184,7 +208,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
 
         // These are set in ascending order of their UpdateTypes.
         _setBatcherHash(_batcherHash);
-        _setGasConfig({ _overhead: _overhead, _scalar: _scalar });
+        _setGasConfigEcotone({ _basefeeScalar: _basefeeScalar, _blobbasefeeScalar: _blobbasefeeScalar });
         _setGasLimit(_gasLimit);
 
         Storage.setAddress(UNSAFE_BLOCK_SIGNER_SLOT, _unsafeBlockSigner);
@@ -296,7 +320,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     ///         to set the token address. This prevents the token address from being changed
     ///         and makes it explicitly opt-in to use custom gas token.
     /// @param _token Address of the gas paying token.
-    function _setGasPayingToken(address _token) internal {
+    function _setGasPayingToken(address _token) internal virtual {
         if (_token != address(0) && _token != Constants.ETHER && !isCustomGasToken()) {
             require(
                 ERC20(_token).decimals() == GAS_PAYING_TOKEN_DECIMALS, "SystemConfig: bad decimals of gas paying token"
@@ -306,7 +330,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
 
             // Set the gas paying token in storage and in the OptimismPortal.
             GasPayingToken.set({ _token: _token, _decimals: GAS_PAYING_TOKEN_DECIMALS, _name: name, _symbol: symbol });
-            OptimismPortal(payable(optimismPortal())).setGasPayingToken({
+            IOptimismPortal(payable(optimismPortal())).setGasPayingToken({
                 _token: _token,
                 _decimals: GAS_PAYING_TOKEN_DECIMALS,
                 _name: name,
@@ -346,6 +370,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     }
 
     /// @notice Updates gas config. Can only be called by the owner.
+    ///         Deprecated in favor of setGasConfigEcotone since the Ecotone upgrade.
     /// @param _overhead New overhead value.
     /// @param _scalar   New scalar value.
     function setGasConfig(uint256 _overhead, uint256 _scalar) external onlyOwner {
@@ -356,11 +381,33 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     /// @param _overhead New overhead value.
     /// @param _scalar   New scalar value.
     function _setGasConfig(uint256 _overhead, uint256 _scalar) internal {
+        require((uint256(0xff) << 248) & _scalar == 0, "SystemConfig: scalar exceeds max.");
+
         overhead = _overhead;
         scalar = _scalar;
 
         bytes memory data = abi.encode(_overhead, _scalar);
-        emit ConfigUpdate(VERSION, UpdateType.GAS_CONFIG, data);
+        emit ConfigUpdate(VERSION, UpdateType.FEE_SCALARS, data);
+    }
+
+    /// @notice Updates gas config as of the Ecotone upgrade. Can only be called by the owner.
+    /// @param _basefeeScalar     New basefeeScalar value.
+    /// @param _blobbasefeeScalar New blobbasefeeScalar value.
+    function setGasConfigEcotone(uint32 _basefeeScalar, uint32 _blobbasefeeScalar) external onlyOwner {
+        _setGasConfigEcotone(_basefeeScalar, _blobbasefeeScalar);
+    }
+
+    /// @notice Internal function for updating the fee scalars as of the Ecotone upgrade.
+    /// @param _basefeeScalar     New basefeeScalar value.
+    /// @param _blobbasefeeScalar New blobbasefeeScalar value.
+    function _setGasConfigEcotone(uint32 _basefeeScalar, uint32 _blobbasefeeScalar) internal {
+        basefeeScalar = _basefeeScalar;
+        blobbasefeeScalar = _blobbasefeeScalar;
+
+        scalar = (uint256(0x01) << 248) | (uint256(_blobbasefeeScalar) << 32) | _basefeeScalar;
+
+        bytes memory data = abi.encode(overhead, scalar);
+        emit ConfigUpdate(VERSION, UpdateType.FEE_SCALARS, data);
     }
 
     /// @notice Updates the L2 gas limit. Can only be called by the owner.
@@ -378,6 +425,25 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
 
         bytes memory data = abi.encode(_gasLimit);
         emit ConfigUpdate(VERSION, UpdateType.GAS_LIMIT, data);
+    }
+
+    /// @notice Updates the EIP-1559 parameters of the chain. Can only be called by the owner.
+    /// @param _denominator EIP-1559 base fee max change denominator.
+    /// @param _elasticity  EIP-1559 elasticity multiplier.
+    function setEIP1559Params(uint32 _denominator, uint32 _elasticity) external onlyOwner {
+        _setEIP1559Params(_denominator, _elasticity);
+    }
+
+    /// @notice Internal function for updating the EIP-1559 parameters.
+    function _setEIP1559Params(uint32 _denominator, uint32 _elasticity) internal {
+        // require the parameters have sane values:
+        require(_denominator >= 1, "SystemConfig: denominator must be >= 1");
+        require(_elasticity >= 1, "SystemConfig: elasticity must be >= 1");
+        eip1559Denominator = _denominator;
+        eip1559Elasticity = _elasticity;
+
+        bytes memory data = abi.encode(uint256(_denominator) << 32 | uint64(_elasticity));
+        emit ConfigUpdate(VERSION, UpdateType.EIP_1559_PARAMS, data);
     }
 
     /// @notice Sets the start block in a backwards compatible way. Proxies
@@ -398,7 +464,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     /// @notice A getter for the resource config.
     ///         Ensures that the struct is returned instead of a tuple.
     /// @return ResourceConfig
-    function resourceConfig() external view returns (ResourceMetering.ResourceConfig memory) {
+    function resourceConfig() external view returns (IResourceMetering.ResourceConfig memory) {
         return _resourceConfig;
     }
 
@@ -407,7 +473,7 @@ contract SystemConfig is OwnableUpgradeable, ISemver, IGasToken {
     ///         In the future, this method may emit an event that the `op-node` picks up
     ///         for when the resource config is changed.
     /// @param _config The new resource config.
-    function _setResourceConfig(ResourceMetering.ResourceConfig memory _config) internal {
+    function _setResourceConfig(IResourceMetering.ResourceConfig memory _config) internal {
         // Min base fee must be less than or equal to max base fee.
         require(
             _config.minimumBaseFee <= _config.maximumBaseFee, "SystemConfig: min base fee must be less than max base"

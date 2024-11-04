@@ -7,9 +7,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/ethereum-optimism/optimism/cannon/mipsevm"
-	"github.com/ethereum-optimism/optimism/op-chain-ops/crossdomain"
-	"github.com/ethereum-optimism/optimism/op-service/predeploys"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -19,6 +16,12 @@ import (
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/ethereum/go-ethereum/triedb"
 	"github.com/ethereum/go-ethereum/triedb/hashdb"
+
+	"github.com/ethereum-optimism/optimism/cannon/mipsevm/arch"
+	"github.com/ethereum-optimism/optimism/cannon/mipsevm/memory"
+	"github.com/ethereum-optimism/optimism/op-chain-ops/crossdomain"
+	"github.com/ethereum-optimism/optimism/op-service/eth"
+	"github.com/ethereum-optimism/optimism/op-service/predeploys"
 )
 
 // ABI types
@@ -35,6 +38,17 @@ var (
 		{Type: fixedBytes},
 	}
 
+	uint32Type, _ = abi.NewType("uint32", "", nil)
+
+	// Plain address type
+	addressType, _ = abi.NewType("address", "", nil)
+
+	// Plain uint8 type
+	uint8Type, _ = abi.NewType("uint8", "", nil)
+
+	// Plain uint256 type
+	uint256Type, _ = abi.NewType("uint256", "", nil)
+
 	// Decoded nonce tuple (nonce, version)
 	decodedNonce, _ = abi.NewType("tuple", "DecodedNonce", []abi.ArgumentMarshaling{
 		{Name: "nonce", Type: "uint256"},
@@ -42,6 +56,12 @@ var (
 	})
 	decodedNonceArgs = abi.Arguments{
 		{Name: "encodedNonce", Type: decodedNonce},
+	}
+
+	// Decoded ecotone scalars (uint32, uint32)
+	decodedScalars = abi.Arguments{
+		{Name: "basefeeScalar", Type: uint32Type},
+		{Name: "blobbasefeeScalar", Type: uint32Type},
 	}
 
 	// WithdrawalHash slot tuple (bytes32, bytes32)
@@ -73,6 +93,17 @@ var (
 	cannonMemoryProofArgs = abi.Arguments{
 		{Name: "encodedCannonMemoryProof", Type: cannonMemoryProof},
 	}
+
+	// Gas paying token tuple (address, uint8, bytes32, bytes32)
+	gasPayingTokenArgs = abi.Arguments{
+		{Name: "token", Type: addressType},
+		{Name: "decimals", Type: uint8Type},
+		{Name: "name", Type: fixedBytes},
+		{Name: "symbol", Type: fixedBytes},
+	}
+
+	// Dependency tuple (uint256)
+	dependencyArgs = abi.Arguments{{Name: "chainId", Type: uint256Type}}
 )
 
 func DiffTestUtils() {
@@ -329,27 +360,106 @@ func DiffTestUtils() {
 		// Print the output
 		fmt.Print(hexutil.Encode(packed[32:]))
 	case "cannonMemoryProof":
-		// <pc, insn, [memAddr, memValue]>
-		mem := mipsevm.NewMemory()
-		if len(args) != 3 && len(args) != 5 {
-			panic("Error: cannonMemoryProofWithProof requires 2 or 4 arguments")
+		// <memAddr0, memValue0, [memAddr1, memValue1], [memAddr2, memValue2]>
+		// Generates memory proofs of `memAddr0` for a trie containing memValue0 and `memAddr1` for a trie containing memValue1 and memValue2
+		// For the cannon stf, this is equivalent to the prestate proofs of the program counter and memory access for instruction execution
+		mem := memory.NewMemory()
+		if len(args) != 3 && len(args) != 5 && len(args) != 7 {
+			panic("Error: cannonMemoryProofWithProof requires 2, 4, or 6 arguments")
 		}
-		pc, err := strconv.ParseUint(args[1], 10, 32)
-		checkErr(err, "Error decocding addr")
-		insn, err := strconv.ParseUint(args[2], 10, 32)
-		checkErr(err, "Error decocding insn")
-		mem.SetMemory(uint32(pc), uint32(insn))
+		memAddr0, err := strconv.ParseUint(args[1], 10, arch.WordSize)
+		checkErr(err, "Error decoding addr")
+		memValue0, err := strconv.ParseUint(args[2], 10, arch.WordSize)
+		checkErr(err, "Error decoding memValue0")
+		mem.SetWord(arch.Word(memAddr0), arch.Word(memValue0))
 
-		var insnProof, memProof [896]byte
-		if len(args) == 5 {
-			memAddr, err := strconv.ParseUint(args[3], 10, 32)
-			checkErr(err, "Error decocding memAddr")
-			memValue, err := strconv.ParseUint(args[4], 10, 32)
-			checkErr(err, "Error decocding memValue")
-			mem.SetMemory(uint32(memAddr), uint32(memValue))
-			memProof = mem.MerkleProof(uint32(memAddr))
+		var proof1 []byte
+		if len(args) >= 5 {
+			memAddr, err := strconv.ParseUint(args[3], 10, arch.WordSize)
+			checkErr(err, "Error decoding memAddr")
+			memValue, err := strconv.ParseUint(args[4], 10, arch.WordSize)
+			checkErr(err, "Error decoding memValue")
+			mem.SetWord(arch.Word(memAddr), arch.Word(memValue))
+			proof := mem.MerkleProof(arch.Word(memAddr))
+			proof1 = proof[:]
 		}
-		insnProof = mem.MerkleProof(uint32(pc))
+		if len(args) == 7 {
+			memAddr, err := strconv.ParseUint(args[5], 10, arch.WordSize)
+			checkErr(err, "Error decoding memAddr")
+			memValue, err := strconv.ParseUint(args[6], 10, arch.WordSize)
+			checkErr(err, "Error decoding memValue")
+			mem.SetWord(arch.Word(memAddr), arch.Word(memValue))
+			proof := mem.MerkleProof(arch.Word(memAddr))
+			proof1 = proof[:]
+		}
+		proof0 := mem.MerkleProof(arch.Word(memAddr0))
+
+		output := struct {
+			MemRoot common.Hash
+			Proof   []byte
+		}{
+			MemRoot: mem.MerkleRoot(),
+			Proof:   append(proof0[:], proof1...),
+		}
+		packed, err := cannonMemoryProofArgs.Pack(&output)
+		checkErr(err, "Error encoding output")
+		fmt.Print(hexutil.Encode(packed[32:]))
+	case "cannonMemoryProof2":
+		// <memAddr0, memValue0, [memAddr1, memValue1], memAddr2>
+		// Generates memory proof of `memAddr2` for a trie containing `memValue0` and `memValue1`
+		mem := memory.NewMemory()
+		if len(args) != 6 {
+			panic("Error: cannonMemoryProofWithProof2 requires 5 arguments")
+		}
+		memAddr0, err := strconv.ParseUint(args[1], 10, arch.WordSize)
+		checkErr(err, "Error decoding addr")
+		memValue0, err := strconv.ParseUint(args[2], 10, arch.WordSize)
+		checkErr(err, "Error decoding memValue0")
+		mem.SetWord(arch.Word(memAddr0), arch.Word(memValue0))
+
+		var memProof [memory.MemProofSize]byte
+		memAddr, err := strconv.ParseUint(args[3], 10, arch.WordSize)
+		checkErr(err, "Error decoding memAddr")
+		memValue1, err := strconv.ParseUint(args[4], 10, arch.WordSize)
+		checkErr(err, "Error decoding memValue1")
+		mem.SetWord(arch.Word(memAddr), arch.Word(memValue1))
+
+		memAddr2, err := strconv.ParseUint(args[5], 10, arch.WordSize)
+		checkErr(err, "Error decoding memAddr")
+		memProof = mem.MerkleProof(arch.Word(memAddr2))
+
+		output := struct {
+			MemRoot common.Hash
+			Proof   []byte
+		}{
+			MemRoot: mem.MerkleRoot(),
+			Proof:   memProof[:],
+		}
+		packed, err := cannonMemoryProofArgs.Pack(&output)
+		checkErr(err, "Error encoding output")
+		fmt.Print(hexutil.Encode(packed[32:]))
+	case "cannonMemoryProofWrongLeaf":
+		// <memAddr0, memValue0, memAddr1, memValue1>
+		mem := memory.NewMemory()
+		if len(args) != 5 {
+			panic("Error: cannonMemoryProofWrongLeaf requires 4 arguments")
+		}
+		memAddr0, err := strconv.ParseUint(args[1], 10, arch.WordSize)
+		checkErr(err, "Error decoding memAddr0")
+		memValue0, err := strconv.ParseUint(args[2], 10, arch.WordSize)
+		checkErr(err, "Error decoding memValue0")
+		mem.SetWord(arch.Word(memAddr0), arch.Word(memValue0))
+
+		var insnProof, memProof [memory.MemProofSize]byte
+		memAddr1, err := strconv.ParseUint(args[3], 10, arch.WordSize)
+		checkErr(err, "Error decoding memAddr1")
+		memValue1, err := strconv.ParseUint(args[4], 10, arch.WordSize)
+		checkErr(err, "Error decoding memValue1")
+		mem.SetWord(arch.Word(memAddr1), arch.Word(memValue1))
+
+		// Compute a valid proof for the root, but for the wrong leaves.
+		memProof = mem.MerkleProof(arch.Word(memAddr1 + arch.WordSize))
+		insnProof = mem.MerkleProof(arch.Word(memAddr0 + arch.WordSize))
 
 		output := struct {
 			MemRoot common.Hash
@@ -361,6 +471,56 @@ func DiffTestUtils() {
 		packed, err := cannonMemoryProofArgs.Pack(&output)
 		checkErr(err, "Error encoding output")
 		fmt.Print(hexutil.Encode(packed[32:]))
+	case "encodeScalarEcotone":
+		basefeeScalar, err := strconv.ParseUint(args[1], 10, 32)
+		checkErr(err, "Error decoding basefeeScalar")
+		blobbasefeeScalar, err := strconv.ParseUint(args[2], 10, 32)
+		checkErr(err, "Error decoding blobbasefeeScalar")
+
+		encoded := eth.EncodeScalar(eth.EcotoneScalars{
+			BaseFeeScalar:     uint32(basefeeScalar),
+			BlobBaseFeeScalar: uint32(blobbasefeeScalar),
+		})
+		fmt.Print(hexutil.Encode(encoded[:]))
+	case "decodeScalarEcotone":
+		scalar := common.HexToHash(args[1])
+		scalars, err := eth.DecodeScalar([32]byte(scalar[:]))
+		checkErr(err, "Error decoding scalar")
+
+		packed, err := decodedScalars.Pack(scalars.BaseFeeScalar, scalars.BlobBaseFeeScalar)
+		checkErr(err, "Error encoding output")
+		fmt.Print(hexutil.Encode(packed))
+	case "encodeGasPayingToken":
+		// Parse input arguments
+		token := common.HexToAddress(args[1])
+		decimals, err := strconv.ParseUint(args[2], 10, 8)
+		checkErr(err, "Error decoding decimals")
+		name := common.HexToHash(args[3])
+		symbol := common.HexToHash(args[4])
+
+		// Encode gas paying token
+		encoded, err := gasPayingTokenArgs.Pack(token, uint8(decimals), name, symbol)
+		checkErr(err, "Error encoding gas paying token")
+
+		// Pack encoded gas paying token
+		packed, err := bytesArgs.Pack(&encoded)
+		checkErr(err, "Error encoding output")
+
+		fmt.Print(hexutil.Encode(packed))
+	case "encodeDependency":
+		// Parse input arguments
+		chainId, ok := new(big.Int).SetString(args[1], 10)
+		checkOk(ok)
+
+		// Encode dependency
+		encoded, err := dependencyArgs.Pack(chainId)
+		checkErr(err, "Error encoding dependency")
+
+		// Pack encoded dependency
+		packed, err := bytesArgs.Pack(&encoded)
+		checkErr(err, "Error encoding output")
+
+		fmt.Print(hexutil.Encode(packed))
 	default:
 		panic(fmt.Errorf("Unknown command: %s", args[0]))
 	}

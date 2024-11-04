@@ -9,14 +9,16 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 const (
-	BlobSize        = 4096 * 32
-	MaxBlobDataSize = (4*31+3)*1024 - 4
-	EncodingVersion = 0
-	VersionOffset   = 1    // offset of the version byte in the blob encoding
-	Rounds          = 1024 // number of encode/decode rounds
+	BlobSize          = 4096 * 32
+	MaxBlobDataSize   = (4*31+3)*1024 - 4
+	EncodingVersion   = 0
+	VersionOffset     = 1    // offset of the version byte in the blob encoding
+	Rounds            = 1024 // number of encode/decode rounds
+	MaxBlobsPerBlobTx = params.MaxBlobGasPerBlock / params.BlobTxBlobGasPerBlob
 )
 
 var (
@@ -57,7 +59,7 @@ func (b *Blob) TerminalString() string {
 }
 
 func (b *Blob) ComputeKZGCommitment() (kzg4844.Commitment, error) {
-	return kzg4844.BlobToCommitment(*b.KZGBlob())
+	return kzg4844.BlobToCommitment(b.KZGBlob())
 }
 
 // KZGToVersionedHash computes the "blob hash" (a.k.a. versioned-hash) of a blob-commitment, as used in a blob-tx.
@@ -70,7 +72,7 @@ func KZGToVersionedHash(commitment kzg4844.Commitment) (out common.Hash) {
 // VerifyBlobProof verifies that the given blob and proof corresponds to the given commitment,
 // returning error if the verification fails.
 func VerifyBlobProof(blob *Blob, commitment kzg4844.Commitment, proof kzg4844.Proof) error {
-	return kzg4844.VerifyBlobProof(*blob.KZGBlob(), commitment, proof)
+	return kzg4844.VerifyBlobProof(blob.KZGBlob(), commitment, proof)
 }
 
 // FromData encodes the given input data into this blob. The encoding scheme is as follows:

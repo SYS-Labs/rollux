@@ -10,9 +10,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/stretchr/testify/require"
 
+	altda "github.com/ethereum-optimism/optimism/op-alt-da"
 	"github.com/ethereum-optimism/optimism/op-chain-ops/genesis"
 	"github.com/ethereum-optimism/optimism/op-e2e/config"
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
@@ -37,6 +39,7 @@ type DeployParams struct {
 	MnemonicConfig *MnemonicConfig
 	Secrets        *Secrets
 	Addresses      *Addresses
+	AllocType      config.AllocType
 }
 
 // TestParams parametrizes the most essential rollup configuration parameters
@@ -45,7 +48,8 @@ type TestParams struct {
 	SequencerWindowSize uint64
 	ChannelTimeout      uint64
 	L1BlockTime         uint64
-	UsePlasma           bool
+	UseAltDA            bool
+	AllocType           config.AllocType
 }
 
 func MakeDeployParams(t require.TestingT, tp *TestParams) *DeployParams {
@@ -54,15 +58,16 @@ func MakeDeployParams(t require.TestingT, tp *TestParams) *DeployParams {
 	require.NoError(t, err)
 	addresses := secrets.Addresses()
 
-	deployConfig := config.DeployConfig.Copy()
+	deployConfig := config.DeployConfig(tp.AllocType)
 	deployConfig.MaxSequencerDrift = tp.MaxSequencerDrift
 	deployConfig.SequencerWindowSize = tp.SequencerWindowSize
-	deployConfig.ChannelTimeout = tp.ChannelTimeout
+	deployConfig.ChannelTimeoutBedrock = tp.ChannelTimeout
 	deployConfig.L1BlockTime = tp.L1BlockTime
-	deployConfig.UsePlasma = tp.UsePlasma
+	deployConfig.UseAltDA = tp.UseAltDA
 	ApplyDeployConfigForks(deployConfig)
 
-	require.NoError(t, deployConfig.Check())
+	logger := log.NewLogger(log.DiscardHandler())
+	require.NoError(t, deployConfig.Check(logger))
 	require.Equal(t, addresses.Batcher, deployConfig.BatchSenderAddress)
 	require.Equal(t, addresses.Proposer, deployConfig.L2OutputOracleProposer)
 	require.Equal(t, addresses.SequencerP2P, deployConfig.P2PSequencerAddress)
@@ -72,6 +77,7 @@ func MakeDeployParams(t require.TestingT, tp *TestParams) *DeployParams {
 		MnemonicConfig: mnemonicCfg,
 		Secrets:        secrets,
 		Addresses:      addresses,
+		AllocType:      tp.AllocType,
 	}
 }
 
@@ -100,16 +106,37 @@ func Ether(v uint64) *big.Int {
 	return new(big.Int).Mul(new(big.Int).SetUint64(v), etherScalar)
 }
 
+func GetL2AllocsMode(dc *genesis.DeployConfig, t uint64) genesis.L2AllocsMode {
+	if fork := dc.HoloceneTime(t); fork != nil && *fork <= 0 {
+		return genesis.L2AllocsHolocene
+	}
+	if fork := dc.GraniteTime(t); fork != nil && *fork <= 0 {
+		return genesis.L2AllocsGranite
+	}
+	if fork := dc.FjordTime(t); fork != nil && *fork <= 0 {
+		return genesis.L2AllocsFjord
+	}
+	if fork := dc.EcotoneTime(t); fork != nil && *fork <= 0 {
+		return genesis.L2AllocsEcotone
+	}
+	return genesis.L2AllocsDelta
+}
+
 // Setup computes the testing setup configurations from deployment configuration and optional allocation parameters.
 func Setup(t require.TestingT, deployParams *DeployParams, alloc *AllocParams) *SetupData {
 	deployConf := deployParams.DeployConfig.Copy()
 	deployConf.L1GenesisBlockTimestamp = hexutil.Uint64(time.Now().Unix())
-	require.NoError(t, deployConf.Check())
+	logger := log.NewLogger(log.DiscardHandler())
+	require.NoError(t, deployConf.Check(logger))
 
-	l1Deployments := config.L1Deployments.Copy()
+	l1Deployments := config.L1Deployments(deployParams.AllocType)
 	require.NoError(t, l1Deployments.Check(deployConf))
 
-	l1Genesis, err := genesis.BuildL1DeveloperGenesis(deployConf, config.L1Allocs, l1Deployments)
+	l1Genesis, err := genesis.BuildL1DeveloperGenesis(
+		deployConf,
+		config.L1Allocs(deployParams.AllocType),
+		l1Deployments,
+	)
 	require.NoError(t, err, "failed to create l1 genesis")
 	if alloc.PrefundTestUsers {
 		for _, addr := range deployParams.Addresses.All() {
@@ -124,13 +151,9 @@ func Setup(t require.TestingT, deployParams *DeployParams, alloc *AllocParams) *
 
 	l1Block := l1Genesis.ToBlock()
 
-	var allocsMode genesis.L2AllocsMode
-	allocsMode = genesis.L2AllocsDelta
-	if ecotoneTime := deployConf.EcotoneTime(l1Block.Time()); ecotoneTime != nil && *ecotoneTime == 0 {
-		allocsMode = genesis.L2AllocsEcotone
-	}
-	l2Allocs := config.L2Allocs(allocsMode)
-	l2Genesis, err := genesis.BuildL2Genesis(deployConf, l2Allocs, l1Block)
+	allocsMode := GetL2AllocsMode(deployConf, l1Block.Time())
+	l2Allocs := config.L2Allocs(deployParams.AllocType, allocsMode)
+	l2Genesis, err := genesis.BuildL2Genesis(deployConf, l2Allocs, l1Block.Header())
 	require.NoError(t, err, "failed to create l2 genesis")
 	if alloc.PrefundTestUsers {
 		for _, addr := range deployParams.Addresses.All() {
@@ -141,6 +164,16 @@ func Setup(t require.TestingT, deployParams *DeployParams, alloc *AllocParams) *
 	}
 	for addr, val := range alloc.L2Alloc {
 		l2Genesis.Alloc[addr] = val
+	}
+
+	var pcfg *rollup.AltDAConfig
+	if deployConf.UseAltDA {
+		pcfg = &rollup.AltDAConfig{
+			DAChallengeAddress: l1Deployments.DataAvailabilityChallengeProxy,
+			DAChallengeWindow:  deployConf.DAChallengeWindow,
+			DAResolveWindow:    deployConf.DAResolveWindow,
+			CommitmentType:     altda.KeccakCommitmentString,
+		}
 	}
 
 	rollupCfg := &rollup.Config{
@@ -159,7 +192,7 @@ func Setup(t require.TestingT, deployParams *DeployParams, alloc *AllocParams) *
 		BlockTime:              deployConf.L2BlockTime,
 		MaxSequencerDrift:      deployConf.MaxSequencerDrift,
 		SeqWindowSize:          deployConf.SequencerWindowSize,
-		ChannelTimeout:         deployConf.ChannelTimeout,
+		ChannelTimeoutBedrock:  deployConf.ChannelTimeoutBedrock,
 		L1ChainID:              new(big.Int).SetUint64(deployConf.L1ChainID),
 		L2ChainID:              new(big.Int).SetUint64(deployConf.L2ChainID),
 		BatchInboxAddress:      deployConf.BatchInboxAddress,
@@ -170,11 +203,10 @@ func Setup(t require.TestingT, deployParams *DeployParams, alloc *AllocParams) *
 		DeltaTime:              deployConf.DeltaTime(uint64(deployConf.L1GenesisBlockTimestamp)),
 		EcotoneTime:            deployConf.EcotoneTime(uint64(deployConf.L1GenesisBlockTimestamp)),
 		FjordTime:              deployConf.FjordTime(uint64(deployConf.L1GenesisBlockTimestamp)),
+		GraniteTime:            deployConf.GraniteTime(uint64(deployConf.L1GenesisBlockTimestamp)),
+		HoloceneTime:           deployConf.HoloceneTime(uint64(deployConf.L1GenesisBlockTimestamp)),
 		InteropTime:            deployConf.InteropTime(uint64(deployConf.L1GenesisBlockTimestamp)),
-		DAChallengeAddress:     l1Deployments.DataAvailabilityChallengeProxy,
-		DAChallengeWindow:      deployConf.DAChallengeWindow,
-		DAResolveWindow:        deployConf.DAResolveWindow,
-		UsePlasma:              deployConf.UsePlasma,
+		AltDAConfig:            pcfg,
 	}
 
 	require.NoError(t, rollupCfg.Check())
@@ -203,7 +235,9 @@ func SystemConfigFromDeployConfig(deployConfig *genesis.DeployConfig) eth.System
 }
 
 func ApplyDeployConfigForks(deployConfig *genesis.DeployConfig) {
-	isFjord := os.Getenv("OP_E2E_USE_FJORD") == "true"
+	isHolocene := os.Getenv("OP_E2E_USE_HOLOCENE") == "true"
+	isGranite := isHolocene || os.Getenv("OP_E2E_USE_GRANITE") == "true"
+	isFjord := isGranite || os.Getenv("OP_E2E_USE_FJORD") == "true"
 	isEcotone := isFjord || os.Getenv("OP_E2E_USE_ECOTONE") == "true"
 	isDelta := isEcotone || os.Getenv("OP_E2E_USE_DELTA") == "true"
 	if isDelta {
@@ -215,15 +249,13 @@ func ApplyDeployConfigForks(deployConfig *genesis.DeployConfig) {
 	if isFjord {
 		deployConfig.L2GenesisFjordTimeOffset = new(hexutil.Uint64)
 	}
+	if isGranite {
+		deployConfig.L2GenesisGraniteTimeOffset = new(hexutil.Uint64)
+	}
+	if isHolocene {
+		deployConfig.L2GenesisHoloceneTimeOffset = new(hexutil.Uint64)
+	}
 	// Canyon and lower is activated by default
 	deployConfig.L2GenesisCanyonTimeOffset = new(hexutil.Uint64)
 	deployConfig.L2GenesisRegolithTimeOffset = new(hexutil.Uint64)
-}
-
-func UseFPAC() bool {
-	return os.Getenv("OP_E2E_USE_FPAC") == "true"
-}
-
-func UsePlasma() bool {
-	return os.Getenv("OP_E2E_USE_PLASMA") == "true"
 }

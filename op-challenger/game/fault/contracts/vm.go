@@ -29,10 +29,14 @@ func NewVMContract(addr common.Address, caller *batching.MultiCaller) *VMContrac
 	}
 }
 
-func (c *VMContract) Oracle(ctx context.Context) (*PreimageOracleContract, error) {
+func (c *VMContract) Addr() common.Address {
+	return c.contract.Addr()
+}
+
+func (c *VMContract) Oracle(ctx context.Context) (PreimageOracleContract, error) {
 	results, err := c.multiCaller.SingleCall(ctx, rpcblock.Latest, c.contract.Call(methodOracle))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load oracle address: %w", err)
 	}
-	return NewPreimageOracleContract(results.GetAddress(0), c.multiCaller), nil
+	return NewPreimageOracleContract(ctx, results.GetAddress(0), c.multiCaller)
 }

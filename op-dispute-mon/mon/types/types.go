@@ -2,6 +2,7 @@ package types
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/contracts"
 	faultTypes "github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
@@ -17,6 +18,7 @@ type EnrichedClaim struct {
 
 type EnrichedGameData struct {
 	types.GameMetadata
+	LastUpdateTime        time.Time
 	L1Head                common.Hash
 	L1HeadNum             uint64
 	L2BlockNumber         uint64
@@ -42,6 +44,9 @@ type EnrichedGameData struct {
 	// WETHContract is the address of the DelayedWETH contract used by this game
 	// The contract is potentially shared by multiple games.
 	WETHContract common.Address
+
+	// WETHDelay is the delay applied before credits can be withdrawn.
+	WETHDelay time.Duration
 
 	// ETHCollateral is the ETH balance of the (potentially shared) WETHContract
 	// This ETH balance will be used to pay out any bonds required by the games

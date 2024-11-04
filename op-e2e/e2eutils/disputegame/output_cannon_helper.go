@@ -9,23 +9,22 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
-	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/contracts"
-	contractMetrics "github.com/ethereum-optimism/optimism/op-challenger/game/fault/contracts/metrics"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/cannon"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/outputs"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/split"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/utils"
+	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/trace/vm"
 	"github.com/ethereum-optimism/optimism/op-challenger/game/fault/types"
 	"github.com/ethereum-optimism/optimism/op-challenger/metrics"
+	"github.com/ethereum-optimism/optimism/op-e2e/bindings"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/challenger"
+	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/transactions"
 	"github.com/ethereum-optimism/optimism/op-e2e/e2eutils/wait"
 	preimage "github.com/ethereum-optimism/optimism/op-preimage"
 	"github.com/ethereum-optimism/optimism/op-service/sources/batching"
 	"github.com/ethereum-optimism/optimism/op-service/sources/batching/rpcblock"
 	"github.com/ethereum-optimism/optimism/op-service/testlog"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 )
@@ -36,7 +35,7 @@ type OutputCannonGameHelper struct {
 
 func (g *OutputCannonGameHelper) StartChallenger(ctx context.Context, name string, options ...challenger.Option) *challenger.Helper {
 	opts := []challenger.Option{
-		challenger.WithCannon(g.T, g.System.RollupCfg(), g.System.L2Genesis()),
+		challenger.WithCannon(g.T, g.System),
 		challenger.WithFactoryAddress(g.FactoryAddr),
 		challenger.WithGameAddress(g.Addr),
 	}
@@ -48,28 +47,51 @@ func (g *OutputCannonGameHelper) StartChallenger(ctx context.Context, name strin
 	return c
 }
 
-func (g *OutputCannonGameHelper) CreateHonestActor(ctx context.Context, l2Node string, options ...challenger.Option) *OutputHonestHelper {
-	opts := g.defaultChallengerOptions()
-	opts = append(opts, options...)
-	cfg := challenger.NewChallengerConfig(g.T, g.System, l2Node, opts...)
+type HonestActorConfig struct {
+	PrestateBlock  uint64
+	PoststateBlock uint64
+	ChallengerOpts []challenger.Option
+}
 
+type HonestActorOpt func(cfg *HonestActorConfig)
+
+func WithClaimedL2BlockNumber(num uint64) HonestActorOpt {
+	return func(cfg *HonestActorConfig) {
+		cfg.PoststateBlock = num
+	}
+}
+
+func WithPrivKey(privKey *ecdsa.PrivateKey) HonestActorOpt {
+	return func(cfg *HonestActorConfig) {
+		cfg.ChallengerOpts = append(cfg.ChallengerOpts, challenger.WithPrivKey(privKey))
+	}
+}
+
+func (g *OutputCannonGameHelper) CreateHonestActor(ctx context.Context, l2Node string, options ...HonestActorOpt) *OutputHonestHelper {
 	logger := testlog.Logger(g.T, log.LevelInfo).New("role", "HonestHelper", "game", g.Addr)
 	l2Client := g.System.NodeClient(l2Node)
-	caller := batching.NewMultiCaller(g.System.NodeClient("l1").Client(), batching.DefaultBatchSize)
-	contract, err := contracts.NewFaultDisputeGameContract(ctx, contractMetrics.NoopContractMetrics, g.Addr, caller)
-	g.Require.NoError(err)
 
-	prestateBlock, poststateBlock, err := contract.GetBlockRange(ctx)
+	realPrestateBlock, realPostStateBlock, err := g.Game.GetBlockRange(ctx)
 	g.Require.NoError(err, "Failed to load block range")
-	dir := filepath.Join(cfg.Datadir, "honest")
 	splitDepth := g.SplitDepth(ctx)
 	rollupClient := g.System.RollupClient(l2Node)
-	prestateProvider := outputs.NewPrestateProvider(rollupClient, prestateBlock)
+	actorCfg := &HonestActorConfig{
+		PrestateBlock:  realPrestateBlock,
+		PoststateBlock: realPostStateBlock,
+		ChallengerOpts: g.defaultChallengerOptions(),
+	}
+	for _, option := range options {
+		option(actorCfg)
+	}
+
+	cfg := challenger.NewChallengerConfig(g.T, g.System, l2Node, actorCfg.ChallengerOpts...)
+	dir := filepath.Join(cfg.Datadir, "honest")
+	prestateProvider := outputs.NewPrestateProvider(rollupClient, actorCfg.PrestateBlock)
 	l1Head := g.GetL1Head(ctx)
 	accessor, err := outputs.NewOutputCannonTraceAccessor(
-		logger, metrics.NoopMetrics, cfg, l2Client, prestateProvider, rollupClient, dir, l1Head, splitDepth, prestateBlock, poststateBlock)
+		logger, metrics.NoopMetrics, cfg.Cannon, vm.NewOpProgramServerExecutor(logger), l2Client, prestateProvider, cfg.CannonAbsolutePreState, rollupClient, dir, l1Head, splitDepth, actorCfg.PrestateBlock, actorCfg.PoststateBlock)
 	g.Require.NoError(err, "Failed to create output cannon trace accessor")
-	return NewOutputHonestHelper(g.T, g.Require, &g.OutputGameHelper, contract, accessor)
+	return NewOutputHonestHelper(g.T, g.Require, &g.OutputGameHelper, g.Game, accessor)
 }
 
 type PreimageLoadCheck func(types.TraceProvider, uint64) error
@@ -132,7 +154,7 @@ func (g *OutputCannonGameHelper) ChallengeToPreimageLoad(ctx context.Context, ou
 	if preloadPreimage {
 		_, _, preimageData, err := provider.GetStepData(ctx, types.NewPosition(execDepth, big.NewInt(int64(targetTraceIndex))))
 		g.Require.NoError(err)
-		g.UploadPreimage(ctx, preimageData, challengerKey)
+		g.UploadPreimage(ctx, preimageData)
 		g.WaitForPreimageInOracle(ctx, preimageData)
 	}
 
@@ -238,19 +260,14 @@ func (g *OutputCannonGameHelper) VerifyPreimage(ctx context.Context, outputRootC
 		g.Require.NotNil(oracleData, "Should have had required preimage oracle data")
 		g.Require.Equal(common.Hash(preimageKey.PreimageKey()).Bytes(), oracleData.OracleKey, "Must have correct preimage key")
 
-		tx, err := g.Game.AddLocalData(g.Opts,
-			oracleData.GetIdent(),
-			big.NewInt(outputRootClaim.Index),
-			new(big.Int).SetUint64(uint64(oracleData.OracleOffset)))
-		g.Require.NoError(err)
-		_, err = wait.ForReceiptOK(ctx, g.Client, tx.Hash())
-		g.Require.NoError(err)
+		candidate, err := g.Game.UpdateOracleTx(ctx, uint64(outputRootClaim.Index), oracleData)
+		g.Require.NoError(err, "failed to get oracle")
+		transactions.RequireSendTx(g.T, ctx, g.Client, candidate, g.PrivKey)
 
 		expectedPostState, err := provider.Get(ctx, pos)
 		g.Require.NoError(err, "Failed to get expected post state")
 
-		callOpts := &bind.CallOpts{Context: ctx}
-		vmAddr, err := g.Game.Vm(callOpts)
+		vm, err := g.Game.Vm(ctx)
 		g.Require.NoError(err, "Failed to get VM address")
 
 		abi, err := bindings.MIPSMetaData.GetAbi()
@@ -258,7 +275,7 @@ func (g *OutputCannonGameHelper) VerifyPreimage(ctx context.Context, outputRootC
 		caller := batching.NewMultiCaller(g.Client.Client(), batching.DefaultBatchSize)
 		result, err := caller.SingleCall(ctx, rpcblock.Latest, &batching.ContractCall{
 			Abi:    abi,
-			Addr:   vmAddr,
+			Addr:   vm.Addr(),
 			Method: "step",
 			Args: []interface{}{
 				prestate, proof, localContext,
@@ -280,12 +297,9 @@ func (g *OutputCannonGameHelper) createCannonTraceProvider(ctx context.Context, 
 	opt = append(opt, options...)
 	cfg := challenger.NewChallengerConfig(g.T, g.System, l2Node, opt...)
 
-	caller := batching.NewMultiCaller(g.System.NodeClient("l1").Client(), batching.DefaultBatchSize)
 	l2Client := g.System.NodeClient(l2Node)
-	contract, err := contracts.NewFaultDisputeGameContract(ctx, contractMetrics.NoopContractMetrics, g.Addr, caller)
-	g.Require.NoError(err)
 
-	prestateBlock, poststateBlock, err := contract.GetBlockRange(ctx)
+	prestateBlock, poststateBlock, err := g.Game.GetBlockRange(ctx)
 	g.Require.NoError(err, "Failed to load block range")
 	rollupClient := g.System.RollupClient(l2Node)
 	prestateProvider := outputs.NewPrestateProvider(rollupClient, prestateBlock)
@@ -302,10 +316,10 @@ func (g *OutputCannonGameHelper) createCannonTraceProvider(ctx context.Context, 
 		localContext = outputs.CreateLocalContext(pre, post)
 		dir := filepath.Join(cfg.Datadir, "cannon-trace")
 		subdir := filepath.Join(dir, localContext.Hex())
-		return cannon.NewTraceProviderForTest(logger, metrics.NoopMetrics, cfg, localInputs, subdir, g.MaxDepth(ctx)-splitDepth-1), nil
+		return cannon.NewTraceProviderForTest(logger, metrics.NoopMetrics.VmMetrics(types.TraceTypeCannon.String()), cfg, localInputs, subdir, g.MaxDepth(ctx)-splitDepth-1), nil
 	})
 
-	claims, err := contract.GetAllClaims(ctx, rpcblock.Latest)
+	claims, err := g.Game.GetAllClaims(ctx, rpcblock.Latest)
 	g.Require.NoError(err)
 	game := types.NewGameState(claims, g.MaxDepth(ctx))
 
@@ -317,7 +331,7 @@ func (g *OutputCannonGameHelper) createCannonTraceProvider(ctx context.Context, 
 
 func (g *OutputCannonGameHelper) defaultChallengerOptions() []challenger.Option {
 	return []challenger.Option{
-		challenger.WithCannon(g.T, g.System.RollupCfg(), g.System.L2Genesis()),
+		challenger.WithCannon(g.T, g.System),
 		challenger.WithFactoryAddress(g.FactoryAddr),
 		challenger.WithGameAddress(g.Addr),
 	}

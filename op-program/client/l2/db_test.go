@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -128,14 +129,15 @@ func TestUpdateState(t *testing.T) {
 	genesisBlock := l2Genesis.MustCommit(db, trieDB)
 	assertStateDataAvailable(t, db, l2Genesis, genesisBlock)
 
-	statedb, err := state.New(genesisBlock.Root(), state.NewDatabase(rawdb.NewDatabase(db)), nil)
+	statedb, err := state.New(genesisBlock.Root(), state.NewDatabase(triedb.NewDatabase(rawdb.NewDatabase(db), nil), nil))
 	require.NoError(t, err)
-	statedb.SetBalance(userAccount, uint256.NewInt(50))
+	statedb.MakeSinglethreaded()
+	statedb.SetBalance(userAccount, uint256.NewInt(50), tracing.BalanceChangeUnspecified)
 	require.Equal(t, uint256.NewInt(50), statedb.GetBalance(userAccount))
 	statedb.SetNonce(userAccount, uint64(5))
 	require.Equal(t, uint64(5), statedb.GetNonce(userAccount))
 
-	statedb.SetBalance(unknownAccount, uint256.NewInt(60))
+	statedb.SetBalance(unknownAccount, uint256.NewInt(60), tracing.BalanceChangeUnspecified)
 	require.Equal(t, uint256.NewInt(60), statedb.GetBalance(unknownAccount))
 	statedb.SetCode(codeAccount, []byte{1})
 	require.Equal(t, []byte{1}, statedb.GetCode(codeAccount))
@@ -146,8 +148,9 @@ func TestUpdateState(t *testing.T) {
 	err = statedb.Database().TrieDB().Commit(newRoot, true)
 	require.NoError(t, err)
 
-	statedb, err = state.New(newRoot, state.NewDatabase(rawdb.NewDatabase(db)), nil)
+	statedb, err = state.New(newRoot, state.NewDatabase(triedb.NewDatabase(rawdb.NewDatabase(db), nil), nil))
 	require.NoError(t, err)
+	statedb.MakeSinglethreaded()
 	require.Equal(t, uint256.NewInt(50), statedb.GetBalance(userAccount))
 	require.Equal(t, uint64(5), statedb.GetNonce(userAccount))
 	require.Equal(t, uint256.NewInt(60), statedb.GetBalance(unknownAccount))
@@ -180,7 +183,7 @@ func createGenesis() *core.Genesis {
 }
 
 func assertStateDataAvailable(t *testing.T, db ethdb.KeyValueStore, l2Genesis *core.Genesis, genesisBlock *types.Block) {
-	statedb, err := state.New(genesisBlock.Root(), state.NewDatabase(rawdb.NewDatabase(db)), nil)
+	statedb, err := state.New(genesisBlock.Root(), state.NewDatabase(triedb.NewDatabase(rawdb.NewDatabase(db), nil), nil))
 	require.NoError(t, err)
 
 	for address, account := range l2Genesis.Alloc {

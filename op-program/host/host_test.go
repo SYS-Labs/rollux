@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum-optimism/optimism/op-program/client/l1"
 	"github.com/ethereum-optimism/optimism/op-program/host/config"
 	"github.com/ethereum-optimism/optimism/op-program/host/kvstore"
-	"github.com/ethereum-optimism/optimism/op-program/io"
 	"github.com/ethereum-optimism/optimism/op-service/testlog"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -25,20 +24,20 @@ func TestServerMode(t *testing.T) {
 
 	l1Head := common.Hash{0x11}
 	l2OutputRoot := common.Hash{0x33}
-	cfg := config.NewConfig(chaincfg.Sepolia, chainconfig.OPSepoliaChainConfig, l1Head, common.Hash{0x22}, l2OutputRoot, common.Hash{0x44}, 1000)
+	cfg := config.NewConfig(chaincfg.OPSepolia(), chainconfig.OPSepoliaChainConfig(), l1Head, common.Hash{0x22}, l2OutputRoot, common.Hash{0x44}, 1000)
 	cfg.DataDir = dir
 	cfg.ServerMode = true
 
-	preimageServer, preimageClient, err := io.CreateBidirectionalChannel()
+	preimageServer, preimageClient, err := preimage.CreateBidirectionalChannel()
 	require.NoError(t, err)
 	defer preimageClient.Close()
-	hintServer, hintClient, err := io.CreateBidirectionalChannel()
+	hintServer, hintClient, err := preimage.CreateBidirectionalChannel()
 	require.NoError(t, err)
 	defer hintClient.Close()
 	logger := testlog.Logger(t, log.LevelTrace)
 	result := make(chan error)
 	go func() {
-		result <- PreimageServer(context.Background(), logger, cfg, preimageServer, hintServer)
+		result <- PreimageServer(context.Background(), logger, cfg, preimageServer, hintServer, makeDefaultPrefetcher)
 	}()
 
 	pClient := preimage.NewOracleClient(preimageClient)

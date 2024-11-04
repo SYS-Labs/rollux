@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { IBigStepper, IPreimageOracle } from "src/dispute/interfaces/IBigStepper.sol";
-import { PreimageOracle, PreimageKeyLib } from "src/cannon/PreimageOracle.sol";
+// Libraries
+import { PreimageKeyLib } from "src/cannon/PreimageKeyLib.sol";
 import "src/dispute/lib/Types.sol";
+
+// Interfaces
+import { IBigStepper, IPreimageOracle } from "src/dispute/interfaces/IBigStepper.sol";
 
 /// @title AlphabetVM
 /// @dev A mock VM for the purpose of testing the dispute game infrastructure. Note that this only works

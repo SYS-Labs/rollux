@@ -7,7 +7,6 @@
   <br />
 </div>
 
-
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
@@ -47,7 +46,7 @@ In this repository, you'll find numerous core components of Rollux, the decentra
 
 ## Specification
 
-If you're interested in the technical details of how Optimism works, refer to the [Optimism Protocol Specification](https://github.com/ethereum-optimism/specs).
+Detailed specifications for the OP Stack can be found within the [OP Stack Specs](https://github.com/ethereum-optimism/specs) repository.
 
 ## Community
 
@@ -79,21 +78,12 @@ You can find detailed specifications for the Bedrock upgrade within the [specs f
 ## Directory Structure
 
 <pre>
-~~ Production ~~
-├── <a href="./packages">packages</a>
-│   ├── <a href="./packages/common-ts">common-ts</a>: Common tools for building apps in TypeScript
-│   ├── <a href="./packages/contracts-bedrock">contracts-bedrock</a>: Rollux Bedrock smart contracts.
-│   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Rollux easier
-│   ├── <a href="./packages/chain-mon">chain-mon</a>: Chain monitoring services
-│   └── <a href="./packages/sdk">sdk</a>: provides a set of tools for interacting with Rollux
 ├── <a href="./docs">docs</a>: A collection of documents including audits and post-mortems
 ├── <a href="./op-batcher">op-batcher</a>: L2-Batch Submitter, submits bundles of batches to L1
-├── <a href="./op-bindings">op-bindings</a>: Go bindings for Bedrock smart contracts.
 ├── <a href="./op-bootnode">op-bootnode</a>: Standalone op-node discovery bootnode
 ├── <a href="./op-chain-ops">op-chain-ops</a>: State surgery utilities
 ├── <a href="./op-challenger">op-challenger</a>: Dispute game challenge agent
 ├── <a href="./op-e2e">op-e2e</a>: End-to-End testing of all bedrock components in Go
-├── <a href="./op-heartbeat">op-heartbeat</a>: Heartbeat monitor service
 ├── <a href="./op-node">op-node</a>: rollup consensus-layer client
 ├── <a href="./op-preimage">op-preimage</a>: Go bindings for Preimage Oracle
 ├── <a href="./op-program">op-program</a>: Fault proof program
@@ -104,24 +94,16 @@ You can find detailed specifications for the Bedrock upgrade within the [specs f
 ├── <a href="./ops">ops</a>: Various operational packages
 ├── <a href="./ops-bedrock">ops-bedrock</a>: Bedrock devnet work
 ├── <a href="./packages">packages</a>
-│   ├── <a href="./packages/chain-mon">chain-mon</a>: Chain monitoring services
-│   ├── <a href="./packages/common-ts">common-ts</a>: Common tools for building apps in TypeScript
-│   ├── <a href="./packages/contracts-bedrock">contracts-bedrock</a>: Bedrock smart contracts
-│   ├── <a href="./packages/contracts-ts">contracts-ts</a>: ABI and Address constants
-│   ├── <a href="./packages/core-utils">core-utils</a>: Low-level utilities that make building Optimism easier
-│   ├── <a href="./packages/fee-estimation">fee-estimation</a>: Tools for estimating gas on OP chains
-│   ├── <a href="./packages/sdk">sdk</a>: provides a set of tools for interacting with Optimism
-│   └── <a href="./packages/web3js-plugin">web3js-plugin</a>: Adds functions to estimate L1 and L2 gas
+│   ├── <a href="./packages/contracts-bedrock">contracts-bedrock</a>: OP Stack smart contracts
 ├── <a href="./proxyd">proxyd</a>: Configurable RPC request router and proxy
 ├── <a href="./specs">specs</a>: Specs of the rollup starting at the Bedrock upgrade
-└── <a href="./ufm-test-services">ufm-test-services</a>: Runs a set of tasks to generate metrics
 </pre>
 
 ## Development and Release Process
 
 ### Overview
 
-Please read this section if you're planning to fork this repository, or make frequent PRs into this repository.
+Please read this section carefully if you're planning to fork or make frequent PRs into this repository.
 
 ### Production Releases
 
@@ -130,39 +112,35 @@ For example, an `op-node` release might be versioned as `op-node/v1.1.2`, and  s
 Release candidates are versioned in the format `op-node/v1.1.2-rc.1`.
 We always start with `rc.1` rather than `rc`.
 
-For contract releases, refer to the GitHub release notes for a given release, which will list the specific contracts being released—not all contracts are considered production ready within a release, and many are under active development.
+For contract releases, refer to the GitHub release notes for a given release which will list the specific contracts being released. Not all contracts are considered production ready within a release and many are under active development.
 
 Tags of the form `v<semver>`, such as `v1.1.4`, indicate releases of all Go code only, and **DO NOT** include smart contracts.
 This naming scheme is required by Golang.
-In the above list, this means these `v<semver` releases contain all `op-*` components, and exclude all `contracts-*` components.
+In the above list, this means these `v<semver` releases contain all `op-*` components and exclude all `contracts-*` components.
 
-`op-geth` embeds upstream geth’s version inside it’s own version as follows: `vMAJOR.GETH_MAJOR GETH_MINOR GETH_PATCH.PATCH`.
+`op-geth` embeds upstream geth’s version inside its own version as follows: `vMAJOR.GETH_MAJOR GETH_MINOR GETH_PATCH.PATCH`.
 Basically, geth’s version is our minor version.
 For example if geth is at `v1.12.0`, the corresponding op-geth version would be `v1.101200.0`.
 Note that we pad out to three characters for the geth minor version and two characters for the geth patch version.
 Since we cannot left-pad with zeroes, the geth major version is not padded.
 
 See the [Node Software Releases](https://docs.optimism.io/builders/node-operators/releases) page of the documentation for more information about releases for the latest node components.
+
 The full set of components that have releases are:
 
-- `chain-mon`
 - `ci-builder`
-- `ci-builder`
-- `indexer`
 - `op-batcher`
 - `op-contracts`
 - `op-challenger`
-- `op-heartbeat`
 - `op-node`
 - `op-proposer`
-- `op-ufm`
-- `proxyd`
-- `ufm-metamask`
 
 All other components and packages should be considered development components only and do not have releases.
 
 ### Development branch
 
+The primary development branch is [`develop`](https://github.com/ethereum-optimism/optimism/tree/develop/).
+`develop` contains the most up-to-date software that remains backwards compatible with the latest experimental [network deployments](https://docs.optimism.io/chain/networks).
 The primary development branch is [`develop`](https://github.com/sys-labs/rollux/tree/develop/).
 `develop` contains the most up-to-date software that remains backwards compatible with the latest testnet [network deployments](https://rollux.com/developers/docs/useful-tools/networks/).
 If you're making a backwards compatible change, please direct your pull request towards `develop`.

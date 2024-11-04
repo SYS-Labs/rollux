@@ -15,10 +15,20 @@ var ErrNotLeader = errors.New("refusing to proxy request to non-leader sequencer
 
 // API defines the interface for the op-conductor API.
 type API interface {
+	// OverrideLeader is used to override or clear override for the leader status.
+	// It does not impact the actual raft consensus leadership status. It is supposed to be used when the cluster is unhealthy
+	// and the node is the only one up, to allow batcher to be able to connect to the node, so that it could download blocks from the manually started sequencer.
+	// override: true => force current conductor to be treated as leader regardless of the actual leadership status in raft.
+	// override: false => clear the override, return the actual leadership status in raft.
+	OverrideLeader(ctx context.Context, override bool) error
+	// LeaderOverridden returns true if the leader status is overridden.
+	LeaderOverridden(ctx context.Context) (bool, error)
 	// Pause pauses op-conductor.
 	Pause(ctx context.Context) error
 	// Resume resumes op-conductor.
 	Resume(ctx context.Context) error
+	// Stop stops op-conductor.
+	Stop(ctx context.Context) error
 	// Paused returns true if op-conductor is paused.
 	Paused(ctx context.Context) (bool, error)
 	// Stopped returns true if op-conductor is stopped.
@@ -32,22 +42,22 @@ type API interface {
 	// LeaderWithID returns the current leader's server info.
 	LeaderWithID(ctx context.Context) (*consensus.ServerInfo, error)
 	// AddServerAsVoter adds a server as a voter to the cluster.
-	AddServerAsVoter(ctx context.Context, id string, addr string) error
+	AddServerAsVoter(ctx context.Context, id string, addr string, version uint64) error
 	// AddServerAsNonvoter adds a server as a non-voter to the cluster. non-voter will not participate in leader election.
-	AddServerAsNonvoter(ctx context.Context, id string, addr string) error
+	AddServerAsNonvoter(ctx context.Context, id string, addr string, version uint64) error
 	// RemoveServer removes a server from the cluster.
-	RemoveServer(ctx context.Context, id string) error
+	RemoveServer(ctx context.Context, id string, version uint64) error
 	// TransferLeader transfers leadership to another server.
 	TransferLeader(ctx context.Context) error
 	// TransferLeaderToServer transfers leadership to a specific server.
 	TransferLeaderToServer(ctx context.Context, id string, addr string) error
 	// ClusterMembership returns the current cluster membership configuration.
-	ClusterMembership(ctx context.Context) ([]*consensus.ServerInfo, error)
+	ClusterMembership(ctx context.Context) (*consensus.ClusterMembership, error)
 
 	// APIs called by op-node
 	// Active returns true if op-conductor is active (not paused or stopped).
 	Active(ctx context.Context) (bool, error)
-	// CommitUnsafePayload commits a unsafe payload (latest head) to the consensus layer.
+	// CommitUnsafePayload commits an unsafe payload (latest head) to the consensus layer.
 	CommitUnsafePayload(ctx context.Context, payload *eth.ExecutionPayloadEnvelope) error
 }
 

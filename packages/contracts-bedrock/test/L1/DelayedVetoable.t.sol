@@ -2,7 +2,8 @@
 pragma solidity 0.8.15;
 
 import { Test } from "forge-std/Test.sol";
-import { DelayedVetoable } from "src/L1/DelayedVetoable.sol";
+import { IDelayedVetoable } from "src/L1/interfaces/IDelayedVetoable.sol";
+import { DeployUtils } from "scripts/libraries/DeployUtils.sol";
 
 contract DelayedVetoable_Init is Test {
     error Unauthorized(address expected, address actual);
@@ -16,7 +17,7 @@ contract DelayedVetoable_Init is Test {
     address initiator;
     address vetoer;
     uint256 operatingDelay = 14 days;
-    DelayedVetoable delayedVetoable;
+    IDelayedVetoable delayedVetoable;
 
     function setUp() public {
         initiator = makeAddr("initiator");
@@ -25,12 +26,14 @@ contract DelayedVetoable_Init is Test {
         vm.deal(initiator, 10000 ether);
         vm.deal(vetoer, 10000 ether);
 
-        delayedVetoable = new DelayedVetoable({
-            initiator_: initiator,
-            vetoer_: vetoer,
-            target_: address(target),
-            operatingDelay_: operatingDelay
-        });
+        delayedVetoable = IDelayedVetoable(
+            DeployUtils.create1({
+                _name: "DelayedVetoable",
+                _args: DeployUtils.encodeConstructor(
+                    abi.encodeCall(IDelayedVetoable.__constructor__, (vetoer, initiator, address(target), operatingDelay))
+                )
+            })
+        );
 
         // Most tests will use the operating delay, so we call as the initiator with null data
         // to set the delay. For tests that need to use the initial zero delay, we'll modify the
@@ -150,7 +153,7 @@ contract DelayedVetoable_HandleCall_Test is DelayedVetoable_Init {
 contract DelayedVetoable_HandleCall_TestFail is DelayedVetoable_Init {
     /// @dev Only the initiator can initiate a call.
     function test_handleCall_unauthorizedInitiation_reverts() external {
-        vm.expectRevert(abi.encodeWithSelector(DelayedVetoable.Unauthorized.selector, initiator, address(this)));
+        vm.expectRevert(abi.encodeWithSelector(IDelayedVetoable.Unauthorized.selector, initiator, address(this)));
         (bool revertsAsExpected,) = address(delayedVetoable).call(hex"00001234");
         assertTrue(revertsAsExpected);
     }
@@ -162,7 +165,7 @@ contract DelayedVetoable_HandleCall_TestFail is DelayedVetoable_Init {
         (bool success,) = address(delayedVetoable).call(data);
         assertTrue(success);
 
-        vm.expectRevert(DelayedVetoable.ForwardingEarly.selector);
+        vm.expectRevert(IDelayedVetoable.ForwardingEarly.selector);
         (bool revertsAsExpected,) = address(delayedVetoable).call(data);
         assertTrue(revertsAsExpected);
     }
@@ -186,7 +189,7 @@ contract DelayedVetoable_HandleCall_TestFail is DelayedVetoable_Init {
         assertTrue(success);
 
         // Attempt to forward the same call again.
-        vm.expectRevert(abi.encodeWithSelector(DelayedVetoable.Unauthorized.selector, initiator, address(this)));
+        vm.expectRevert(abi.encodeWithSelector(IDelayedVetoable.Unauthorized.selector, initiator, address(this)));
         (bool revertsAsExpected,) = address(delayedVetoable).call(data);
         assertTrue(revertsAsExpected);
     }

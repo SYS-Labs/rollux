@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-// Testing utilities
+// Testing
 import { CommonTest } from "test/setup/CommonTest.sol";
 
 // Libraries
 import { Encoding } from "src/libraries/Encoding.sol";
 import { Constants } from "src/libraries/Constants.sol";
-
-// Target contract
-import { L1Block } from "src/L2/L1Block.sol";
+import "src/libraries/L1BlockErrors.sol";
 
 contract L1BlockTest is CommonTest {
     address depositor;
@@ -200,7 +198,7 @@ contract L1BlockCustomGasToken_Test is L1BlockTest {
     }
 
     function test_setGasPayingToken_isDepositor_reverts() external {
-        vm.expectRevert(L1Block.NotDepositor.selector);
+        vm.expectRevert(NotDepositor.selector);
         l1Block.setGasPayingToken(address(this), 18, "Test", "TST");
     }
 }

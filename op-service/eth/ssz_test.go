@@ -40,6 +40,15 @@ func FuzzExecutionPayloadUnmarshal(f *testing.F) {
 	})
 }
 
+func TestExecutionPayloadUnmarshalMaliciousData(t *testing.T) {
+	// Prior to https://github.com/ethereum-optimism/optimism/pull/10362 this causes a panic
+	// It should return an error and not panic
+	data := []byte("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\x00\x02\x00\x000000000000000000000000000000000000000000000000000000000000000000\x00\x02\x00\x000000")
+	var payload ExecutionPayload
+	err := payload.UnmarshalSSZ(BlockV2, uint32(len(data)), bytes.NewReader(data))
+	require.Error(t, err)
+}
+
 // FuzzExecutionPayloadMarshalUnmarshal checks that our SSZ encoding>decoding round trips properly
 func FuzzExecutionPayloadMarshalUnmarshalV1(f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte, a, b, c, d uint64, extraData []byte, txs uint16, txsData []byte) {
@@ -427,7 +436,7 @@ func TestMarshalUnmarshalExecutionPayloadEnvelopes(t *testing.T) {
 		ExecutionPayload:      createPayloadWithWithdrawals(&types.Withdrawals{}),
 	}
 
-	missingExecutionPaylaod := &ExecutionPayloadEnvelope{
+	missingExecutionPayload := &ExecutionPayloadEnvelope{
 		ParentBeaconBlockRoot: &hash,
 		ExecutionPayload:      nil,
 	}
@@ -439,7 +448,7 @@ func TestMarshalUnmarshalExecutionPayloadEnvelopes(t *testing.T) {
 	}{
 		{"ValidInputSucceeds", validInput, nil},
 		{"MissingHashFailsToSerialize", missingHash, ErrMissingData},
-		{"MissingExecutionDataFailsToSerialize", missingExecutionPaylaod, ErrMissingData},
+		{"MissingExecutionDataFailsToSerialize", missingExecutionPayload, ErrMissingData},
 	}
 
 	for _, test := range tests {

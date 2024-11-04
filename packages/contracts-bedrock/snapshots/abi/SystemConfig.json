@@ -136,6 +136,19 @@
   },
   {
     "inputs": [],
+    "name": "basefeeScalar",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "batchInbox",
     "outputs": [
       {
@@ -162,12 +175,51 @@
   },
   {
     "inputs": [],
+    "name": "blobbasefeeScalar",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "disputeGameFactory",
     "outputs": [
       {
         "internalType": "address",
         "name": "addr_",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "eip1559Denominator",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "eip1559Elasticity",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -238,14 +290,14 @@
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "_overhead",
-        "type": "uint256"
+        "internalType": "uint32",
+        "name": "_basefeeScalar",
+        "type": "uint32"
       },
       {
-        "internalType": "uint256",
-        "name": "_scalar",
-        "type": "uint256"
+        "internalType": "uint32",
+        "name": "_blobbasefeeScalar",
+        "type": "uint32"
       },
       {
         "internalType": "bytes32",
@@ -295,7 +347,7 @@
             "type": "uint128"
           }
         ],
-        "internalType": "struct ResourceMetering.ResourceConfig",
+        "internalType": "struct IResourceMetering.ResourceConfig",
         "name": "_config",
         "type": "tuple"
       },
@@ -526,7 +578,7 @@
             "type": "uint128"
           }
         ],
-        "internalType": "struct ResourceMetering.ResourceConfig",
+        "internalType": "struct IResourceMetering.ResourceConfig",
         "name": "",
         "type": "tuple"
       }
@@ -563,6 +615,24 @@
   {
     "inputs": [
       {
+        "internalType": "uint32",
+        "name": "_denominator",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "_elasticity",
+        "type": "uint32"
+      }
+    ],
+    "name": "setEIP1559Params",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "_overhead",
         "type": "uint256"
@@ -574,6 +644,24 @@
       }
     ],
     "name": "setGasConfig",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "_basefeeScalar",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "_blobbasefeeScalar",
+        "type": "uint32"
+      }
+    ],
+    "name": "setGasConfigEcotone",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -653,7 +741,7 @@
         "type": "string"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   },
   {

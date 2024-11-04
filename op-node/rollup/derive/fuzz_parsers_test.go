@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/core/tracing"
+	"github.com/ethereum/go-ethereum/triedb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
@@ -82,15 +84,26 @@ func FuzzL1InfoEcotoneRoundTrip(f *testing.F) {
 		}
 		enc, err := in.marshalBinaryEcotone()
 		if err != nil {
-			t.Fatalf("Failed to marshal binary: %v", err)
+			t.Fatalf("Failed to marshal Ecotone binary: %v", err)
 		}
 		var out L1BlockInfo
 		err = out.unmarshalBinaryEcotone(enc)
 		if err != nil {
-			t.Fatalf("Failed to unmarshal binary: %v", err)
+			t.Fatalf("Failed to unmarshal Ecotone binary: %v", err)
 		}
 		if !cmp.Equal(in, out, cmp.Comparer(testutils.BigEqual)) {
-			t.Fatalf("The data did not round trip correctly. in: %v. out: %v", in, out)
+			t.Fatalf("The Ecotone data did not round trip correctly. in: %v. out: %v", in, out)
+		}
+		enc, err = in.marshalBinaryInterop()
+		if err != nil {
+			t.Fatalf("Failed to marshal Interop binary: %v", err)
+		}
+		err = out.unmarshalBinaryInterop(enc)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal Interop binary: %v", err)
+		}
+		if !cmp.Equal(in, out, cmp.Comparer(testutils.BigEqual)) {
+			t.Fatalf("The Interop data did not round trip correctly. in: %v. out: %v", in, out)
 		}
 
 	})
@@ -232,9 +245,9 @@ func FuzzUnmarshallLogEvent(f *testing.F) {
 	}
 
 	// Set the EVM state up once to fuzz against
-	state, err := state.New(common.Hash{}, state.NewDatabase(rawdb.NewMemoryDatabase()), nil)
+	state, err := state.New(common.Hash{}, state.NewDatabase(triedb.NewDatabase(rawdb.NewMemoryDatabase(), nil), nil))
 	require.NoError(f, err)
-	state.SetBalance(from, uint256.MustFromBig(BytesToBigInt([]byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff})))
+	state.SetBalance(from, uint256.MustFromBig(BytesToBigInt([]byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff})), tracing.BalanceChangeUnspecified)
 	_, addr, _, err := runtime.Create(common.FromHex(bindings.OptimismPortalMetaData.Bin), &runtime.Config{
 		Origin:   from,
 		State:    state,

@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/holiman/uint256"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -64,7 +65,7 @@ func OpenGethDB(dataDirPath string, readOnly bool) (*Cheater, error) {
 		return nil, err
 	}
 	ch, err := core.NewBlockChain(db, nil, nil, nil,
-		beacon.New(ethash.NewFullFaker()), vm.Config{}, nil, nil)
+		beacon.New(ethash.NewFullFaker()), vm.Config{}, nil)
 	if err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("failed to open blockchain around chain db: %w", err)
@@ -337,7 +338,7 @@ func StoragePatch(patch io.Reader, address common.Address) HeadFn {
 
 func SetBalance(addr common.Address, amount *big.Int) HeadFn {
 	return func(_ *types.Header, headState *state.StateDB) error {
-		headState.SetBalance(addr, uint256.MustFromBig(amount))
+		headState.SetBalance(addr, uint256.MustFromBig(amount), tracing.BalanceChangeUnspecified)
 		return nil
 	}
 }

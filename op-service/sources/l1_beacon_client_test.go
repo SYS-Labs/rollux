@@ -1,10 +1,19 @@
 package sources
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"path"
+	"strconv"
 	"testing"
 
+	client_mocks "github.com/ethereum-optimism/optimism/op-service/client/mocks"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-service/sources/mocks"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
@@ -16,8 +25,8 @@ func makeTestBlobSidecar(index uint64) (eth.IndexedBlobHash, *eth.BlobSidecar) {
 	// make first byte of test blob match its index so we can easily verify if is returned in the
 	// expected order
 	blob[0] = byte(index)
-	commit, _ := kzg4844.BlobToCommitment(blob)
-	proof, _ := kzg4844.ComputeBlobProof(blob, commit)
+	commit, _ := kzg4844.BlobToCommitment(&blob)
+	proof, _ := kzg4844.ComputeBlobProof(&blob, commit)
 	hash := eth.KZGToVersionedHash(commit)
 
 	idh := eth.IndexedBlobHash{
@@ -172,6 +181,37 @@ func TestBeaconClientFallback(t *testing.T) {
 	require.Equal(t, sidecars, resp)
 	require.NoError(t, err)
 
+}
+
+func TestBeaconHTTPClient(t *testing.T) {
+	c := client_mocks.NewHTTP(t)
+	b := NewBeaconHTTPClient(c)
+
+	ctx := context.Background()
+
+	indices := []uint64{3, 9, 11}
+	index0, _ := makeTestBlobSidecar(indices[0])
+	index1, _ := makeTestBlobSidecar(indices[1])
+	index2, _ := makeTestBlobSidecar(indices[2])
+
+	hashes := []eth.IndexedBlobHash{index0, index1, index2}
+
+	// mocks returning a 200 with empty list
+	respBytes, _ := json.Marshal(eth.APIGetBlobSidecarsResponse{})
+	slot := uint64(2)
+	path := path.Join(sidecarsMethodPrefix, strconv.FormatUint(slot, 10))
+	reqQuery := url.Values{}
+	for i := range hashes {
+		reqQuery.Add("indices", strconv.FormatUint(hashes[i].Index, 10))
+	}
+	headers := http.Header{}
+	headers.Add("Accept", "application/json")
+	c.EXPECT().Get(ctx, path, reqQuery, headers).Return(&http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(bytes.NewReader(respBytes))}, nil)
+
+	// BeaconBlobSideCars should return error when client.HTTP returns a 200 with empty list
+	_, err := b.BeaconBlobSideCars(ctx, false, slot, hashes)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), fmt.Sprintf("#returned blobs(%d) != #requested blobs(%d)", 0, len(hashes)))
 }
 
 func TestClientPoolSingle(t *testing.T) {

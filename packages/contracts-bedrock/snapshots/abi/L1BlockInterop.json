@@ -78,25 +78,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "dependencySet",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "dependencySetSize",
     "outputs": [
@@ -107,6 +88,13 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "depositsComplete",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -173,6 +161,19 @@
       {
         "internalType": "bool",
         "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isDeposit",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "isDeposit_",
         "type": "bool"
       }
     ],
@@ -248,6 +249,24 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum ConfigType",
+        "name": "_type",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_value",
+        "type": "bytes"
+      }
+    ],
+    "name": "setConfig",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -371,6 +390,32 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      }
+    ],
+    "name": "DependencyAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      }
+    ],
+    "name": "DependencyRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "token",
         "type": "address"
@@ -396,6 +441,31 @@
     ],
     "name": "GasPayingTokenSet",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "AlreadyDependency",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CantRemovedDependency",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DependencySetSizeTooLarge",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotCrossL2Inbox",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotDependency",
+    "type": "error"
   },
   {
     "inputs": [],
