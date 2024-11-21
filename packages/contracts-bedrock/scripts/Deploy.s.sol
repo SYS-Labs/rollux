@@ -430,7 +430,7 @@ contract Deploy is Deployer {
         address l1CrossDomainMessengerProxy = mustGetAddress("L1CrossDomainMessengerProxy");
 
         BatchInbox inbox = new BatchInbox({
-            _messenger: l1CrossDomainMessengerProxy,
+            _messenger: payable(l1CrossDomainMessengerProxy)
         });
 
         require(address(inbox.MESSENGER()) == l1CrossDomainMessengerProxy);
@@ -655,7 +655,7 @@ contract Deploy is Deployer {
         address batchInboxProxy = mustGetAddress("BatchInboxProxy");
         address batchInbox = mustGetAddress("BatchInbox");
         proxyAdmin.upgrade({
-            _proxy: payable(BatchInboxProxy),
+            _proxy: payable(batchInboxProxy),
             _implementation: batchInbox
         });
     }

@@ -78,7 +78,8 @@ abstract contract Deployer is Script {
 
         string memory chainIdPath = string.concat(deploymentsDir, "/.chainId");
         try vm.readFile(chainIdPath) returns (string memory chainid) {
-            uint256 chainId = vm.parseUint(chainid);
+            string memory trimmedChainId = _trim(chainid);
+            uint256 chainId = vm.parseUint(trimmedChainId);
             require(chainId == block.chainid, "Misconfigured networks");
         } catch {
             vm.writeFile(chainIdPath, vm.toString(block.chainid));
@@ -90,6 +91,30 @@ abstract contract Deployer is Script {
             vm.writeJson("{}", tempDeploymentsPath);
         }
         console.log("Storing temp deployment data in %s", tempDeploymentsPath);
+    }
+
+    function _trim(string memory str) internal pure returns (string memory) {
+        bytes memory strBytes = bytes(str);
+        uint256 start = 0;
+        uint256 end = strBytes.length;
+
+        // Trim leading whitespace
+        while (start < end && (strBytes[start] == 0x20 || strBytes[start] == 0x0A || strBytes[start] == 0x0D)) {
+            start++;
+        }
+
+        // Trim trailing whitespace
+        while (end > start && (strBytes[end - 1] == 0x20 || strBytes[end - 1] == 0x0A || strBytes[end - 1] == 0x0D)) {
+            end--;
+        }
+
+        // Return the trimmed string
+        bytes memory result = new bytes(end - start);
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = strBytes[i];
+        }
+
+        return string(result);
     }
 
     /// @notice Call this function to sync the deployment artifacts such that
@@ -402,7 +427,7 @@ abstract contract Deployer is Script {
         uint256 chainid = block.chainid;
         if (chainid == 1) {
             return "mainnet";
-        }  else if (chainid == 5) {
+        }  else if (chainid == 5700) {
             return "goerli";
         } else if (chainid == 420) {
             return "optimism-goerli";

@@ -7,8 +7,8 @@
 
   "l1StartingBlockTag": "BLOCKHASH",
 
-  "l1ChainID": 5,
-  "l2ChainID": 42069,
+  "l1ChainID": 5700,
+  "l2ChainID": 57000,
   "l2BlockTime": 2,
 
   "maxSequencerDrift": 600,
@@ -21,7 +21,7 @@
 
   "l2OutputOracleSubmissionInterval": 120,
   "l2OutputOracleStartingBlockNumber": 0,
-  "l2OutputOracleStartingTimestamp": TIMESTAMP,
+  "l2OutputOracleStartingTimestamp": -1,
 
   "l2OutputOracleProposer": "PROPOSER",
   "l2OutputOracleChallenger": "ADMIN",
