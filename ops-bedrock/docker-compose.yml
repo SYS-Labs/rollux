@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l1
-    image: l1:${TAG}
+    image: l1
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -35,7 +35,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.l2
-    image: l2:${TAG}
+    image: l2
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -110,7 +110,7 @@ services:
     build:
       context: ../
       dockerfile: ./op-proposer/Dockerfile
-    image: op-proposer:${TAG}
+    image: op-proposer
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
@@ -142,7 +142,7 @@ services:
     build:
       context: ../
       dockerfile: ./op-batcher/Dockerfile
-    image: op-batcher:${TAG}
+    image: op-batcher
     stop_signal: SIGINT
     stop_grace_period: 30s
     ports:
