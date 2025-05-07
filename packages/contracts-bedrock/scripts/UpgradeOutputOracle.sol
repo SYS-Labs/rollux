@@ -15,7 +15,7 @@ contract UpgradeL2OutputOracle is Script {
         // Perform upgrade
         ProxyAdmin(proxyAdminAddr).upgrade(
             payable(proxyAddr),
-            address(0x12C89b32d650f06d0C4493Edd0F0199B54732c3c)
+            address(0x3F2F87e4F3584400f045c66D06c2377026D3dC84)
         );
 
         vm.stopBroadcast();
