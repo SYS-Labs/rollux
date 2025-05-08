@@ -506,9 +506,9 @@ func (m *SimpleTxManager) waitMinedBlob(ctx context.Context, vh common.Hash, sen
 				sendState.TxMined(vh)
 			}
 			if receipt.BlockNumber != nil {
-				MPT := receipt.BlockNumber.Uint64()
-				if MPT > 0 {
-					m.l.Info("Blob confirmed", "VH", receipt.TxHash, "MPT", MPT)
+				MTP := receipt.BlockNumber.Uint64()
+				if MTP > 0 {
+					m.l.Info("Blob confirmed", "VH", receipt.TxHash, "MTP", MTP)
 					return receipt, nil
 				}
 			}
