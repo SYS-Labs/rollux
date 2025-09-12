@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"golang.org/x/crypto/sha3"
 	"io"
 	"math/big"
 	_ "net/http/pprof"
@@ -22,6 +25,22 @@ import (
 	// SYSCOIN
 	"github.com/ethereum-optimism/optimism/op-bindings/bindings"
 )
+
+func testnetAppendSelector() []byte {
+	h := sha3.NewLegacyKeccak256()
+	h.Write([]byte("appendSequencerBatch()"))
+	sum := h.Sum(nil)
+	return sum[:4]
+}
+
+func buildTestnetRawCalldata(vhs [][32]byte) []byte {
+	data := make([]byte, 0, 4+32*len(vhs))
+	data = append(data, testnetAppendSelector()...)
+	for _, vh := range vhs {
+		data = append(data, vh[:]...)
+	}
+	return data
+}
 
 // BatchSubmitter encapsulates a service responsible for submitting L2 tx
 // batches to L1 for availability.
@@ -106,6 +125,7 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 			MaxFrameSize:       cfg.MaxL1TxSize - 1, // subtract 1 byte for version
 			CompressorConfig:   cfg.CompressorConfig.Config(),
 		},
+		ChainID: cfg.ChainID,
 	}
 
 	// Validate the batcher config
@@ -163,6 +183,24 @@ func (l *BatchSubmitter) Start() error {
 
 func (l *BatchSubmitter) StopIfRunning(ctx context.Context) {
 	_ = l.Stop(ctx)
+}
+
+func (l *BatchSubmitter) PickCalldataFormat(
+	ctx context.Context,
+	to common.Address,
+	arrayOfVHs [][32]byte,
+	parsedABI *abi.ABI,
+) ([]byte, error) {
+	if l.Config.ChainID == 5700 { // sys testnet
+		return buildTestnetRawCalldata(arrayOfVHs), nil
+	}
+
+	// mainnet is default (57 and any other chain ID)
+	packed, err := parsedABI.Pack("appendSequencerBatch", arrayOfVHs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack mainnet calldata: %w", err)
+	}
+	return packed, nil
 }
 
 func (l *BatchSubmitter) Stop(ctx context.Context) error {
@@ -403,13 +441,14 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 		var array [32]byte
 		copy(array[:], receipt.TxHash.Bytes())
 		arrayOfVHs = append(arrayOfVHs, array)
-		packedData, err := parsedABI.Pack(appendSequencerBatchMethodName, arrayOfVHs)
+		calldata, err := l.PickCalldataFormat(ctx, l.Rollup.BatchInboxAddress, arrayOfVHs, parsedABI)
 		if err != nil {
-			l.log.Error("Failed to pack data for function call: %v", err)
+			l.log.Error("Failed to build calldata for BatchInbox", "err", err)
 			l.recordFailedTx(txdata.ID(), err)
 			return err
 		}
-		txdata.frame.data = packedData
+
+		txdata.frame.data = calldata
 		l.sendTransaction(txdata, queue, receiptsCh)
 	}
 	return nil
