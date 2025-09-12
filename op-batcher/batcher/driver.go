@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"golang.org/x/crypto/sha3"
@@ -126,6 +125,7 @@ func NewBatchSubmitterFromCLIConfig(cfg CLIConfig, l log.Logger, m metrics.Metri
 			MaxFrameSize:       cfg.MaxL1TxSize - 1, // subtract 1 byte for version
 			CompressorConfig:   cfg.CompressorConfig.Config(),
 		},
+		ChainID: cfg.ChainID,
 	}
 
 	// Validate the batcher config
@@ -191,22 +191,16 @@ func (l *BatchSubmitter) PickCalldataFormat(
 	arrayOfVHs [][32]byte,
 	parsedABI *abi.ABI,
 ) ([]byte, error) {
-
-	raw := buildTestnetRawCalldata(arrayOfVHs)
-	if _, err := l.L1Client.CallContract(ctx, ethereum.CallMsg{To: &to, Data: raw}, nil); err == nil {
-		return raw, nil // testnet raw format works
+	if l.Config.ChainID == 5700 { // sys testnet
+		return buildTestnetRawCalldata(arrayOfVHs), nil
 	}
 
+	// mainnet is default (57 and any other chain ID)
 	packed, err := parsedABI.Pack("appendSequencerBatch", arrayOfVHs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to pack mainnet calldata: %w", err)
 	}
-	if _, err := l.L1Client.CallContract(ctx, ethereum.CallMsg{To: &to, Data: packed}, nil); err == nil {
-		return packed, nil // mainnet format works
-	}
-
-	// Neither worked – bubble up the more helpful error
-	return nil, fmt.Errorf("appendSequencerBatch call reverted for both encodings (raw + ABI)")
+	return packed, nil
 }
 
 func (l *BatchSubmitter) Stop(ctx context.Context) error {

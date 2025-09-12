@@ -39,6 +39,11 @@ var (
 		Usage:   "HTTP provider URL for Rollup node",
 		EnvVars: prefixEnvVars("ROLLUP_RPC"),
 	}
+	ChainIDFlag = &cli.StringFlag{
+		Name:    "rollup-rpc",
+		Usage:   "HTTP provider URL for Rollup node",
+		EnvVars: prefixEnvVars("CHAIN_ID"),
+	}
 	// Optional flags
 	SubSafetyMarginFlag = &cli.Uint64Flag{
 		Name: "sub-safety-margin",
@@ -48,6 +53,7 @@ var (
 		Value:   10,
 		EnvVars: prefixEnvVars("SUB_SAFETY_MARGIN"),
 	}
+
 	PollIntervalFlag = &cli.DurationFlag{
 		Name:    "poll-interval",
 		Usage:   "How frequently to poll L2 for new blocks",
