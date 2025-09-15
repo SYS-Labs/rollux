@@ -40,7 +40,7 @@ var (
 		EnvVars: prefixEnvVars("ROLLUP_RPC"),
 	}
 	ChainIDFlag = &cli.StringFlag{
-		Name:    "rollup-rpc",
+		Name:    "chain-id",
 		Usage:   "HTTP provider URL for Rollup node",
 		EnvVars: prefixEnvVars("CHAIN_ID"),
 	}
