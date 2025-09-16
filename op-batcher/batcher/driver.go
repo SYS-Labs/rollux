@@ -192,10 +192,12 @@ func (l *BatchSubmitter) PickCalldataFormat(
 	parsedABI *abi.ABI,
 ) ([]byte, error) {
 	if l.Config.ChainID == 5700 { // sys testnet
+		l.log.Info("Using testnet calldata format")
 		return buildTestnetRawCalldata(arrayOfVHs), nil
 	}
 
 	// mainnet is default (57 and any other chain ID)
+	l.log.Info("Using mainnet calldata format")
 	packed, err := parsedABI.Pack("appendSequencerBatch", arrayOfVHs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack mainnet calldata: %w", err)
