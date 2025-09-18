@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/core"
 	"io"
 	"math/big"
 	_ "net/http/pprof"
@@ -421,17 +422,17 @@ func (l *BatchSubmitter) publishTxToL1(ctx context.Context, queue *txmgr.Queue[t
 func (l *BatchSubmitter) sendTransaction(txdata txData, queue *txmgr.Queue[txData], receiptsCh chan txmgr.TxReceipt[txData]) {
 	// Do the gas estimation offline. A value of 0 will cause the [txmgr] to estimate the gas limit.
 	data := txdata.frame.data
-	/*intrinsicGas, err := core.IntrinsicGas(data, nil, false, true, true, false)
+	intrinsicGas, err := core.IntrinsicGas(data, nil, false, true, true, false)
 	if err != nil {
 		l.log.Error("Failed to calculate intrinsic gas", "error", err)
 		return
-	}*/
+	}
 
 	candidate := txmgr.TxCandidate{
 		To:     &l.Rollup.BatchInboxAddress,
 		TxData: data,
 		// SYSCOIN let L1 estimate gas due to precompile
-		GasLimit: 0,
+		GasLimit: intrinsicGas,
 	}
 	queue.Send(txdata, candidate, receiptsCh)
 }
