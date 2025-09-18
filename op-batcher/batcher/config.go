@@ -35,6 +35,9 @@ type Config struct {
 
 	// Channel builder parameters
 	Channel ChannelConfig
+
+	// SYSCOIN
+	ChainID uint64
 }
 
 // Check ensures that the [Config] is valid.
@@ -92,6 +95,9 @@ type CLIConfig struct {
 	MetricsConfig    opmetrics.CLIConfig
 	PprofConfig      oppprof.CLIConfig
 	CompressorConfig compressor.CLIConfig
+
+	// SYSCOIN
+	ChainID uint64
 }
 
 func (c CLIConfig) Check() error {
@@ -122,6 +128,7 @@ func NewConfig(ctx *cli.Context) CLIConfig {
 		RollupRpc:       ctx.String(flags.RollupRpcFlag.Name),
 		SubSafetyMargin: ctx.Uint64(flags.SubSafetyMarginFlag.Name),
 		PollInterval:    ctx.Duration(flags.PollIntervalFlag.Name),
+		ChainID:         ctx.Uint64(flags.ChainIDFlag.Name),
 
 		/* Optional Flags */
 

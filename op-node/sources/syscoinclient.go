@@ -353,7 +353,7 @@ func (s *SyscoinClient) TransactionReceipt(ctx context.Context, vh common.Hash) 
 	type ResGetBlobReceipt struct {
 		Error  *RPCError `json:"error"`
 		Result struct {
-			MPT int64 `json:"mpt"`
+			MTP int64 `json:"mtp"`
 		} `json:"result"`
 	}
 	res := ResGetBlobReceipt{}
@@ -373,12 +373,12 @@ func (s *SyscoinClient) TransactionReceipt(ctx context.Context, vh common.Hash) 
 		return nil, res.Error
 	}
 	receipt := types.Receipt{}
-	if res.Result.MPT > 0 {
+	if res.Result.MTP > 0 {
 		// store VH in TxHash used by driver to put into the batch
 		receipt = types.Receipt{
 			TxHash:      vh,
-			// store MPT in BlockNumber to be used in caller
-			BlockNumber: big.NewInt(res.Result.MPT),
+			// store MTP in BlockNumber to be used in caller
+			BlockNumber: big.NewInt(res.Result.MTP),
 			Status:      types.ReceiptStatusSuccessful,
 		}
 	}
